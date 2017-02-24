@@ -3,8 +3,8 @@ import * as Lab from 'lab';
 import * as Code from 'code';
 
 export const lab    = Lab.script();
-const experiment    = lab.experiment;
-const test          = lab.test;
+const describe      = lab.describe;
+const it            = lab.it;
 const expect        = Code.expect;
 
 /**
@@ -20,8 +20,8 @@ class TestModule {
     }
 }
 
-experiment('Decorators', () => {
-    test('Check module metadata', (done) => {
+describe('Decorators', () => {
+    it('Check module metadata', (done) => {
 
         Reflect.getOwnMetadataKeys(TestModule)
             .filter(x => x === 'annotations')
