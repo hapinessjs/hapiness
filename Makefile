@@ -9,5 +9,5 @@ tsc-test:
 clean:
 	@node ./node_modules/.bin/rimraf dist/ && ./node_modules/.bin/rimraf dist-test/
 postinstall:
-	@node cp -R ./lib/injection-js ./node_modules/injection-js
+	cp -R ./lib/injection-js ./node_modules/injection-js
 .PHONY: lint test tsc tsc-test clean postinstall
