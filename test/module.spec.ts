@@ -1,3 +1,4 @@
+import { bootstrap } from '../src/core';
 import { Injectable } from 'injection-js';
 import { buildModule } from '../src/module';
 import { HapinessModule } from '../src/index';
@@ -23,7 +24,7 @@ class TestDep2 {
 }
 @HapinessModule({
     version: '1.0.0',
-    options: { test: 'test' },
+    options: { host: '0.0.0.0', port: 4443 },
     providers: [TestDep, TestDep2]
 })
 class TestModule {}
@@ -34,7 +35,7 @@ describe('Module', () => {
         const module = buildModule(TestModule);
         expect(module.name).equals('TestModule');
         expect(module.version).equals('1.0.0');
-        expect(module.options).equals({ test: 'test' });
+        expect(module.options).equals({ host: '0.0.0.0', port: 4443 });
         expect(module.di.get(TestDep2).getLog()).equals('yo');
         done();
 

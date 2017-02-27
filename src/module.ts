@@ -1,35 +1,11 @@
-import { buildInternalDI } from './di';
-import * as Hoek from 'hoek';
+import { CoreModule } from './core';
+import { extractMetadata } from './utils';
+import { HapinessModule } from './decorators';
 import { ReflectiveInjector } from 'injection-js';
-import { extractMetadata, HapinessModule } from './';
+import * as Hoek from 'hoek';
 
 /**
- * CoreProvide Type
- * Used by CoreModule Type
- */
-export interface CoreProvide {
-    provide: any;
-    useClass?: any;
-    useValue?: any;
-    useExisting?: any;
-    useFactory?: any;
-    deps?: any[];
-}
-
-/**
- * CoreModule Type
- * Represents a Module
- */
-export interface CoreModule {
-    di: ReflectiveInjector;
-    name: string;
-    version: string;
-    options: any;
-    providers: CoreProvide[];
-}
-
-/**
- * Entrypoint to build a Module
+ * Entrypoint to build a CoreModule
  * Get the metadata and build the
  * module instance with the DI
  *
@@ -37,6 +13,7 @@ export interface CoreModule {
  * @returns CoreModule
  */
 export function buildModule(module: any): CoreModule {
+    console.log('dddd', module);
     const metadata = extractMetadata(module);
     Hoek.assert(metadata && metadata.length === 1, new Error('Please define a Module with the right annotation'));
     const moduleMetadata = <HapinessModule>metadata.pop();
@@ -44,7 +21,7 @@ export function buildModule(module: any): CoreModule {
 }
 
 /**
- * Transform metadata to instance Module
+ * Transform metadata to instance CoreModule
  *
  * @param  {HapinessModule} data
  * @param  {string} name
@@ -57,6 +34,6 @@ function moduleFromMetadata(data: HapinessModule, name: string): CoreModule {
         version: data.version,
         options: data.options || {},
         providers: providers.map(p => !!p.provide ? p : {provide: p, useClass: p}),
-        di: buildInternalDI(providers)
+        di: ReflectiveInjector.resolveAndCreate(providers)
     };
 }
