@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
     "sourceMap": true,
@@ -13,7 +13,8 @@
   },
   "files": [
     "./src/index.ts",
-    "./test/decorators.spec.ts"
+    "./test/decorators.spec.ts",
+    "./test/module.spec.ts"
   ],
   "angularCompilerOptions": {
     "skipTemplateCodegen": true

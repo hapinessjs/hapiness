@@ -20,6 +20,8 @@
     "@types/code": "^4.0.1",
     "@types/fs-extra": "^0.0.37",
     "@types/hapi": "^16.0.0",
+    "@types/hoek": "^4.1.1",
+    "@types/joi": "^10.0.0",
     "@types/lab": "^11.1.0",
     "@types/node": "^7.0.4",
     "code": "^4.0.0",
@@ -30,6 +32,8 @@
   },
   "dependencies": {
     "hapi": "^16.1.0",
+    "hoek": "^4.1.0",
+    "joi": "^10.2.2",
     "reflect-metadata": "^0.1.9"
   }
 }

@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import * as Joi from 'joi';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
 
 /**
@@ -24,6 +25,19 @@ export interface HapinessModule {
     providers?: Array<any>;
     exports?: Array<any>;
 }
+
+
+export function HapinessModuleValidator(metadata): Joi.ValidationResult<any> {
+    return Joi.validate(metadata, Joi.object().keys({
+        version: Joi.string().required(),
+        options: Joi.object(),
+        import: Joi.array(),
+        declarations: Joi.array(),
+        providers: Joi.array(),
+        exports: Joi.array()
+    }));
+}
+
 /**
  * HapinessModule decorator and metadata.
  *
