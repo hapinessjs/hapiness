@@ -1,6 +1,7 @@
 import { buildModule } from './module';
 import { ReflectiveInjector } from 'injection-js';
 import { Server } from 'hapi';
+import { Observable } from 'rxjs';
 
 /**
  * CoreProvide Type
@@ -37,9 +38,27 @@ export interface MainModule extends CoreModule {
     server: Server;
 }
 
+/**
+ * CoreApp
+ */
+class Core {
+    private mainModule: MainModule;
+
+    bootstrap(module: any) {
+        this.mainModule = <MainModule>buildModule(module);
+        this.mainModule.server = new Server();
+        this.mainModule.server.connection(this.mainModule.options);
+    }
+
+
+}
+
 export function bootstrap(module: any) {
-    const mainModule = <MainModule>buildModule(module);
-    mainModule.server = new Server();
-    mainModule.server.connection(mainModule.options);
-    
+
+}
+
+
+
+export function registerPlugin(module: CoreModule) {
+   
 }

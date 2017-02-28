@@ -23,11 +23,17 @@ class TestDep2 {
     getLog() { return this.testDep.log(); }
 }
 @HapinessModule({
+    version: '1.0.0'
+})
+class SubTestModule {}
+@HapinessModule({
     version: '1.0.0',
     options: { host: '0.0.0.0', port: 4443 },
-    providers: [TestDep, TestDep2]
+    providers: [TestDep, TestDep2],
+    imports: [SubTestModule]
 })
 class TestModule {}
+
 
 describe('Module', () => {
     it('Check module creation', (done) => {
@@ -40,4 +46,10 @@ describe('Module', () => {
         done();
 
     });
+
+    it('', (done) => {
+        buildModule(TestModule);
+        done();
+    });
+
 });

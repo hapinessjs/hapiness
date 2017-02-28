@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import * as Joi from 'joi';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
+import { Type } from 'injection-js/facade/type';
 
 /**
  * Type of the HapinessModule decorator / constructor function.
@@ -20,10 +21,10 @@ export interface HapinessModuleDecorator {
 export interface HapinessModule {
     version: string;
     options?: Object;
-    import?: Array<any>;
     declarations?: Array<any>;
-    providers?: Array<any>;
-    exports?: Array<any>;
+    providers?: Array<Type<any>|any[]>;
+    imports?: Array<Type<any>|any[]>;
+    exports?: Array<Type<any>|any[]>;
 }
 
 /**
@@ -35,7 +36,7 @@ export interface HapinessModule {
 export const HapinessModule: HapinessModuleDecorator = <HapinessModuleDecorator>makeDecorator('HapinessModule', {
     version: undefined,
     options: undefined,
-    import: undefined,
+    imports: undefined,
     declarations: undefined,
     providers: undefined,
     exports: undefined
