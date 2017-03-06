@@ -1,7 +1,7 @@
 import { HapinessModule } from '../src/index';
 import * as Lab from 'lab';
 import * as Code from 'code';
-import { extractMetadata } from '../src/utils';
+import { extractMetadata } from '../src/util';
 
 export const lab    = Lab.script();
 const describe      = lab.describe;
