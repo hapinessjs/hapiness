@@ -1,7 +1,7 @@
 import { lightObservable } from '../util/common';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable, Observer } from 'rxjs/Rx';
-import { buildModule, findNestedModule } from '../module';
+import { ModuleBuilder } from '../module';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import { Server } from 'hapi';
@@ -66,7 +66,7 @@ export class Hapiness {
      * @returns Promise
      */
     public static bootstrap(module: Type<any>): Promise<{}> {
-        this.mainModule = <MainModule>buildModule(module);
+        this.mainModule = <MainModule>ModuleBuilder.buildModule(module);
         this.mainModule.server = new Server();
         this.mainModule.server.connection(this.mainModule.options);
         return new Promise((resolve, reject) => {
@@ -92,7 +92,7 @@ export class Hapiness {
     /**
      * Lookup into the tree importation
      * and flat the tree into a string array of names
-     * 
+     *
      * @returns string[]
      */
     private static flattenModules(): string[] {
@@ -104,8 +104,8 @@ export class Hapiness {
             }
         };
         flat(this.mainModule);
-        return array.map(a => a.name)
-            .filter((a, p, arr) => arr.indexOf(a) === p);
+        return array.map(a => a.name);
+            // .filter((a, p, arr) => arr.indexOf(a) === p);
     }
 
     /**
@@ -117,7 +117,7 @@ export class Hapiness {
      */
     private static registrationObservables(names: string[]): Observable<void>[] {
         return names
-            .map(n => findNestedModule(n, this.mainModule))
+            .map(n => ModuleBuilder.findNestedModule(n, this.mainModule))
             .filter(m => !!m)
             .map(m => this.registerPlugin(m));
     }
@@ -129,35 +129,40 @@ export class Hapiness {
      * @returns Observable
      */
     private static registerPlugin(module: CoreModule): Observable<void> {
-        console.log('register', module.name, this.mainModule.server.plugins[module.name]);
         if (!module) {
             return Observable.throw(Boom.create(500, 'Module argument is missing'));
         }
         Hoek.assert(!!(this.mainModule && this.mainModule.server),
             Boom.create(500, 'You cannot register a plugin before bootstrapping Hapiness'));
-        const register: any = handleRegistration(module);
+        const register: any = this.handleRegistration(module);
+        const modules = module.modules || [];
         register.attributes = {
             name: module.name,
-            version: module.version
+            version: module.version,
+            dependencies: modules.map(m => m.name)
         };
         return Observable.create((observer) => {
             this.mainModule.server.register(register)
                 .then(() => {
+                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnStart, module, this.mainModule.instance, []);
                     observer.next();
                     observer.complete();
                 })
-                .catch((error) => observer.error(error));
+                .catch((error) => {
+                    observer.error(error);
+                });
         });
     }
-}
 
-/**
- * HapiJS Plugin handler
- *
- * @param  {CoreModule} module
- */
-function handleRegistration(module: CoreModule) {
-    return (server, options, next) => {
-        next();
-    };
+    /**
+     * HapiJS Plugin handler
+     *
+     * @param  {CoreModule} module
+     */
+    private static handleRegistration(module: CoreModule) {
+        return (server, options, next) => {
+            next();
+        };
+    }
+
 }

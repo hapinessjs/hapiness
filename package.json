@@ -1,42 +1,99 @@
 {
-  "name": "hapiness",
-  "version": "1.0.0",
-  "description": "Web Framework",
-  "main": "index.js",
-  "scripts": {
-    "pretest": "make lint && make clean && make tsc-test",
-    "test": "make test",
-    "clean": "make clean",
-    "lint": "make lint",
-    "build": "make clean && make tsc",
-    "postinstall": "make postinstall"
-  },
-  "author": "",
-  "license": "ISC",
-  "engines": {
-    "node": ">=7.5.0"
-  },
-  "devDependencies": {
-    "@types/boom": "0.0.33",
-    "@types/code": "^4.0.1",
-    "@types/debug": "0.0.29",
-    "@types/fs-extra": "^0.0.37",
-    "@types/hapi": "^16.0.0",
-    "@types/hoek": "^4.1.1",
-    "@types/joi": "^10.0.0",
-    "@types/lab": "^11.1.0",
-    "@types/node": "^7.0.4",
-    "code": "^4.0.0",
-    "lab": "^12.1.0",
-    "rimraf": "^2.5.4",
-    "tslint": "^4.4.2",
-    "typescript": "^2.1.5"
-  },
-  "dependencies": {
-    "boom": "^4.2.0",
-    "debug": "^2.6.1",
-    "hapi": "^16.1.0",
-    "reflect-metadata": "^0.1.9",
-    "rxjs": "^5.2.0"
-  }
+    "name": "@hapinessjs/hapiness",
+    "version": "1.0.0-alpha.1",
+    "description": "Project to have a HapiJS (https://hapijs.com/) based framework to create easier NodeJS back-end with some awesome features",
+    "main": "index.js",
+    "types": "index.d.ts",
+    "private": false,
+    "scripts": {
+        "test": "make test",
+        "pretest": "make pretest",
+        "coveralls": "make coveralls",
+        "packaging": "make packaging",
+        "prebuild": "make test && make clean",
+        "build": "make tsc",
+        "postbuild": "make packaging",
+        "postinstall": "node ./lib/copy.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+ssh://git@github.com/hapinessjs/hapiness.git"
+    },
+    "keywords": [
+        "HapiJS",
+        "Hapi",
+        "Framework",
+        "NodeJS",
+        "Node",
+        "HTTP",
+        "API",
+        "REST",
+        "Streams",
+        "Async",
+        "Decorator",
+        "RxJS",
+        "Rx",
+        "ReactiveX",
+        "Observable",
+        "Observer",
+        "Module",
+        "ES2015",
+        "ES2016",
+        "ES2017",
+        "ES6",
+        "ES7",
+        "ES8",
+        "Typescript"
+    ],
+    "contributors": [
+        {
+            "name": "Julien Fauville",
+            "url": "https://github.com/Juneil"
+        },
+        {
+            "name": "Antoine Gomez",
+            "url": "https://github.com/antoinegomez"
+        },
+        {
+            "name": "Sébastien Ritz",
+            "url": "https://github.com/srz09"
+        },
+        {
+            "name": "Nicolas Jessel",
+            "url": "https://github.com/njl07"
+        }
+    ],
+    "license": "SEE LICENSE IN https://github.com/hapinessjs/hapiness/blob/master/LICENSE.md",
+    "bugs": {
+        "url": "https://github.com/hapinessjs/hapiness/issues"
+    },
+    "homepage": "https://github.com/hapinessjs/hapiness#readme",
+    "dependencies": {
+        "debug": "^2.6.1",
+        "hapi": "^16.1.0",
+        "reflect-metadata": "^0.1.9",
+        "rxjs": "^5.2.0"
+    },
+    "devDependencies": {
+        "@types/boom": "^0.0.33",
+        "@types/fs-extra": "^0.0.37",
+        "@types/hapi": "^16.0.0",
+        "@types/hoek": "^4.1.1",
+        "@types/joi": "^10.0.0",
+        "@types/node": "^7.0.5",
+        "browserify": "^14.1.0",
+        "coveralls": "^2.11.16",
+        "fs-extra": "^2.0.0",
+        "istanbul": "^1.1.0-alpha.1",
+        "mocha": "^3.2.0",
+        "mocha-typescript": "^1.0.22",
+        "rimraf": "^2.6.1",
+        "ts-node": "^2.1.0",
+        "tslint": "^4.4.2",
+        "typescript": "^2.2.1",
+        "unit.js": "^2.0.0"
+    },
+    "engines": {
+        "node": ">=7.0.0"
+    }
 }

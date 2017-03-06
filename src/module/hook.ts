@@ -23,7 +23,7 @@ export class ModuleLifecycleHook {
   /**
    * Trigger the hook if
    * it is implemented
-   * 
+   *
    * @param  {ModuleLifecycleHooks} hook
    * @param  {any} token
    * @param  {any} instance

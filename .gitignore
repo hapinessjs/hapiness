@@ -2,39 +2,30 @@
 
 # compiled output
 /dist
-/dist-test
 /tmp
 
 # dependencies
 /node_modules
 
 # IDEs and editors
-/.idea
+.idea
 .project
 .classpath
 .c9/
 *.launch
 .settings/
-
-# IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode
 
 # misc
 /.sass-cache
 /connect.lock
-/coverage/*
+/coverage
 /libpeerconnection.log
 npm-debug.log
 testem.log
 /typings
 
-# e2e
-/e2e/*.js
-/e2e/*.map
 
 #System Files
 .DS_Store
+Thumbs.db

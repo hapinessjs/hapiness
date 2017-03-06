@@ -7,7 +7,7 @@ export class DependencyInjection {
     /**
      * Create a new DI and
      * can inherits from a parent DI
-     * 
+     *
      * @param  {Type<T>[]} providers
      * @param  {ReflectiveInjector} parent?
      * @returns ReflectiveInjector
@@ -22,7 +22,7 @@ export class DependencyInjection {
      * resolving its dependencies
      * without inject the component
      * into the DI
-     * 
+     *
      * @param  {Type<T>} component
      * @param  {ReflectiveInjector} di
      * @returns T
@@ -41,13 +41,13 @@ export class DependencyInjection {
      * resolving dependencies
      * without inject the components
      * into the DI
-     * 
+     *
      * @param  {Type<T>[]} components
      * @param  {ReflectiveInjector} di
      * @returns Array
      */
-    static instantiateComponents<T>(components: Type<T>[], di: ReflectiveInjector): Array<T> {
+    /*static instantiateComponents<T>(components: Type<T>[], di: ReflectiveInjector): Array<T> {
         return components.map(c => this.instantiateComponent(c, di));
-    }
+    }*/
 
 }
