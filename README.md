@@ -1,2 +1,2 @@
-# hapiness
-Global repository for hapiness project
+# empty-module
+Empty module structure for Hapiness framework
