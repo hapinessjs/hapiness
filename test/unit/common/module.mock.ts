@@ -25,15 +25,15 @@ export class SubModule {}
 
 @HapinessModule({
     version: '1.0.0',
-    imports: [SubSubModule]
+    imports: [ SubSubModule ]
 })
 export class SubModuleWithImports {}
 
 @HapinessModule({
     version: '1.0.0',
     options: { host: '0.0.0.0', port: 4443 },
-    providers: [Logger, LoggerWrapper],
-    imports: [SubModule, SubModuleWithImports]
+    providers: [ Logger, LoggerWrapper ],
+    imports: [ SubModule, SubModuleWithImports ]
 })
 export class TestModule {
 

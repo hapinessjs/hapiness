@@ -29,6 +29,7 @@ export interface CoreProvide {
  * Represents a Module
  */
 export interface CoreModule {
+    token: Type<any> | any;
     instance: any;
     di: ReflectiveInjector;
     name: string;
@@ -144,7 +145,7 @@ export class Hapiness {
         return Observable.create((observer) => {
             this.mainModule.server.register(register)
                 .then(() => {
-                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnStart, module, this.mainModule.instance, []);
+                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnRegister, module.token, module.instance, []);
                     observer.next();
                     observer.complete();
                 })
