@@ -1,7 +1,9 @@
 import 'reflect-metadata';
 import { lightObservable } from '../util/common';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
-import { Observable, Observer } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/forkJoin';
+import { Observer } from 'rxjs/Observer';
 import { ModuleBuilder } from '../module';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
