@@ -104,8 +104,7 @@ export class Hapiness {
             }
         };
         flat(this.mainModule);
-        return array.map(a => a.name);
-            // .filter((a, p, arr) => arr.indexOf(a) === p);
+        return array.map(a => a.name).filter((a, p, arr) => arr.indexOf(a) === p);
     }
 
     /**
