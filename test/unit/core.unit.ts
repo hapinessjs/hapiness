@@ -9,6 +9,7 @@ import {
     ModuleBuilder,
     OnStart,
     OnError,
+    OnRegister,
     HapinessModule,
     lightObservable
 } from '../../src';
@@ -52,6 +53,27 @@ class Decorators {
                 done();
              })
             .catch((error) => done(error));
+
+    }
+
+    @test('Plugin registration - Hook')
+    testPluginRegistrationHook(done) {
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class SubModuleRegisterTest implements OnRegister {
+            onRegister() {
+                done();
+            }
+        }
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4448 },
+            imports: [ SubModuleRegisterTest ]
+        })
+        class ModuleRegisterTest {}
+        Hapiness.bootstrap(ModuleRegisterTest).then(() => {});
 
     }
 

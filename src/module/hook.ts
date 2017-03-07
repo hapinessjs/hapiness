@@ -1,5 +1,8 @@
 import { reflector } from 'injection-js/reflection/reflection';
 
+import * as Debug from 'debug';
+const debug = Debug('module/hook');
+
 export enum eModuleLifecycleHooks {
   OnRegister,
   OnStart,
@@ -17,6 +20,7 @@ export class ModuleLifecycleHook {
    * @returns boolean
    */
   public static hasLifecycleHook(hook: eModuleLifecycleHooks, token: any): boolean {
+    debug('Check hook', this.getHookName(hook), token.name);
     return reflector.hasLifecycleHook(token, this.getHookName(hook));
   }
 
@@ -31,6 +35,7 @@ export class ModuleLifecycleHook {
    * @returns void
    */
   public static triggerHook(hook: eModuleLifecycleHooks, token: any, instance: any, args: any[]): void {
+    debug('Trigger hook', this.getHookName(hook), token.name, this.hasLifecycleHook(hook, token), instance);
     if (this.hasLifecycleHook(hook, token)) {
       Reflect.apply(instance[this.getHookName(hook)], instance, args);
     }
