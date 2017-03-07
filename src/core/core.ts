@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { lightObservable } from '../util/common';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable, Observer } from 'rxjs/Rx';
@@ -90,21 +91,19 @@ export class Hapiness {
     }
 
     /**
-     * Lookup into the tree importation
+     * Lookup into the tree of imports
      * and flat the tree into a string array of names
      *
      * @returns string[]
      */
     private static flattenModules(): string[] {
-        let array: CoreModule[] = [];
-        const flat = (_module: CoreModule) => {
+        const recursive = (_module: CoreModule) => {
             if (_module.modules && _module.modules.length > 0) {
-                array = array.concat(_module.modules);
-                _module.modules.forEach(m => flat(m));
+                return _module.modules.reduce((acc, cur) => acc.concat(recursive(cur)), [].concat(_module.modules));
             }
+            return [];
         };
-        flat(this.mainModule);
-        return array.map(a => a.name).filter((a, p, arr) => arr.indexOf(a) === p);
+        return recursive(this.mainModule).map(a => a.name).filter((a, p, arr) => arr.indexOf(a) === p);
     }
 
     /**

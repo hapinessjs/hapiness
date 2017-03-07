@@ -3,13 +3,15 @@ import { Observable } from 'rxjs/Rx';
 import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { TestModule, SubModule } from './common/module.mock';
-import {    Hapiness,
-            MainModule,
-            ModuleBuilder,
-            OnStart,
-            OnError,
-            HapinessModule,
-            lightObservable } from '../../src';
+import {
+    Hapiness,
+    MainModule,
+    ModuleBuilder,
+    OnStart,
+    OnError,
+    HapinessModule,
+    lightObservable
+} from '../../src';
 
 @suite('Core')
 class Decorators {

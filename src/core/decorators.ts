@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import * as Joi from 'joi';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
 import { Type } from 'injection-js/facade/type';
