@@ -62,6 +62,7 @@ export class ModuleBuilder {
         const di = DependencyInjection.createAndResolve(providers, parent ? parent.di : null);
         return {
             di,
+            token: module,
             name: module.name,
             version: data.version,
             options: data.options || {},
