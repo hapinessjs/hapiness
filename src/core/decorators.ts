@@ -1,8 +1,8 @@
-import * as Joi from 'joi';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
 import { Type } from 'injection-js/facade/type';
+import { Injectable } from 'injection-js';
 
-export { Injectable } from 'injection-js';
+export { Injectable };
 
 /**
  * Type of the HapinessModule decorator / constructor function.
@@ -37,3 +37,5 @@ export const HapinessModule: HapinessModuleDecorator = <HapinessModuleDecorator>
     imports: undefined,
     exports: undefined
 });
+
+export type Decorator = Injectable | HapinessModule;

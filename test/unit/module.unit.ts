@@ -1,5 +1,5 @@
 import { OpaqueToken } from '../../lib/injection-js';
-import { test, suite } from 'mocha-typescript';
+import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { HapinessModule, ModuleBuilder } from '../../src';
 import { LoggerWrapper, SubModule, SubSubModule, TestModule } from './common/module.mock';
@@ -41,7 +41,7 @@ class Decorators {
             version: '1.0.0'
         };
         const module = Reflect.apply(ModuleBuilder['coreModuleFromMetadata'], ModuleBuilder, [meta, TestModule]);
-        unit.must(module.instance).instanceof(TestModule);
+        unit.must(module.version).equal('1.0.0');
         unit.must(module.name).equal('TestModule');
 
     }
@@ -58,7 +58,6 @@ class Decorators {
             providers: [MyType, { provide: token, useClass: MyType2 }]
         };
         const module = Reflect.apply(ModuleBuilder['coreModuleFromMetadata'], ModuleBuilder, [meta, TestModule]);
-        unit.must(module.instance).instanceof(TestModule);
         unit.must(module.name).equal('TestModule');
 
         unit.must(module.providers[0].useClass).equal(MyType);
@@ -73,6 +72,7 @@ class Decorators {
     testBuild() {
 
         const module = ModuleBuilder.buildModule(TestModule);
+        unit.must(module.instance).instanceof(TestModule);
         unit.must(module.name).equal('TestModule');
         unit.must(module.version).equal('1.0.0');
         unit.object(module.options).is({ host: '0.0.0.0', port: 4443 });
@@ -126,6 +126,52 @@ class Decorators {
         const module = ModuleBuilder.buildModule(TestModule);
         const result = ModuleBuilder.findNestedModule(NotFound.name, module);
         unit.value(result).isUndefined();
+
+    }
+
+    @test('Exports providers')
+    testExportsProviders() {
+
+        class MyService {
+            load() {
+                return 'loaded';
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            exports: [ MyService ]
+        })
+        class SubModule {}
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [ SubModule ]
+        })
+        class MyModule {
+            constructor(private svc: MyService) {}
+            load() {
+                return this.svc.load();
+            }
+        }
+
+        const module = ModuleBuilder.buildModule(MyModule);
+        unit.must(module.instance.load()).equal('loaded');
+
+    }
+
+    @test('Exports providers - Empty')
+    testExportsProvidersEmpty() {
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class TestEmptyProviders {}
+
+        const module = ModuleBuilder.buildModule(TestEmptyProviders);
+        module.providers = null;
+        const providers = Reflect.apply(ModuleBuilder['collectProviders'], ModuleBuilder, [module]);
+        unit.object(providers).is([]);
 
     }
 }

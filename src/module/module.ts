@@ -59,15 +59,16 @@ export class ModuleBuilder {
     */
     private static coreModuleFromMetadata(data: HapinessModule, module: Type<any>, parent?: CoreModule): CoreModule {
         const providers = data.providers || [];
-        const di = DependencyInjection.createAndResolve(providers, parent ? parent.di : null);
+        debug('Collect providers', providers, module.name);
+        const di = DependencyInjection.createAndResolve(providers);
         return {
-            di,
+            parent,
             token: module,
             name: module.name,
             version: data.version,
             options: data.options || {},
-            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
-            instance: DependencyInjection.instantiateComponent(module, di)
+            exports: data.exports,
+            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p})
         };
     }
 
@@ -80,9 +81,9 @@ export class ModuleBuilder {
      * @returns HapinessModule
      */
     private static metadataFromModule(module: Type<any>): HapinessModule {
-        const metadata = extractMetadata(module);
-        Hoek.assert(metadata && metadata.length === 1, new Error('Please define a Module with the right annotation'));
-        return <HapinessModule>metadata.pop();
+        const metadata = <HapinessModule>extractMetadata(module);
+        Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
+        return metadata;
     }
 
     /**
@@ -97,12 +98,23 @@ export class ModuleBuilder {
         debug('Recursive resolution', module.name);
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
-        if (!(metadata.imports && metadata.imports.length > 0)) {
-            debug('Module resolved', coreModule);
-            return coreModule;
-        }
-        coreModule.modules = metadata.imports.map(x => this.recursiveResolution(x, coreModule));
+        coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
+            metadata.imports.map(x => this.recursiveResolution(x, coreModule)) : null;
+        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule));
+        coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
         return coreModule;
+    }
+
+    /**
+     * Collect all providers to
+     * inject into the DI
+     *
+     * @param  {HapinessModule} module
+     */
+    private static collectProviders(module: CoreModule): any[] {
+        return <any>[].concat(module.providers || [])
+            .concat((module.modules || [])
+                .reduce((a, c) => a.concat(c.exports || []), []));
     }
 
 }

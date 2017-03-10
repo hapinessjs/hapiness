@@ -30,13 +30,15 @@ export interface CoreProvide {
  */
 export interface CoreModule {
     token: Type<any> | any;
-    instance: any;
-    di: ReflectiveInjector;
+    instance?: any;
+    di?: ReflectiveInjector;
     name: string;
     version: string;
     options: any;
     providers?: CoreProvide[];
     modules?: CoreModule[];
+    parent?: CoreModule;
+    exports?: Type<any>[] | any[];
 }
 
 /**

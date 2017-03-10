@@ -129,7 +129,7 @@ class Decorators {
             }
         }
 
-        Hapiness.bootstrap(ModuleStartTest);
+        Hapiness.bootstrap(ModuleStartTest).then(() => {});
 
     }
 
@@ -147,7 +147,9 @@ class Decorators {
             }
         }
 
-        Hapiness.bootstrap(ModuleStartTest).catch((error) => unit.must(error.code).equal('EADDRINUSE'));
+        Hapiness.bootstrap(ModuleStartTest)
+            .then(() => {})
+            .catch((error) => unit.must(error.code).equal('EADDRINUSE'));
 
     }
 
