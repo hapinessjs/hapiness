@@ -12,7 +12,7 @@ export class DependencyInjection {
      * @param  {ReflectiveInjector} parent?
      * @returns ReflectiveInjector
      */
-    static createAndResolve<T>(providers: Type<T>[], parent?: ReflectiveInjector): ReflectiveInjector {
+    static createAndResolve(providers: Type<any>[], parent?: ReflectiveInjector): ReflectiveInjector {
         return parent ? parent.resolveAndCreateChild(providers)
         : ReflectiveInjector.resolveAndCreate(providers);
     }

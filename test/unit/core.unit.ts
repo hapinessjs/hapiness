@@ -1,5 +1,8 @@
+import { OnModuleResolved } from '../../src/module/hook';
 import * as Boom from 'boom';
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
+import 'rxjs/add/observable/throw';
+import { Observer } from 'rxjs/Observer';
 import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { TestModule, SubModule } from './common/module.mock';
@@ -129,7 +132,7 @@ class Decorators {
             }
         }
 
-        Hapiness.bootstrap(ModuleStartTest);
+        Hapiness.bootstrap(ModuleStartTest).then(() => {});
 
     }
 
@@ -147,7 +150,159 @@ class Decorators {
             }
         }
 
-        Hapiness.bootstrap(ModuleStartTest).catch((error) => unit.must(error.code).equal('EADDRINUSE'));
+        Hapiness.bootstrap(ModuleStartTest)
+            .then(() => {})
+            .catch((error) => unit.must(error.code).equal('EADDRINUSE'));
+
+    }
+
+    @test('Module dependencies - Root')
+    testModuleDependenciesRoot(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+        })
+        class MyDep {}
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4449 },
+            imports: [ MyDep ]
+        })
+        class ModuleDepTest implements OnModuleResolved {
+            onModuleResolved(module) {
+                return Observable.create((observer) => {
+                    unit.must(module).equal('MyDep');
+                    observer.next();
+                    observer.complete();
+                    done();
+                });
+            }
+        }
+
+        Hapiness.bootstrap(ModuleDepTest)
+            .then(() => {});
+
+    }
+
+    @test('Module dependencies - Root - Error')
+    testModuleDependenciesRootError(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+        })
+        class MyDep {}
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4449 },
+            imports: [ MyDep ]
+        })
+        class ModuleDepTest implements OnModuleResolved, OnError {
+            onModuleResolved(module) {
+                return Observable.create((observer) => {
+                    observer.error(new Error('Error test'));
+                });
+            }
+
+            onError(error) {
+                unit.must(error.message).equal('Error test');
+                done();
+            }
+        }
+
+        Hapiness.bootstrap(ModuleDepTest)
+            .then(() => {})
+            .catch(err => {});
+
+    }
+
+    @test('Module dependencies - Primary - Error')
+    testModuleDependenciesPrimaryError(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+        })
+        class MyDep {}
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [ MyDep ]
+        })
+        class Primary implements OnModuleResolved {
+            onModuleResolved(module) {
+                return Observable.create((observer) => {
+                    observer.error(new Error('Error test'));
+                });
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4449 },
+            imports: [ Primary ]
+        })
+        class ModuleDepTest implements OnError {
+            onError(error) {
+                unit.must(error.message).equal('Error test');
+                done();
+            }
+        }
+
+        Hapiness.bootstrap(ModuleDepTest)
+            .then(() => {})
+            .catch(err => {});
+
+    }
+
+    @test('Module dependencies - Root as arg - Error')
+    testModuleDependenciesErrorRootAsArg(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4449 }
+        })
+        class ModuleDepTest {}
+
+        const module = ModuleBuilder.buildModule(ModuleDepTest);
+        Hapiness['handleRegistration'](module)(null,  null, err => {
+            unit.must(err.message).equal('You cannot register Root Module as Plugin');
+            done();
+        });
+    }
+
+    @test('Module dependencies - Plugin')
+    testModuleDependencies(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+        })
+        class MyDep {}
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4449 },
+            imports: [ MyDep ]
+        })
+        class PluginTest implements OnModuleResolved {
+            onModuleResolved(module) {
+                return Observable.create((observer) => {
+                    unit.must(module).equal('MyDep');
+                    observer.next();
+                    observer.complete();
+                    done();
+                });
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [PluginTest]
+        })
+        class ModuleDepTest {}
+
+        Hapiness.bootstrap(ModuleDepTest)
+            .then(() => {});
 
     }
 
