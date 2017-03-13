@@ -4,7 +4,7 @@ import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
 import { Observer } from 'rxjs/Observer';
-import { ModuleBuilder } from '../module';
+import { ModuleBuilder, ModuleLevel } from '../module';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import { Server } from 'hapi';
@@ -30,11 +30,12 @@ export interface CoreProvide {
  */
 export interface CoreModule {
     token: Type<any> | any;
-    instance?: any;
-    di?: ReflectiveInjector;
     name: string;
     version: string;
     options: any;
+    instance?: any;
+    level: ModuleLevel;
+    di?: ReflectiveInjector;
     providers?: CoreProvide[];
     modules?: CoreModule[];
     parent?: CoreModule;
@@ -138,7 +139,7 @@ export class Hapiness {
         Hoek.assert(!!(this.mainModule && this.mainModule.server),
             Boom.create(500, 'You cannot register a plugin before bootstrapping Hapiness'));
         const register: any = this.handleRegistration(module);
-        const modules = module.modules || [];
+        const modules = module.modules;
         register.attributes = {
             name: module.name,
             version: module.version,
@@ -164,8 +165,49 @@ export class Hapiness {
      */
     private static handleRegistration(module: CoreModule) {
         return (server, options, next) => {
-            next();
+            if (module.level !== ModuleLevel.ROOT) {
+                module.modules.forEach(m => {
+                    server.dependency(m.name, (_server, _next) => {
+                        this.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module, [m.name])
+                            .subscribe(() => _next(), err => _next(err));
+                    });
+                });
+                if (module.level === ModuleLevel.PRIMARY) {
+                    this.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module.parent, [module.name])
+                        .subscribe(() => next(), err => next(err));
+                } else {
+                    next();
+                }
+            } else {
+                next(Boom.create(500, 'You cannot register Root Module as Plugin'));
+            }
         };
+    }
+
+    /**
+     * Trigger hook handling
+     * Async with Observable
+     *
+     * @param  {eModuleLifecycleHooks} hook
+     * @param  {CoreModule} module
+     * @param  {any[]} args
+     * @returns Observable
+     */
+    private static triggerHook(hook: eModuleLifecycleHooks, module: CoreModule, args: any[]): Observable<any> {
+        const ret = ModuleLifecycleHook.triggerHook(
+            hook,
+            module.token,
+            module.instance,
+            args
+        );
+        if (ret instanceof Observable) {
+            return ret;
+        } else {
+            return Observable.create((observer) => {
+                observer.next(ret);
+                observer.complete();
+            });
+        }
     }
 
 }

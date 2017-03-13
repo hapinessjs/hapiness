@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs/Rx';
 import { reflector } from 'injection-js/reflection/reflection';
 
 import * as Debug from 'debug';
@@ -34,10 +35,10 @@ export class ModuleLifecycleHook {
    * @param  {any[]} args
    * @returns void
    */
-  public static triggerHook(hook: eModuleLifecycleHooks, token: any, instance: any, args: any[]): void {
+  public static triggerHook(hook: eModuleLifecycleHooks, token: any, instance: any, args: any[]): any {
     debug('Trigger hook', this.getHookName(hook), token.name, this.hasLifecycleHook(hook, token), instance);
     if (this.hasLifecycleHook(hook, token)) {
-      Reflect.apply(instance[this.getHookName(hook)], instance, args);
+      return Reflect.apply(instance[this.getHookName(hook)], instance, args);
     }
   }
 
@@ -98,4 +99,4 @@ export interface OnError { onError(error: Error): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnModuleResolved { onModuleResolved(module: string): void; }
+export interface OnModuleResolved { onModuleResolved(module: string): Observable<void> | void; }

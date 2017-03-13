@@ -170,6 +170,7 @@ class Decorators {
 
         const module = ModuleBuilder.buildModule(TestEmptyProviders);
         module.providers = null;
+        module.modules = null;
         const providers = Reflect.apply(ModuleBuilder['collectProviders'], ModuleBuilder, [module]);
         unit.object(providers).is([]);
 

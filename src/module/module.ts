@@ -3,10 +3,18 @@ import { extractMetadata } from '../util';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import * as Hoek from 'hoek';
-
 import * as Debug from 'debug';
 const debug = Debug('module');
 
+/**
+ * Represents the position where
+ * the module is instantiate
+ */
+export enum ModuleLevel {
+    ROOT,
+    PRIMARY,
+    SECONDARY
+}
 
 export class ModuleBuilder {
 
@@ -68,7 +76,8 @@ export class ModuleBuilder {
             version: data.version,
             options: data.options || {},
             exports: data.exports,
-            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p})
+            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
+            level: parent ? parent.level === ModuleLevel.ROOT ? ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
         };
     }
 
@@ -99,7 +108,7 @@ export class ModuleBuilder {
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
-            metadata.imports.map(x => this.recursiveResolution(x, coreModule)) : null;
+            metadata.imports.map(x => this.recursiveResolution(x, coreModule)) : [];
         coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule));
         coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
         return coreModule;
