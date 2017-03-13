@@ -1,20 +1,11 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
+/// <reference types="node" />
 import { Type } from './facade/type';
-import { BaseError, WrappedError } from './facade/errors';
 import { ReflectiveInjector } from './reflective_injector';
 import { ReflectiveKey } from './reflective_key';
-/**
- * Base class for all errors arising from misconfigured providers.
- * @stable
- */
-export declare class AbstractProviderError extends BaseError {
-    constructor(injector: ReflectiveInjector, key: ReflectiveKey, constructResolvingMessage: Function);
+export interface InjectionError extends Error {
+    keys: ReflectiveKey[];
+    injectors: ReflectiveInjector[];
+    constructResolvingMessage: (this: InjectionError) => string;
     addKey(injector: ReflectiveInjector, key: ReflectiveKey): void;
 }
 /**
@@ -30,11 +21,8 @@ export declare class AbstractProviderError extends BaseError {
  *
  * expect(() => Injector.resolveAndCreate([A])).toThrowError();
  * ```
- * @stable
  */
-export declare class NoProviderError extends AbstractProviderError {
-    constructor(injector: ReflectiveInjector, key: ReflectiveKey);
-}
+export declare function noProviderError(injector: ReflectiveInjector, key: ReflectiveKey): InjectionError;
 /**
  * Thrown when dependencies form a cycle.
  *
@@ -50,11 +38,8 @@ export declare class NoProviderError extends AbstractProviderError {
  * ```
  *
  * Retrieving `A` or `B` throws a `CyclicDependencyError` as the graph above cannot be constructed.
- * @stable
  */
-export declare class CyclicDependencyError extends AbstractProviderError {
-    constructor(injector: ReflectiveInjector, key: ReflectiveKey);
-}
+export declare function cyclicDependencyError(injector: ReflectiveInjector, key: ReflectiveKey): InjectionError;
 /**
  * Thrown when a constructing type returns with an Error.
  *
@@ -80,14 +65,8 @@ export declare class CyclicDependencyError extends AbstractProviderError {
  *   expect(e.originalStack).toBeDefined();
  * }
  * ```
- * @stable
  */
-export declare class InstantiationError extends WrappedError {
-    constructor(injector: ReflectiveInjector, originalException: any, originalStack: any, key: ReflectiveKey);
-    addKey(injector: ReflectiveInjector, key: ReflectiveKey): void;
-    readonly message: string;
-    readonly causeKey: ReflectiveKey;
-}
+export declare function instantiationError(injector: ReflectiveInjector, originalException: any, originalStack: any, key: ReflectiveKey): InjectionError;
 /**
  * Thrown when an object other then {@link Provider} (or `Type`) is passed to {@link Injector}
  * creation.
@@ -97,11 +76,8 @@ export declare class InstantiationError extends WrappedError {
  * ```typescript
  * expect(() => Injector.resolveAndCreate(["not a type"])).toThrowError();
  * ```
- * @stable
  */
-export declare class InvalidProviderError extends BaseError {
-    constructor(provider: any);
-}
+export declare function invalidProviderError(provider: any): Error;
 /**
  * Thrown when the class has no annotation information.
  *
@@ -131,10 +107,7 @@ export declare class InvalidProviderError extends BaseError {
  * ```
  * @stable
  */
-export declare class NoAnnotationError extends BaseError {
-    constructor(typeOrFunc: Type<any> | Function, params: any[][]);
-    private static _genMessage(typeOrFunc, params);
-}
+export declare function noAnnotationError(typeOrFunc: Type<any> | Function, params: any[][]): Error;
 /**
  * Thrown when getting an object by index.
  *
@@ -149,9 +122,7 @@ export declare class NoAnnotationError extends BaseError {
  * ```
  * @stable
  */
-export declare class OutOfBoundsError extends BaseError {
-    constructor(index: number);
-}
+export declare function outOfBoundsError(index: number): Error;
 /**
  * Thrown when a multi provider and a regular provider are bound to the same token.
  *
@@ -164,6 +135,4 @@ export declare class OutOfBoundsError extends BaseError {
  * ])).toThrowError();
  * ```
  */
-export declare class MixingMultiProvidersWithRegularProvidersError extends BaseError {
-    constructor(provider1: any, provider2: any);
-}
+export declare function mixingMultiProvidersWithRegularProvidersError(provider1: any, provider2: any): Error;
