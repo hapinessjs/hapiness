@@ -1,8 +1,8 @@
 {
   "name": "injection-js",
-  "version": "1.0.3",
+  "version": "2.0.0-rc.2",
   "description": "Dependency Injection library for JavaScript and TypeScript",
-  "main": "index.js",
+  "main": "injection.bundle.js",
   "module": "index.js",
   "jsnext:main": "index.js",
   "types": "index.d.ts",
@@ -11,8 +11,6 @@
     "url": "git+https://github.com/mgechev/injection-js.git"
   },
   "dependencies": {},
-  "devDependencies": {},
-  "scripts": {},
   "keywords": [
     "DI",
     "dependency",
