@@ -25,11 +25,8 @@ class Decorators {
     testMetadataExtractionError() {
 
         class TestModule {}
-        try {
-            Reflect.apply(ModuleBuilder['metadataFromModule'], ModuleBuilder, [TestModule]);
-        } catch (e) {
-            unit.object(e).is(new Error('Please define a Module with the right annotation'));
-        }
+        unit.exception(() => unit.when('', () => Reflect.apply(ModuleBuilder['metadataFromModule'], ModuleBuilder, [TestModule])))
+            .is(new Error('Please define a Module with the right annotation'));
 
     }
 
@@ -84,11 +81,8 @@ class Decorators {
     testBuildError() {
 
         class TestModuleError {}
-        try {
-            ModuleBuilder.buildModule(TestModuleError);
-        } catch (e) {
-            unit.object(e).is(new Error('Please define a Module with the right annotation'));
-        }
+        unit.exception(() => unit.when('', () => ModuleBuilder.buildModule(TestModuleError)))
+            .is(new Error('Please define a Module with the right annotation'));
 
     }
 

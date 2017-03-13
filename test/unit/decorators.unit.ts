@@ -2,6 +2,7 @@ import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
 import { HapinessModule, Injectable, extractMetadata } from '../../src';
+import * as Boom from 'boom';
 
 interface TestAnnDecorator {
   (obj: TestAnn): TypeDecorator;
@@ -44,30 +45,14 @@ class Decorators {
 
     }
 
-    @test('Check metadata - Error no decorator')
-    testMetadataError() {
-
-        class TestModule {}
-
-        try {
-            extractMetadata(TestModule);
-        } catch (e) {
-            unit.must(e.message).equal('Please define a Module with the right annotation');
-        }
-
-    }
-
     @test('Check metadata - Error decorator not allowed')
     testMetadataError2() {
 
         @TestAnn({ name: 'test' })
         class TestModule {}
 
-        try {
-            extractMetadata(TestModule);
-        } catch (e) {
-            unit.must(e.message).equal('Decorator TestAnn does not exists.');
-        }
+        unit.exception(() => unit.when('', () => extractMetadata(TestModule)))
+            .is(Boom.create(500, 'Decorator TestAnn does not exists.'));
 
     }
 }

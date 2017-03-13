@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs/Rx';
+import { Observable } from 'rxjs/Observable';
 import { reflector } from 'injection-js/reflection/reflection';
 
 import * as Debug from 'debug';
