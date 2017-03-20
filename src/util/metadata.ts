@@ -1,4 +1,4 @@
-import { Decorator, HapinessModule, Injectable } from '../core/decorators';
+import { Decorator, HapinessModule, Injectable, Route } from '../core/decorators';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('util/metadata');
@@ -8,14 +8,28 @@ const debug = Debug('util/metadata');
  * from a decorator
  *
  * @todo Filter with the right type
- * @param  {any} decorator
+ * @param  {any} type
  * @returns Decorator
  */
-export function extractMetadata(decorator: any): Decorator {
-    return extractMetadatas(decorator)
+export function extractMetadata(type: any): Decorator {
+    return extractMetadatas(type)
         .map(x => getDecoratorType(x.toString().slice(1), x))
         .pop();
 };
+
+/**
+ * Helper to extract Metadata
+ * with the decorator name provided
+ *
+ * @param  {any} type
+ * @param  {string} name
+ */
+export function extractMetadataByDecorator(type: any, name: string) {
+    return extractMetadatas(type)
+        .map(x => getDecoratorType(x.toString().slice(1), x))
+        .filter(x => x.toString().slice(1) === name)
+        .pop();
+}
 
 /**
  * Helper to extract Metadata
@@ -48,6 +62,8 @@ function getDecoratorType(name: string, value: any): Decorator {
             return <Injectable>value;
         case 'HapinessModule':
             return <HapinessModule>value;
+        case 'Route':
+            return <Route>value;
         default:
             throw Boom.create(500, `Decorator ${name} does not exists.`);
     }

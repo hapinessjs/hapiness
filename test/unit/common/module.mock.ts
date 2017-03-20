@@ -1,5 +1,6 @@
+import { OnDelete, OnGet, OnOptions, OnPatch, OnPut } from '../../../src/route/hook';
 import { OnError, OnRegister, OnStart } from '../../../src/module/hook';
-import { Injectable, HapinessModule } from '../../../src';
+import { Injectable, HapinessModule, Route } from '../../../src';
 
 export class Logger {
     log(str: string) { return str; }
@@ -51,4 +52,16 @@ export class TestModule {
 export class ModuleOnStart implements OnStart, OnRegister {
     onStart() {}
     onRegister() {}
+}
+
+@Route({
+    method: 'get',
+    path: '/yo'
+})
+export class TestRoute implements OnGet, OnPut, OnPatch, OnOptions, OnDelete {
+    onGet() {}
+    onPut() {}
+    onPatch() {}
+    onOptions() {}
+    onDelete() {}
 }

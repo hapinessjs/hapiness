@@ -1,3 +1,4 @@
+import { CoreProvide } from './';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import { ReflectiveDependency, ResolvedReflectiveProvider, ResolvedReflectiveFactory } from 'injection-js/reflective_provider';

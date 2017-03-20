@@ -1,5 +1,6 @@
+import { RouteBuilder } from '../route';
 import { HapinessModule, CoreModule, DependencyInjection } from '../core';
-import { extractMetadata } from '../util';
+import { extractMetadata, extractMetadataByDecorator } from '../util';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import * as Hoek from 'hoek';
@@ -16,7 +17,17 @@ export enum ModuleLevel {
     SECONDARY
 }
 
+/**
+ * ModuleBuilder
+ * Class used to build a module
+ */
 export class ModuleBuilder {
+
+    /**
+     * Helper to extract metadata
+     * @property {string} decoratorName
+     */
+    private static decoratorName = 'HapinessModule';
 
     /**
      * Entrypoint to build a CoreModule
@@ -76,6 +87,7 @@ export class ModuleBuilder {
             version: data.version,
             options: data.options || {},
             exports: data.exports,
+            declarations: data.declarations || [],
             providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
             level: parent ? parent.level === ModuleLevel.ROOT ? ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
         };
@@ -90,7 +102,7 @@ export class ModuleBuilder {
      * @returns HapinessModule
      */
     private static metadataFromModule(module: Type<any>): HapinessModule {
-        const metadata = <HapinessModule>extractMetadata(module);
+        const metadata = <HapinessModule>extractMetadataByDecorator(module, this.decoratorName);
         Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
         return metadata;
     }
@@ -111,6 +123,7 @@ export class ModuleBuilder {
             metadata.imports.map(x => this.recursiveResolution(x, coreModule)) : [];
         coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule));
         coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
+        coreModule.routes = RouteBuilder.buildRoute(coreModule);
         return coreModule;
     }
 
