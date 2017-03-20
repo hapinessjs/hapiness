@@ -4,7 +4,6 @@ import 'reflect-metadata';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
-import 'rxjs/add/observable/concat';
 import { Observer } from 'rxjs/Observer';
 import { ModuleBuilder, ModuleLevel } from '../module';
 import { ReflectiveInjector } from 'injection-js';
