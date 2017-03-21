@@ -1,6 +1,7 @@
 import { eModuleLifecycleHooks, ModuleLifecycleHook } from '../../src/module/hook';
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
+import * as Boom from 'boom';
 import { HapinessModule, ModuleBuilder, OnRegister } from '../../src';
 import { ModuleOnStart } from './common/module.mock';
 
@@ -16,12 +17,20 @@ class Decorators {
 
     }
 
-    @test('Hook does not exist')
-    testHookDoesnotExist() {
+    @test('Hook is not implemented')
+    testHookNotImpl() {
 
         const result1 = ModuleLifecycleHook.hasLifecycleHook(eModuleLifecycleHooks.OnModuleResolved, ModuleOnStart);
         const result2 = ModuleLifecycleHook.hasLifecycleHook(eModuleLifecycleHooks.OnError, ModuleOnStart);
         unit.must(result1 && result2).equal(false);
+
+    }
+
+    @test('Hook does not exist')
+    testHookDoesnotExist() {
+
+        unit.exception(() => unit.when(() => ModuleLifecycleHook.hasLifecycleHook(9, ModuleOnStart)))
+            .is(Boom.create(500, 'Hook does not exist'));
 
     }
 
@@ -39,7 +48,7 @@ class Decorators {
         }
 
         const module = ModuleBuilder.buildModule(ModuleHook);
-        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnRegister, ModuleHook, module.instance, []);
+        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnRegister, module, []);
 
     }
 

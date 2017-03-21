@@ -38,4 +38,34 @@ export const HapinessModule: HapinessModuleDecorator = <HapinessModuleDecorator>
     exports: undefined
 });
 
-export type Decorator = Injectable | HapinessModule;
+/**
+ * Type of the Route decorator / constructor function.
+ */
+export interface RouteDecorator {
+  (obj: Route): TypeDecorator;
+  new (obj: Route): Route;
+}
+
+/**
+ * Type of the Route metadata.
+ */
+export interface Route {
+    path: string;
+    method: string | string[];
+    config?: Object;
+    providers?: Array<Type<any>|any>;
+}
+
+/**
+ * Route decorator and metadata.
+ *
+ * @Annotation
+ */
+export const Route: RouteDecorator = <RouteDecorator>makeDecorator('Route', {
+    path: undefined,
+    method: undefined,
+    config: undefined,
+    providers: undefined
+});
+
+export type Decorator = Injectable | HapinessModule | Route;

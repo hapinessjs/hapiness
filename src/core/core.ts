@@ -1,5 +1,6 @@
+import { eRouteLifecycleHooks, RouteLifecycleHook } from '../route/hook';
+import { RouteBuilder } from '../route';
 import 'reflect-metadata';
-import { lightObservable } from '../util/common';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/forkJoin';
@@ -40,6 +41,20 @@ export interface CoreModule {
     modules?: CoreModule[];
     parent?: CoreModule;
     exports?: Type<any>[] | any[];
+    declarations?: Type<any>[] | any[];
+    routes?: CoreRoute[];
+}
+
+/**
+ * CoreRoute Type
+ * Represents an Http Route
+ */
+export interface CoreRoute {
+    token: Type<any> | any;
+    path: string;
+    method: string | string[];
+    module: CoreModule;
+    providers?: CoreProvide[];
 }
 
 /**
@@ -78,20 +93,35 @@ export class Hapiness {
         this.mainModule.server.connection(this.mainModule.options);
         return new Promise((resolve, reject) => {
             Observable.forkJoin(
-                this.registrationObservables(this.flattenModules()).concat(lightObservable())
+                this.registrationObservables(this.flattenModules()).concat(this.addRoutes(this.mainModule, this.mainModule.server))
             ).subscribe(() => {
                 this.mainModule.server.start()
                     .then(() => {
-                        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnStart, module, this.mainModule.instance, []);
+                        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnStart, this.mainModule, []);
                         resolve();
                     })
                     .catch((error) => {
-                        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnError, module, this.mainModule.instance, [error]);
+                        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnError, this.mainModule, [error]);
                         reject(error);
                     });
             }, (error) => {
-                ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnError, module, this.mainModule.instance, [error]);
+                ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnError, this.mainModule, [error]);
                 reject(error);
+            });
+        });
+    }
+
+    /**
+     * Kill the server
+     *
+     * @returns Observable
+     */
+    public static kill(): Observable<void> {
+        return Observable.create(observer => {
+            this.mainModule.server.stop({ timeout: 0 }, () => {
+                // this.mainModule = null;
+                observer.next();
+                observer.complete();
             });
         });
     }
@@ -148,9 +178,12 @@ export class Hapiness {
         return Observable.create((observer) => {
             this.mainModule.server.register(register)
                 .then(() => {
-                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnRegister, module.token, module.instance, []);
-                    observer.next();
-                    observer.complete();
+                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnRegister, module, []);
+                    this.addRoutes(module, this.mainModule.server)
+                        .subscribe(() => {
+                            observer.next();
+                            observer.complete();
+                        });
                 })
                 .catch((error) => {
                     observer.error(error);
@@ -168,12 +201,12 @@ export class Hapiness {
             if (module.level !== ModuleLevel.ROOT) {
                 module.modules.forEach(m => {
                     server.dependency(m.name, (_server, _next) => {
-                        this.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module, [m.name])
+                        ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module, [m.name])
                             .subscribe(() => _next(), err => _next(err));
                     });
                 });
                 if (module.level === ModuleLevel.PRIMARY) {
-                    this.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module.parent, [module.name])
+                    ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnModuleResolved, module.parent, [module.name])
                         .subscribe(() => next(), err => next(err));
                 } else {
                     next();
@@ -185,29 +218,33 @@ export class Hapiness {
     }
 
     /**
-     * Trigger hook handling
-     * Async with Observable
+     * Add route from CoreModule
      *
-     * @param  {eModuleLifecycleHooks} hook
      * @param  {CoreModule} module
-     * @param  {any[]} args
+     * @param  {} server
      * @returns Observable
      */
-    private static triggerHook(hook: eModuleLifecycleHooks, module: CoreModule, args: any[]): Observable<any> {
-        const ret = ModuleLifecycleHook.triggerHook(
-            hook,
-            module.token,
-            module.instance,
-            args
-        );
-        if (ret instanceof Observable) {
-            return ret;
-        } else {
-            return Observable.create((observer) => {
-                observer.next(ret);
-                observer.complete();
+    private static addRoutes(module: CoreModule, server: Server): Observable<void> {
+        Hoek.assert((module && !!server), Boom.create(500, 'Please provide module and HapiJS server instance'));
+        return Observable.create(observer => {
+            module.routes.forEach(route => {
+                server.route({
+                    method: route.method,
+                    path: route.path,
+                    handler: (req, reply) => {
+                        const instance = RouteBuilder.instantiateRouteAndDI(route);
+                        RouteLifecycleHook.triggerHook(
+                            RouteLifecycleHook.enumByMethod(req.method),
+                            route.token,
+                            instance,
+                            [ req, reply ]
+                        );
+                    }
+                });
             });
-        }
+            observer.next();
+            observer.complete();
+        });
     }
 
 }
