@@ -14,7 +14,6 @@ import {
     OnError,
     OnRegister,
     HapinessModule,
-    lightObservable
 } from '../../src';
 
 @suite('Core')
@@ -36,7 +35,10 @@ class Decorators {
         Hapiness['mainModule'] = <MainModule>ModuleBuilder.buildModule(TestModule);
         const names = Reflect.apply(Hapiness['flattenModules'], Hapiness, []);
         const register = Hapiness['registerPlugin'];
-        Hapiness['registerPlugin'] = () => lightObservable();
+        Hapiness['registerPlugin'] = () => Observable.create(obs => {
+            obs.next();
+            obs.complete();
+        });
         const result = Reflect.apply(Hapiness['registrationObservables'], Hapiness, [names]);
         result.forEach(o => {
             unit.must(o).instanceof(Observable);
@@ -108,7 +110,7 @@ class Decorators {
             onError(error) {
                 unit.object(error).is(new Error('TestError'));
                 Hapiness['handleRegistration'] = handler;
-                done();
+                Hapiness.kill().subscribe(() => done());
             }
         }
 
@@ -128,7 +130,7 @@ class Decorators {
         })
         class ModuleStartTest implements OnStart {
             onStart() {
-                done();
+                Hapiness.kill().subscribe(() => done());
             }
         }
 
@@ -143,16 +145,24 @@ class Decorators {
             version: '1.0.0',
             options: { host: '0.0.0.0', port: 4444 }
         })
-        class ModuleStartTest implements OnError {
-            onError(error) {
-                unit.must(error.code).equal('EADDRINUSE');
-                done();
-            }
-        }
+        class ModuleStartTest2 {}
+        Hapiness.bootstrap(ModuleStartTest2)
+            .then(() => {
+                @HapinessModule({
+                    version: '1.0.0',
+                    options: { host: '0.0.0.0', port: 4444 }
+                })
+                class ModuleStartTest implements OnError {
+                    onError(error) {
+                        unit.must(error.code).equal('EADDRINUSE');
+                        Hapiness.kill().subscribe(() => done());
+                    }
+                }
 
-        Hapiness.bootstrap(ModuleStartTest)
-            .then(() => {})
-            .catch((error) => unit.must(error.code).equal('EADDRINUSE'));
+                Hapiness.bootstrap(ModuleStartTest)
+                    .then(() => {})
+                    .catch((error) => unit.must(error.code).equal('EADDRINUSE'));
+            });
 
     }
 
@@ -175,7 +185,7 @@ class Decorators {
                     unit.must(module).equal('MyDep');
                     observer.next();
                     observer.complete();
-                    done();
+                    Hapiness.kill().subscribe(() => done());
                 });
             }
         }
@@ -207,7 +217,7 @@ class Decorators {
 
             onError(error) {
                 unit.must(error.message).equal('Error test');
-                done();
+                Hapiness.kill().subscribe(() => done());
             }
         }
 
@@ -245,7 +255,7 @@ class Decorators {
         class ModuleDepTest implements OnError {
             onError(error) {
                 unit.must(error.message).equal('Error test');
-                done();
+                Hapiness.kill().subscribe(() => done());
             }
         }
 
@@ -290,7 +300,7 @@ class Decorators {
                     unit.must(module).equal('MyDep');
                     observer.next();
                     observer.complete();
-                    done();
+                    Hapiness.kill().subscribe(() => done());
                 });
             }
         }

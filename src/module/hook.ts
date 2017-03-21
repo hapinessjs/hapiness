@@ -1,6 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import { reflector } from 'injection-js/reflection/reflection';
-
+import { CoreModule } from '../core';
+import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('module/hook');
 
@@ -30,16 +31,22 @@ export class ModuleLifecycleHook {
    * it is implemented
    *
    * @param  {ModuleLifecycleHooks} hook
-   * @param  {any} token
-   * @param  {any} instance
+   * @param  {CoreModule} module
    * @param  {any[]} args
-   * @returns void
+   * @returns Observable
    */
-  public static triggerHook(hook: eModuleLifecycleHooks, token: any, instance: any, args: any[]): any {
-    debug('Trigger hook', this.getHookName(hook), token.name, this.hasLifecycleHook(hook, token), instance);
-    if (this.hasLifecycleHook(hook, token)) {
-      return Reflect.apply(instance[this.getHookName(hook)], instance, args);
+  public static triggerHook(hook: eModuleLifecycleHooks, module: CoreModule, args: any[]): Observable<any> {
+    debug('Trigger hook', this.getHookName(hook), module.token.name, this.hasLifecycleHook(hook, module.token), module.instance);
+    if (this.hasLifecycleHook(hook, module.token)) {
+      const result = Reflect.apply(module.instance[this.getHookName(hook)], module.instance, args);
+      if (result instanceof Observable) {
+        return result;
+      }
     }
+    return Observable.create((observer) => {
+      observer.next();
+      observer.complete();
+    });
   }
 
   /**
@@ -59,6 +66,8 @@ export class ModuleLifecycleHook {
         return 'onError';
       case eModuleLifecycleHooks.OnModuleResolved:
         return 'onModuleResolved';
+      default:
+        throw Boom.create(500, 'Hook does not exist');
     }
   }
 
