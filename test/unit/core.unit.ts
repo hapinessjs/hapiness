@@ -1,3 +1,4 @@
+import { WSServer } from '../../src/core/providers';
 import { OnModuleResolved } from '../../src/module/hook';
 import * as Boom from 'boom';
 import { Observable } from 'rxjs/Observable';
@@ -14,6 +15,7 @@ import {
     OnError,
     OnRegister,
     HapinessModule,
+    HttpServer
 } from '../../src';
 
 @suite('Core')
@@ -55,7 +57,7 @@ class Decorators {
                 unit.object(Object.keys(Hapiness['mainModule'].server['registrations']))
                     .is(['SubModule', 'SubModuleWithImports', 'SubSubModule']);
 
-                done();
+                Hapiness.kill().subscribe(() => done());
              })
             .catch((error) => done(error));
 
@@ -313,6 +315,57 @@ class Decorators {
 
         Hapiness.bootstrap(ModuleDepTest)
             .then(() => {});
+
+    }
+
+    @test('Core providers - http')
+    testCoreProviders(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4997 }
+        })
+        class ModuleTest {
+
+            constructor(private server: HttpServer) {
+                unit.must(!!server.instance).equal(true);
+                Hapiness.kill().subscribe(() => done());
+            }
+
+        }
+
+        Hapiness.bootstrap(ModuleTest)
+            .then(() => {});
+
+    }
+
+    @test('Core providers - ws')
+    testCoreProvidersWS(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4997, socketPort: 5002 }
+        })
+        class ModuleTest {
+
+            constructor(private server: HttpServer, private socket: WSServer) {
+                unit.must(!!server.instance).equal(true);
+                unit.must(!!socket.instance).equal(true);
+                Hapiness.kill().subscribe(() => done());
+            }
+
+        }
+
+        Hapiness.bootstrap(ModuleTest)
+            .then(() => {});
+
+    }
+
+    @test('Kill')
+    testKill(done) {
+
+        Hapiness['mainModule'] = null;
+        Hapiness.kill().subscribe(x => done());
 
     }
 

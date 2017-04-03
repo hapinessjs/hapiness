@@ -1,5 +1,5 @@
 import { RouteBuilder } from '../route';
-import { HapinessModule, CoreModule, DependencyInjection } from '../core';
+import { CoreModule, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
 import { extractMetadata, extractMetadataByDecorator } from '../util';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
@@ -35,11 +35,12 @@ export class ModuleBuilder {
      * module instance with the DI
      *
      * @param  {Type<any>} module
+     * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
-     public static buildModule(module: Type<any>): CoreModule {
+     public static buildModule(module: Type<any>, providers?: CoreProvide[]): CoreModule {
         debug('Module entrypoint', module.name);
-        const moduleResolved = this.recursiveResolution(module);
+        const moduleResolved = this.recursiveResolution(module, null, providers);
         debug('Module resolved', moduleResolved);
         return moduleResolved;
     }
@@ -101,7 +102,7 @@ export class ModuleBuilder {
      * @param  {Type<any>} module
      * @returns HapinessModule
      */
-    private static metadataFromModule(module: Type<any>): HapinessModule {
+    public static metadataFromModule(module: Type<any>): HapinessModule {
         const metadata = <HapinessModule>extractMetadataByDecorator(module, this.decoratorName);
         Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
         return metadata;
@@ -115,15 +116,16 @@ export class ModuleBuilder {
      * @param  {Type<any>} module
      * @returns CoreModule
      */
-    private static recursiveResolution(module: Type<any>, parent?: CoreModule): CoreModule {
+    private static recursiveResolution(module: Type<any>, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
         debug('Recursive resolution', module.name);
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
-            metadata.imports.map(x => this.recursiveResolution(x, coreModule)) : [];
-        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule));
+            metadata.imports.map(x => this.recursiveResolution(x, coreModule, providers)) : [];
+        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule, providers));
         coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
         coreModule.routes = RouteBuilder.buildRoute(coreModule);
+        coreModule.libs = this.instantiateLibs(coreModule);
         return coreModule;
     }
 
@@ -133,10 +135,21 @@ export class ModuleBuilder {
      *
      * @param  {HapinessModule} module
      */
-    private static collectProviders(module: CoreModule): any[] {
+    private static collectProviders(module: CoreModule, providers?: CoreProvide[]): any[] {
         return <any>[].concat(module.providers || [])
-            .concat((module.modules || [])
-                .reduce((a, c) => a.concat(c.exports || []), []));
+            .concat(providers)
+            .filter(x => !!x)
+            .concat((module.modules || []).reduce((a, c) => a.concat(c.exports || []), []));
     }
 
+    /**
+     * Instantiate and return array of libs
+     *
+     * @param  {CoreModule} module
+     * @returns Type
+     */
+    private static instantiateLibs(module: CoreModule): Type<any>[] {
+        return [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lib'))
+            .map(lib => <Type<any>>DependencyInjection.instantiateComponent(lib, module.di));
+    }
 }
