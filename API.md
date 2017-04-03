@@ -96,10 +96,11 @@ Declare HTTP routes
 
     - `path` - route path (/my/path)
     - `method` - can be an array, value: (get, post, put, delete, patch, options)
-    - `config` - partially implemented, see HapiJS Route configuration
+    - `config` - partially implemented, see [HapiJS Route config](https://hapijs.com/api#route-configuration)
     - `providers` - Providers to add in the request DI, it means at each request a new instance of the provider will be created
 
 - interfaces
+    - see request and reply on [HapiJS Docs](https://hapijs.com/api#requests)
     - `OnGet` - Http Get handler
         - arguments: (request, reply)
     - `OnPost` - Http Post handler
