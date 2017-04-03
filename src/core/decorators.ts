@@ -68,4 +68,16 @@ export const Route: RouteDecorator = <RouteDecorator>makeDecorator('Route', {
     providers: undefined
 });
 
-export type Decorator = Injectable | HapinessModule | Route;
+/**
+ * Type of the Lib metadata.
+ */
+export interface Lib {}
+
+/**
+ * Lib decorator and metadata.
+ *
+ * @Annotation
+ */
+export const Lib = makeDecorator('Lib', null);
+
+export type Decorator = Injectable | HapinessModule | Route | Lib;

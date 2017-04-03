@@ -1,11 +1,15 @@
+import { extractMetadataByDecorator } from '../util';
+import { ObjectUnsubscribedError } from 'rxjs/Rx';
+import 'reflect-metadata';
+import 'rxjs/add/observable/forkJoin';
 import { eRouteLifecycleHooks, RouteLifecycleHook } from '../route/hook';
 import { RouteBuilder } from '../route';
-import 'reflect-metadata';
 import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/forkJoin';
 import { Observer } from 'rxjs/Observer';
 import { ModuleBuilder, ModuleLevel } from '../module';
+import { HttpServer, WSServer } from './providers';
+import { ServerSocket } from './socket';
 import { ReflectiveInjector } from 'injection-js';
 import { Type } from 'injection-js/facade/type';
 import { Server } from 'hapi';
@@ -43,6 +47,7 @@ export interface CoreModule {
     exports?: Type<any>[] | any[];
     declarations?: Type<any>[] | any[];
     routes?: CoreRoute[];
+    libs?: Type<any>[];
 }
 
 /**
@@ -64,6 +69,8 @@ export interface CoreRoute {
  */
 export interface MainModule extends CoreModule {
     server: Server;
+    socket: ServerSocket;
+    coreProviders: CoreProvide[];
 }
 
 /**
@@ -88,9 +95,19 @@ export class Hapiness {
      * @returns Promise
      */
     public static bootstrap(module: Type<any>): Promise<{}> {
-        this.mainModule = <MainModule>ModuleBuilder.buildModule(module);
-        this.mainModule.server = new Server();
-        this.mainModule.server.connection(this.mainModule.options);
+        const mainOptions = <any>ModuleBuilder.metadataFromModule(module).options;
+        const server = new Server();
+        let providers = [].concat(this.provideServer(server));
+        let socket;
+        if (!!mainOptions && mainOptions.socketPort) {
+            socket = new ServerSocket(mainOptions.socketPort);
+            delete mainOptions.socketPort;
+            providers = providers.concat(this.provideWSServer(socket));
+        }
+        this.mainModule = <MainModule>ModuleBuilder.buildModule(module, providers);
+        this.mainModule.server = server;
+        this.mainModule.socket = socket;
+        this.mainModule.server.connection(mainOptions);
         return new Promise((resolve, reject) => {
             Observable.forkJoin(
                 this.registrationObservables(this.flattenModules()).concat(this.addRoutes(this.mainModule, this.mainModule.server))
@@ -118,11 +135,16 @@ export class Hapiness {
      */
     public static kill(): Observable<void> {
         return Observable.create(observer => {
-            this.mainModule.server.stop({ timeout: 0 }, () => {
-                // this.mainModule = null;
+            if (this.mainModule && this.mainModule.server) {
+                this.mainModule.server.stop({ timeout: 0 }, () => {
+                    // this.mainModule = null;
+                    observer.next();
+                    observer.complete();
+                });
+            } else {
                 observer.next();
                 observer.complete();
-            });
+            }
         });
     }
 
@@ -245,6 +267,38 @@ export class Hapiness {
             observer.next();
             observer.complete();
         });
+    }
+
+    /**
+     * Factory for the core server provider
+     *
+     * @param {Server} server
+     * @returns CoreProvide
+     */
+    private static provideServer(server: Server): CoreProvide {
+        return {
+            provide: HttpServer,
+            useFactory: () => {
+                return new HttpServer(server);
+            },
+            deps: []
+        };
+    }
+
+    /**
+     * Factory for the core ws server provider
+     *
+     * @param {Server} server
+     * @returns CoreProvide
+     */
+    private static provideWSServer(server: ServerSocket): CoreProvide {
+        return {
+            provide: WSServer,
+            useFactory: () => {
+                return new WSServer(server);
+            },
+            deps: []
+        };
     }
 
 }

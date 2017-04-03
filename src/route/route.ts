@@ -64,24 +64,21 @@ export class RouteBuilder {
     }
 
     /**
-     * Extract metadata from
-     * the route provided
+     * Extract metadata filtered by route
+     * from the declarations provided
      *
-     * @param  {Type<any>} route
+     * @param  {Type<any>} declarations
      * @returns Route
      */
-    private static metadataFromDeclarations(route: Type<any> | Type<any>[]): InternalType[] {
-        return [].concat(route)
+    private static metadataFromDeclarations(declarations: Type<any> | Type<any>[]): InternalType[] {
+        return [].concat(declarations)
             .map(t => {
                 return {
                     route: <Route>extractMetadataByDecorator(t, this.decoratorName),
                     token: <Type<any>>t
                 };
             })
-            .map(t => {
-                Hoek.assert(!!t, new Error('Please define a Route with the right annotation'));
-                return t;
-            });
+            .filter(t => !!t.route);
     }
 
 }
