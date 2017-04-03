@@ -48,6 +48,9 @@
 
     }
 
+    // Start the server
+    Hapiness.bootstrap(DataModule);
+
 
 
 ## Hapiness
