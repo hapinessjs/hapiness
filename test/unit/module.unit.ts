@@ -1,3 +1,4 @@
+import { Lib } from '../../src/core/decorators';
 import { OpaqueToken } from '../../lib/injection-js';
 import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
@@ -132,6 +133,12 @@ class Decorators {
             }
         }
 
+        class TestService {
+            load() {
+                return 'test';
+            }
+        }
+
         @HapinessModule({
             version: '1.0.0',
             exports: [ MyService ]
@@ -140,6 +147,7 @@ class Decorators {
 
         @HapinessModule({
             version: '1.0.0',
+            providers: [ TestService ],
             imports: [ SubModule ]
         })
         class MyModule {
@@ -167,6 +175,27 @@ class Decorators {
         module.modules = null;
         const providers = Reflect.apply(ModuleBuilder['collectProviders'], ModuleBuilder, [module]);
         unit.object(providers).is([]);
+
+    }
+
+    @test('Libs')
+    testLib(done) {
+
+        @Lib()
+        class MyLib {
+            constructor() {
+                unit.must(true).equal(true);
+                done();
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            declarations: [ MyLib ]
+        })
+        class TestModule {}
+
+        const module = ModuleBuilder.buildModule(TestModule);
 
     }
 }
