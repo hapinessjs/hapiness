@@ -83,7 +83,7 @@ Declare an Hapiness module with the providers, routes and libs.
     - `OnError` - Only for the bootstrapped module, it is the error handler.
         - arguments: (error: Error)
     - `OnRegister` - Called when the module is registered
-    - `OnModuleResolved` - Called when imported module are resolved
+    - `OnModuleResolved` - Called when imported module is resolved
         - arguments: (module: string)
 
 ## Route
