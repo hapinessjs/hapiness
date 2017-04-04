@@ -114,8 +114,14 @@ Declare HTTP routes
     - `OnOptions` - Http Options handler
         - arguments: (request, reply)
 
+## Injectable
+Declare an injectable provider
+
+    @Injectable()
+    class MyService {}
+
 ## Lib
 Declare an empty component for any use
 
     @Lib()
-    class MyClass {}
+    class MyLib {}
