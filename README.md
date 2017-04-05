@@ -131,12 +131,20 @@ To set up your development environment:
 <table>
     <tr>
         <td colspan="4" align="center"><a href="https://www.tadaweb.com"><img src="https://tadaweb.com/images/tadaweb/logo.png" width="117" alt="tadaweb" /></a></td>
-   </tr>
+    </tr>
+    <tr>
+        <td align="center"><a href="https://github.com/Juneil"><img src="https://avatars3.githubusercontent.com/u/6546204?v=3&s=117" width="117"/></a></td>
+        <td align="center"><a href="https://github.com/antoinegomez"><img src="https://avatars3.githubusercontent.com/u/997028?v=3&s=117" width="117"/></a></td>
+        <td align="center"><a href="https://github.com/srz09"><img src="https://avatars3.githubusercontent.com/u/6841511?v=3&s=117" width="117"/></a></td>
+        <td align="center"><a href="https://github.com/njl07"><img src="https://avatars3.githubusercontent.com/u/1673977?v=3&s=117" width="117"/></a></td>
+    </tr>
+    <tr>
+        <td align="center"><a href="https://github.com/Juneil">Julien Fauville</a></td>
+        <td align="center"><a href="https://github.com/antoinegomez">Antoine Gomez</a></td>
+        <td align="center"><a href="https://github.com/srz09">Sébastien Ritz</a></td>
+        <td align="center"><a href="https://github.com/njl07">Nicolas Jessel</a></td>
+    </tr>
 </table>
-
-| [<img src="https://avatars3.githubusercontent.com/u/6546204?v=3&s=117" width="117"/>](https://github.com/Juneil) | [<img src="https://avatars3.githubusercontent.com/u/997028?v=3&s=117" width="117"/>](https://github.com/antoinegomez) | [<img src="https://avatars3.githubusercontent.com/u/6841511?v=3&s=117" width="117"/>](https://github.com/srz09) | [<img src="https://avatars3.githubusercontent.com/u/1673977?v=3&s=117" width="117"/>](https://github.com/njl07) |
-| :---: |:---: |:---: |:---: |
-| [Julien Fauville](https://github.com/Juneil) | [Antoine Gomez](https://github.com/antoinegomez) | [Sébastien Ritz](https://github.com/srz09) | [Nicolas Jessel](https://github.com/njl07) |
 
 [Back to top](#table-of-contents)
 
