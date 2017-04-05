@@ -14,10 +14,7 @@
         "typeRoots": ["./node_modules/@types"],
         "types": [
             "node",
-            "boom",
-            "hapi",
-            "hoek",
-            "joi"
+            "hapi"
         ],
         "lib": [
             "dom",

@@ -1,11 +1,13 @@
 [
     { "name":"README.md" },
     { "name":"LICENSE.md" },
+    { "name":"API.md" },
     { "name":"package.json" },
     { "name":"src" },
     { "name":"core", "remove":true },
     { "name":"module", "remove":true },
     { "name":"util", "remove":true },
+    { "name":"route", "remove":true },
     { "name":"index.js", "remove":true },
     { "name":"index.js.map", "remove":true },
     { "name":"index.d.ts", "remove":true },
