@@ -3,10 +3,10 @@
 <div style="margin-bottom:20px;">
 <div style="line-height:60px">
     <a href="https://travis-ci.org/hapinessjs/hapiness.svg?branch=master">
-        <img src="https://travis-ci.org/hapinessjs/hapiness.svg?branch=next" alt="build" />
+        <img src="https://travis-ci.org/hapinessjs/hapiness.svg?branch=master" alt="build" />
     </a>
     <a href="https://coveralls.io/github/hapinessjs/hapiness?branch=master">
-        <img src="https://coveralls.io/repos/github/hapinessjs/hapiness/badge.svg?branch=next" alt="coveralls" />
+        <img src="https://coveralls.io/repos/github/hapinessjs/hapiness/badge.svg?branch=master" alt="coveralls" />
     </a>
     <a href="https://david-dm.org/hapinessjs/hapiness">
         <img src="https://david-dm.org/hapinessjs/hapiness.svg" alt="dependencies" />
