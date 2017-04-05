@@ -10,7 +10,7 @@
         "pretest": "make pretest",
         "coveralls": "make coveralls",
         "packaging": "make packaging",
-        "prebuild": "make test && make clean",
+        "prebuild": "make pretest && make test && make clean",
         "build": "make tsc",
         "postbuild": "make packaging",
         "postinstall": "node ./lib/copy.js"
