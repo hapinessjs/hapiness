@@ -73,7 +73,7 @@ Declare an Hapiness module with the providers, routes and libs.
             - `host` - server host
             - `port` - http server port
             - `socketPort` - websocket server port
-    - `declarations` - Routes | Libs to declare in the module
+    - `declarations` - Routes | Libs to declare in the module
     - `providers` - Providers to add in the DI
     - `imports` - Modules to import
     - `exports` - Providers to export and will be available in the module that import it
