@@ -75,7 +75,7 @@ All those technologies are `Typescript` ready. It will help to build web servers
 
 ## Using Hapiness to create a web server and services
 
-###`yarn` or `npm` it in your `package.json`
+### `yarn` or `npm` it in your `package.json`
 
 ```bash
 $ npm install --save @hapiness/core
