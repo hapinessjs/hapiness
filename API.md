@@ -73,7 +73,7 @@ Declare an Hapiness module with the providers, routes and libs.
             - `host` - server host
             - `port` - http server port
             - `socketPort` - websocket server port
-    - `declarations` - Routes | Libs to declare in the module
+    - `declarations` - Routes | Libs to declare in the module
     - `providers` - Providers to add in the DI
     - `imports` - Modules to import
     - `exports` - Providers to export and will be available in the module that import it
@@ -83,7 +83,7 @@ Declare an Hapiness module with the providers, routes and libs.
     - `OnError` - Only for the bootstrapped module, it is the error handler.
         - arguments: (error: Error)
     - `OnRegister` - Called when the module is registered
-    - `OnModuleResolved` - Called when imported module are resolved
+    - `OnModuleResolved` - Called when imported module is resolved
         - arguments: (module: string)
 
 ## Route
@@ -95,7 +95,7 @@ Declare HTTP routes
 - metadata
 
     - `path` - route path (/my/path)
-    - `method` - can be an array, value: (get, post, put, delete, patch, options)
+    - `method` - can be an array, values: (get, post, put, delete, patch, options)
     - `config` - partially implemented, see [HapiJS Route config](https://hapijs.com/api#route-configuration)
     - `providers` - Providers to add in the request DI, it means at each request a new instance of the provider will be created
 
@@ -114,8 +114,14 @@ Declare HTTP routes
     - `OnOptions` - Http Options handler
         - arguments: (request, reply)
 
+## Injectable
+Declare an injectable provider
+
+    @Injectable()
+    class MyService {}
+
 ## Lib
 Declare an empty component for any use
 
     @Lib()
-    class MyClass {}
+    class MyLib {}
