@@ -3,20 +3,19 @@ import { OnModuleResolved } from '../../src/module/hook';
 import * as Boom from 'boom';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/throw';
-import { Observer } from 'rxjs/Observer';
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { TestModule, SubModule } from './common/module.mock';
 import {
     Hapiness,
-    MainModule,
-    ModuleBuilder,
     OnStart,
     OnError,
     OnRegister,
     HapinessModule,
     HttpServer
 } from '../../src';
+import { ModuleBuilder } from '../../src/module';
+import { MainModule } from '../../src/core';
 
 @suite('Core')
 class Decorators {

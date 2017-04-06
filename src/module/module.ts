@@ -1,7 +1,6 @@
 import { RouteBuilder } from '../route';
 import { CoreModule, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
-import { extractMetadata, extractMetadataByDecorator } from '../util';
-import { ReflectiveInjector } from 'injection-js';
+import { extractMetadataByDecorator } from '../util';
 import { Type } from 'injection-js/facade/type';
 import * as Hoek from 'hoek';
 import * as Debug from 'debug';

@@ -1,7 +1,7 @@
-import { eModuleLifecycleHooks, ModuleLifecycleHook } from '../../src/module/hook';
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { Injectable, DependencyInjection, HapinessModule } from '../../src';
+import { Injectable } from '../../src';
+import { DependencyInjection } from '../../src/core';
 
 class MyService {
     method() {

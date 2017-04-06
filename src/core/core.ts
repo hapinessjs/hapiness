@@ -1,13 +1,9 @@
-import { extractMetadataByDecorator } from '../util';
-import { ObjectUnsubscribedError } from 'rxjs/Rx';
 import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
-import { eRouteLifecycleHooks, RouteLifecycleHook } from '../route/hook';
+import { RouteLifecycleHook } from '../route';
 import { RouteBuilder } from '../route';
-import { ModuleLifecycleHook, eModuleLifecycleHooks } from '../module/hook';
 import { Observable } from 'rxjs/Observable';
-import { Observer } from 'rxjs/Observer';
-import { ModuleBuilder, ModuleLevel } from '../module';
+import { ModuleBuilder, ModuleLevel, ModuleLifecycleHook, eModuleLifecycleHooks } from '../module';
 import { HttpServer, WSServer } from './providers';
 import { ServerSocket } from './socket';
 import { ReflectiveInjector } from 'injection-js';

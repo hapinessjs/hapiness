@@ -2,9 +2,10 @@ import { OnGet } from '../../src/route/hook';
 import { OnStart } from '../../src/module/hook';
 import { Hapiness } from '../../src/core';
 import { RouteBuilder } from '../../src/route';
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { HapinessModule, Route, ModuleBuilder } from '../../src';
+import { HapinessModule, Route } from '../../src';
+import { ModuleBuilder } from '../../src/module';
 
 @suite('Route')
 class Routes {

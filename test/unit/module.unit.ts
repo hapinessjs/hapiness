@@ -1,8 +1,9 @@
 import { Lib } from '../../src/core/decorators';
 import { OpaqueToken } from '../../lib/injection-js';
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { HapinessModule, ModuleBuilder } from '../../src';
+import { HapinessModule } from '../../src';
+import { ModuleBuilder } from '../../src/module';
 import { LoggerWrapper, SubModule, SubSubModule, TestModule } from './common/module.mock';
 
 @suite('Module')
