@@ -1,5 +1,5 @@
 import { OnDelete, OnGet, OnOptions, OnPatch, OnPut } from '../../../src/route/hook';
-import { OnError, OnRegister, OnStart } from '../../../src/module/hook';
+import { OnRegister, OnStart } from '../../../src/module/hook';
 import { Injectable, HapinessModule, Route } from '../../../src';
 
 export class Logger {

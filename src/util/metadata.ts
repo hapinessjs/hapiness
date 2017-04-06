@@ -1,4 +1,4 @@
-import { Decorator, HapinessModule, Injectable, Route, Lib } from '../core/decorators';
+import { Decorator, HapinessModule, Injectable, Route, Lib } from '../core';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('util/metadata');

@@ -2,7 +2,8 @@ import { eModuleLifecycleHooks, ModuleLifecycleHook } from '../../src/module/hoo
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import * as Boom from 'boom';
-import { HapinessModule, ModuleBuilder, OnRegister } from '../../src';
+import { HapinessModule, OnRegister } from '../../src';
+import { ModuleBuilder } from '../../src/module';
 import { ModuleOnStart } from './common/module.mock';
 
 @suite('Module Hooks')
