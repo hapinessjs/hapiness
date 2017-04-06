@@ -2,9 +2,13 @@ import { Observable } from 'rxjs/Observable';
 import { reflector } from 'injection-js/reflection/reflection';
 import { Type } from 'injection-js/facade/type';
 import { CoreModule } from '../core';
+import { Request } from 'hapi';
+import { IReply as Reply } from 'hapi';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('module/hook');
+
+export { Request, Reply };
 
 export enum eRouteLifecycleHooks {
   OnGet,
@@ -108,7 +112,7 @@ export class RouteLifecycleHook {
  *
  * @returns void
  */
-export interface OnGet { onGet(request, reply): void; }
+export interface OnGet { onGet(request: Request, reply: Reply): void; }
 
 /**
  * Route Handler
@@ -116,7 +120,7 @@ export interface OnGet { onGet(request, reply): void; }
  *
  * @returns void
  */
-export interface OnPost { onPost(request, reply): void; }
+export interface OnPost { onPost(request: Request, reply: Reply): void; }
 
 /**
  * Route Handler
@@ -125,7 +129,7 @@ export interface OnPost { onPost(request, reply): void; }
  * @param  {Error} error
  * @returns void
  */
-export interface OnPut { onPut(request, reply): void; }
+export interface OnPut { onPut(request: Request, reply: Reply): void; }
 
 /**
  * Route Handler
@@ -134,7 +138,7 @@ export interface OnPut { onPut(request, reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnPatch { onPatch(request, reply): void; }
+export interface OnPatch { onPatch(request: Request, reply: Reply): void; }
 
 /**
  * Route Handler
@@ -143,7 +147,7 @@ export interface OnPatch { onPatch(request, reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnOptions { onOptions(request, reply): void; }
+export interface OnOptions { onOptions(request: Request, reply: Reply): void; }
 
 /**
  * Route Handler
@@ -152,4 +156,4 @@ export interface OnOptions { onOptions(request, reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnDelete { onDelete(request, reply): void; }
+export interface OnDelete { onDelete(request: Request, reply: Reply): void; }

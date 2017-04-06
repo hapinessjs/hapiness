@@ -1,7 +1,8 @@
 import { test, suite, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
-import { HapinessModule, Injectable, extractMetadata } from '../../src';
+import { HapinessModule, Injectable } from '../../src';
+import { extractMetadata } from '../../src/util';
 import * as Boom from 'boom';
 
 interface TestAnnDecorator {

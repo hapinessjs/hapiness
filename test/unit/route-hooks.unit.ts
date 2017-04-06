@@ -4,7 +4,7 @@ import { eRouteLifecycleHooks, RouteLifecycleHook } from '../../src/route/hook';
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import * as Boom from 'boom';
-import { HapinessModule, ModuleBuilder, OnRegister, Route, OnGet, RouteBuilder } from '../../src';
+import { Route, OnGet } from '../../src';
 import { TestRoute } from './common/module.mock';
 
 @suite('Route Hooks')
