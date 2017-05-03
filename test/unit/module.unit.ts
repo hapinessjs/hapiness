@@ -1,5 +1,5 @@
 import { Lib } from '../../src/core/decorators';
-import { OpaqueToken } from '../../lib/injection-js';
+import { OpaqueToken } from '../../src/externals/injection-js';
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { HapinessModule } from '../../src';

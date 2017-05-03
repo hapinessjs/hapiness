@@ -52,7 +52,11 @@ class Packaging {
 
         // copy other files
         return <Observable<any>> Observable.create((observer) => {
-            fs.copy(`${this._srcPath}${file}`, `${this._destPath}${file}`, (error) => {
+            let fileDest = file;
+            if (file.indexOf('src/externals') > -1) {
+                fileDest = 'externals';
+            }
+            fs.copy(`${this._srcPath}${file}`, `${this._destPath}${fileDest}`, (error) => {
                 if (error) {
                     return observer.error(error);
                 }

@@ -27,6 +27,7 @@
     "compileOnSave": false,
     "buildOnSave": false,
     "exclude": [
+        "src/externals",
         "node_modules",
         "dist",
         "test",

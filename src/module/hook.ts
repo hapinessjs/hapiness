@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable';
-import { reflector } from 'injection-js/reflection/reflection';
+import { reflector } from '../externals/injection-js/reflection/reflection';
 import { CoreModule } from '../core';
 import * as Boom from 'boom';
 import * as Debug from 'debug';

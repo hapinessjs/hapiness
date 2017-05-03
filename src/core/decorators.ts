@@ -1,6 +1,6 @@
-import { TypeDecorator, makeDecorator } from 'injection-js/util/decorators';
-import { Type } from 'injection-js/facade/type';
-import { Injectable } from 'injection-js';
+import { TypeDecorator, makeDecorator } from '../externals/injection-js/util/decorators';
+import { Type } from '../externals/injection-js/facade/type';
+import { Injectable } from '../externals/injection-js';
 
 export { Injectable };
 
