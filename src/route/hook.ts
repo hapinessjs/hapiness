@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
-import { reflector } from 'injection-js/reflection/reflection';
-import { Type } from 'injection-js/facade/type';
+import { reflector } from '../externals/injection-js/reflection/reflection';
+import { Type } from '../externals/injection-js/facade/type';
 import { CoreModule } from '../core';
 import { Request } from 'hapi';
 import { IReply as Reply } from 'hapi';

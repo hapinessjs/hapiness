@@ -1,7 +1,7 @@
 import { RouteBuilder } from '../route';
 import { CoreModule, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
 import { extractMetadataByDecorator } from '../util';
-import { Type } from 'injection-js/facade/type';
+import { Type } from '../externals/injection-js/facade/type';
 import * as Hoek from 'hoek';
 import * as Debug from 'debug';
 const debug = Debug('module');
