@@ -1,4 +1,4 @@
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Socket, ServerSocket} from '../../src/core/socket';
 import { HapinessModule, Hapiness, Lib, WSServer } from '../../src/core';

@@ -9,6 +9,21 @@ interface InternalType {
     token: Type<any>;
 }
 
+export interface ValidateConfig {
+    params?: any;
+    query?: any;
+    payload?: any;
+    response?: any;
+}
+
+export interface RouteConfig {
+    description?: string;
+    notes?: string;
+    tags?: string[];
+    validate?: ValidateConfig;
+    auth?: string;
+}
+
 export class RouteBuilder {
 
     /**
@@ -57,6 +72,7 @@ export class RouteBuilder {
         return {
             token,
             module,
+            config: data.config,
             path: data.path,
             method: data.method,
             providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p})

@@ -1,3 +1,4 @@
+import { RouteConfig } from '../route';
 import { TypeDecorator, makeDecorator } from '../externals/injection-js/util/decorators';
 import { Type } from '../externals/injection-js/facade/type';
 import { Injectable } from '../externals/injection-js';
@@ -52,7 +53,7 @@ export interface RouteDecorator {
 export interface Route {
     path: string;
     method: string | string[];
-    config?: Object;
+    config?: RouteConfig;
     providers?: Array<Type<any>|any>;
 }
 
