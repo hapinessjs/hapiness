@@ -21,7 +21,23 @@ export interface RouteConfig {
     notes?: string;
     tags?: string[];
     validate?: ValidateConfig;
-    auth?: string;
+    auth?: any;
+    bind?: any;
+    cache?: any;
+    compression?: any;
+    cors?: any;
+    ext?: any;
+    files?: any;
+    id?: any;
+    json?: any;
+    jsonp?: any;
+    log?: any;
+    plugins?: any;
+    pre?: any;
+    response?: any;
+    security?: any;
+    state?: any;
+    timeout?: any;
 }
 
 export class RouteBuilder {
