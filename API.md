@@ -164,6 +164,8 @@ Use Hapiness as a WebSocket server
         - arguments: ((socket: Socket) => void)
     - `getSockets` - Return all active sockets
         - return: Socket[]
+    - `broadcast` - Broadcast data to all active sockets
+        - arguments: (event: string, data: any)
 
 ### Example
     @HapinessModule({
@@ -181,7 +183,8 @@ Use Hapiness as a WebSocket server
         onStart() {
             this.wsServer.instance.onRequest((socket: Socket) => {
                 socket.on('message', _ => console.log(_));
-                socket.emitAll('join', 'Hello World!');
+                socket.emit('message', 'Hello World!');
+                this.wsServer.instance.broadcast('join', 'Hello World!');
             });
         }
 
