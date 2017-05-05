@@ -125,3 +125,69 @@ Declare an empty component for any use
 
     @Lib()
     class MyLib {}
+
+## Instance Providers
+### HttpServer
+
+    ...
+    constructor(private httpServer: HttpServer) {}
+    ...
+
+- properties
+    - `instance` - HapiJS server instance
+
+### WSServer
+
+    ...
+    constructor(private wsServer: WSServer) {}
+    ...
+
+- properties
+    - `instance` - ServerSocket instance
+
+
+## Socket
+Socket object provided when a new connection comes in the ServerSocket
+
+- methods
+    - `on` - Add listener on a new event coming from the socket
+    - `emit` - Send data into the socket
+    - `emitAll` - Send data to all active sockets
+    - `close` - Close the socket
+
+
+## ServerSocket
+Use Hapiness as a WebSocket server
+
+- methods
+    - `onRequest` - Callback called at each new socket connection
+        - arguments: ((socket: Socket) => void)
+    - `getSockets` - Return all active sockets
+        - return: Socket[]
+    - `broadcast` - Broadcast data to all active sockets
+        - arguments: (event: string, data: any)
+
+### Example
+    @HapinessModule({
+        version: 'x.x.x',
+        options: {
+            host: '0.0.0.0',
+            port: 1234,
+            socketPort: 1235 // port websocket
+        }
+    })
+    class SocketServerModule implements OnStart {
+
+        constructor(private wsServer: WSServer) {}
+
+        onStart() {
+            this.wsServer.instance.onRequest((socket: Socket) => {
+                socket.on('message', _ => console.log(_));
+                socket.emit('message', 'Hello World!');
+                this.wsServer.instance.broadcast('join', 'Hello World!');
+            });
+        }
+
+    }
+
+    Hapiness.bootstrap(SocketServerModule);
