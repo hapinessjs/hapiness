@@ -11,10 +11,10 @@ var type_1 = require('../facade/type');
 /**
  * Attention: This regex has to hold even if the code is minified!
  */
-exports.DELEGATE_CTOR = /^function\s+\S+\(\)\s*{\s*("use strict";)?\s*(return\s+)?\S+\.apply\(this,\s*arguments\)/;
+exports.DELEGATE_CTOR = /^function\s+\S+\(\)\s*{[\s\S]+\.apply\(this,\s*arguments\)/;
 var ReflectionCapabilities = (function () {
     function ReflectionCapabilities(reflect) {
-        this._reflect = reflect || lang_1.global.Reflect;
+        this._reflect = reflect || lang_1.global['Reflect'];
     }
     ReflectionCapabilities.prototype.isReflectionEnabled = function () { return true; };
     ReflectionCapabilities.prototype.factory = function (t) { return function () {
@@ -46,7 +46,7 @@ var ReflectionCapabilities = (function () {
             else {
                 result[i] = [];
             }
-            if (paramAnnotations && lang_1.isPresent(paramAnnotations[i])) {
+            if (paramAnnotations && paramAnnotations[i] != null) {
                 result[i] = result[i].concat(paramAnnotations[i]);
             }
         }
@@ -80,7 +80,7 @@ var ReflectionCapabilities = (function () {
             return this._zipTypesAndAnnotations(paramTypes, paramAnnotations);
         }
         // API for metadata created by invoking the decorators.
-        if (lang_1.isPresent(this._reflect) && lang_1.isPresent(this._reflect.getOwnMetadata)) {
+        if (this._reflect != null && this._reflect.getOwnMetadata != null) {
             var paramAnnotations = this._reflect.getOwnMetadata('parameters', type);
             var paramTypes = this._reflect.getOwnMetadata('design:paramtypes', type);
             if (paramTypes || paramAnnotations) {
@@ -123,6 +123,7 @@ var ReflectionCapabilities = (function () {
         if (this._reflect && this._reflect.getOwnMetadata) {
             return this._reflect.getOwnMetadata('annotations', typeOrFunc);
         }
+        return null;
     };
     ReflectionCapabilities.prototype.annotations = function (typeOrFunc) {
         if (!type_1.isType(typeOrFunc)) {
@@ -157,6 +158,7 @@ var ReflectionCapabilities = (function () {
         if (this._reflect && this._reflect.getOwnMetadata) {
             return this._reflect.getOwnMetadata('propMetadata', typeOrFunc);
         }
+        return null;
     };
     ReflectionCapabilities.prototype.propMetadata = function (typeOrFunc) {
         if (!type_1.isType(typeOrFunc)) {
@@ -203,7 +205,10 @@ var ReflectionCapabilities = (function () {
         // Runtime type
         return "./" + lang_1.stringify(type);
     };
-    ReflectionCapabilities.prototype.resolveIdentifier = function (name, moduleUrl, runtime) { return runtime; };
+    ReflectionCapabilities.prototype.resourceUri = function (type) { return "./" + lang_1.stringify(type); };
+    ReflectionCapabilities.prototype.resolveIdentifier = function (name, moduleUrl, members, runtime) {
+        return runtime;
+    };
     ReflectionCapabilities.prototype.resolveEnum = function (enumIdentifier, name) { return enumIdentifier[name]; };
     return ReflectionCapabilities;
 }());

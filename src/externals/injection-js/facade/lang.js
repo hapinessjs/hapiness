@@ -1,10 +1,3 @@
-/**
- * @license
- * Copyright Google Inc. All Rights Reserved.
- *
- * Use of this source code is governed by an MIT-style license that can be
- * found in the LICENSE file at https://angular.io/license
- */
 "use strict";
 var globalScope;
 if (typeof window === 'undefined') {
@@ -45,4 +38,52 @@ function stringify(token) {
     return newLineIndex === -1 ? res : res.substring(0, newLineIndex);
 }
 exports.stringify = stringify;
+var DebugContext = (function () {
+    function DebugContext() {
+    }
+    Object.defineProperty(DebugContext.prototype, "nodeIndex", {
+        // We don't really need this
+        // abstract get view(): ViewData;
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "injector", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "component", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "providerTokens", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "references", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "context", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "componentRenderElement", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(DebugContext.prototype, "renderNode", {
+        get: function () { },
+        enumerable: true,
+        configurable: true
+    });
+    return DebugContext;
+}());
+exports.DebugContext = DebugContext;
 //# sourceMappingURL=lang.js.map

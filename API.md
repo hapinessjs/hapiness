@@ -161,6 +161,22 @@ When you ask for a dependency, Optional tell to the DI to not throw an error if 
     }
     ...
 
+## Inject & InjectionToken
+Create custom token for the DI
+
+    const MY_CUSTOM_TOKEN = new InjectionToken('my-token');
+
+    @HapinessModule({
+        ...
+        imports: [{ provide: MY_CUSTOM_TOKEN, useValue: 'abcdef' }]
+        ...
+    })
+    class MyModule {
+        constructor(@Inject(MY_CUSTOM_TOKEN) myValue) {
+            console.log(myValue) // ouput: 'abcdef'
+        }
+    }
+
 ## Instance Providers
 ### HttpServer
 

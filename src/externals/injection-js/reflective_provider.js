@@ -97,7 +97,7 @@ function resolveReflectiveFactory(provider) {
  * convenience provider syntax.
  */
 function resolveReflectiveProvider(provider) {
-    return new ResolvedReflectiveProvider_(reflective_key_1.ReflectiveKey.get(provider.provide), [resolveReflectiveFactory(provider)], provider.multi);
+    return new ResolvedReflectiveProvider_(reflective_key_1.ReflectiveKey.get(provider.provide), [resolveReflectiveFactory(provider)], provider.multi || false);
 }
 /**
  * Resolve a list of Providers.

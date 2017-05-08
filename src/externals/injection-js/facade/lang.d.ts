@@ -1,3 +1,5 @@
+/// <reference types="node" />
+import { Injector } from '../injector';
 /**
  * @license
  * Copyright Google Inc. All Rights Reserved.
@@ -30,3 +32,16 @@ declare const _global: BrowserNodeGlobal;
 export { _global as global };
 export declare function isPresent(obj: any): boolean;
 export declare function stringify(token: any): string;
+export declare abstract class DebugContext {
+    readonly abstract nodeIndex: number | null;
+    readonly abstract injector: Injector;
+    readonly abstract component: any;
+    readonly abstract providerTokens: any[];
+    readonly abstract references: {
+        [key: string]: any;
+    };
+    readonly abstract context: any;
+    readonly abstract componentRenderElement: any;
+    readonly abstract renderNode: any;
+    abstract logError(console: Console, ...values: any[]): void;
+}

@@ -1,9 +1,9 @@
 import { RouteConfig } from '../route';
 import { TypeDecorator, makeDecorator } from '../externals/injection-js/util/decorators';
 import { Type } from '../externals/injection-js/facade/type';
-import { Injectable, Inject, Optional } from '../externals/injection-js';
+import { Inject, Injectable, InjectionToken, Optional } from '../externals/injection-js';
 
-export { Injectable, Inject, Optional };
+export { Injectable, Inject, Optional, InjectionToken };
 
 /**
  * Type of the HapinessModule decorator / constructor function.
