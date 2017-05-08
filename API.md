@@ -224,5 +224,4 @@ Use Hapiness as a WebSocket server
         }
 
     }
-
     Hapiness.bootstrap(SocketServerModule);

@@ -12,6 +12,10 @@ class SocketTest {
         socket.onRequest(_ => {});
         unit.must(socket['subscribers'].length).equal(1);
         unit.must(socket.getSockets().length).equal(0);
+        socket['server'] = <any>{
+            broadcastUTF: _ => unit.must(_).equal('{"type":"test","data":"data"}')
+        }
+        unit.must(socket.broadcast('test', 'data'));
     }
 
     @test('Socket')
@@ -27,7 +31,6 @@ class SocketTest {
 
         socket.on('test', () => {
             socket.emit('event', 'test');
-            socket.emitAll('event', 'test');
             socket.close();
         });
     }

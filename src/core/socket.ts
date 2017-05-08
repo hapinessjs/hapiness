@@ -59,6 +59,19 @@ export class ServerSocket {
     public getSockets(): Socket[] {
         return this.sockets;
     }
+
+    /**
+     * Broadcast data into active sockets
+     *
+     * @param  {string} event
+     * @param  {any} data
+     */
+    public broadcast(event: string, data: any) {
+        this.server.broadcastUTF(JSON.stringify({
+            type: event,
+            data
+        }));
+    }
 }
 
 export class Socket {
@@ -90,16 +103,6 @@ export class Socket {
             type: event,
             data
         }));
-    }
-
-    /**
-     * Broadcast data into active sockets
-     *
-     * @param  {string} event
-     * @param  {any} data
-     */
-    emitAll(event: string, data: any) {
-        this.server.getSockets().forEach(_ => _.emit(event, data));
     }
 
     /**
