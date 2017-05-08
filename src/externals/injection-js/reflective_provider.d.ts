@@ -8,8 +8,8 @@ import { ReflectiveKey } from './reflective_key';
 export declare class ReflectiveDependency {
     key: ReflectiveKey;
     optional: boolean;
-    visibility: Self | SkipSelf;
-    constructor(key: ReflectiveKey, optional: boolean, visibility: Self | SkipSelf);
+    visibility: Self | SkipSelf | null;
+    constructor(key: ReflectiveKey, optional: boolean, visibility: Self | SkipSelf | null);
     static fromKey(key: ReflectiveKey): ReflectiveDependency;
 }
 /**
@@ -85,4 +85,4 @@ export declare function resolveReflectiveProviders(providers: Provider[]): Resol
  * have been merged.
  */
 export declare function mergeResolvedReflectiveProviders(providers: ResolvedReflectiveProvider[], normalizedProvidersMap: Map<number, ResolvedReflectiveProvider>): Map<number, ResolvedReflectiveProvider>;
-export declare function constructDependencies(typeOrFunc: any, dependencies: any[]): ReflectiveDependency[];
+export declare function constructDependencies(typeOrFunc: any, dependencies?: any[]): ReflectiveDependency[];

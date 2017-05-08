@@ -29,4 +29,6 @@ exports.ReflectiveKey = reflective_key_1.ReflectiveKey;
 var injection_token_1 = require('./injection_token');
 exports.InjectionToken = injection_token_1.InjectionToken;
 exports.OpaqueToken = injection_token_1.OpaqueToken;
+var decorators_1 = require('./util/decorators');
+exports.Class = decorators_1.Class;
 //# sourceMappingURL=index.js.map

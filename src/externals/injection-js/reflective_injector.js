@@ -114,7 +114,6 @@ var ReflectiveInjector = (function () {
      * See {@link Injector#resolve} and {@link Injector#fromResolvedProviders}.
      */
     ReflectiveInjector.resolveAndCreate = function (providers, parent) {
-        if (parent === void 0) { parent = null; }
         var ResolvedReflectiveProviders = ReflectiveInjector.resolve(providers);
         return ReflectiveInjector.fromResolvedProviders(ResolvedReflectiveProviders, parent);
     };
@@ -142,7 +141,6 @@ var ReflectiveInjector = (function () {
      * @experimental
      */
     ReflectiveInjector.fromResolvedProviders = function (providers, parent) {
-        if (parent === void 0) { parent = null; }
         return new ReflectiveInjector_(providers, parent);
     };
     Object.defineProperty(ReflectiveInjector.prototype, "parent", {
@@ -172,11 +170,10 @@ var ReflectiveInjector_ = (function () {
      * Private
      */
     function ReflectiveInjector_(_providers, _parent) {
-        if (_parent === void 0) { _parent = null; }
         /** @internal */
         this._constructionCounter = 0;
         this._providers = _providers;
-        this._parent = _parent;
+        this._parent = _parent || null;
         var len = _providers.length;
         this.keyIds = new Array(len);
         this.objs = new Array(len);

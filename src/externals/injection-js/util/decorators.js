@@ -8,7 +8,7 @@
 "use strict";
 var lang_1 = require('../facade/lang');
 var _nextClassId = 0;
-var Reflect = lang_1.global.Reflect;
+var Reflect = lang_1.global['Reflect'];
 function extractAnnotation(annotation) {
     if (typeof annotation === 'function' && annotation.hasOwnProperty('annotation')) {
         // it is a decorator, extract annotation
@@ -136,6 +136,7 @@ function applyParams(fnOrArray, key) {
  *   }
  * });
  * ```
+ * @suppress {globalThis}
  * @stable
  */
 function Class(clsDef) {
@@ -165,8 +166,10 @@ function Class(clsDef) {
     return constructor;
 }
 exports.Class = Class;
+/**
+ * @suppress {globalThis}
+ */
 function makeDecorator(name, props, parentClass, chainFn) {
-    if (chainFn === void 0) { chainFn = null; }
     var metaCtor = makeMetadataCtor([props]);
     function DecoratorFactory(objOrType) {
         if (!(Reflect && Reflect.getOwnMetadata)) {

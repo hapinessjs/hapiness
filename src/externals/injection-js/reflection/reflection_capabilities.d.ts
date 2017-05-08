@@ -23,6 +23,7 @@ export declare class ReflectionCapabilities implements PlatformReflectionCapabil
     setter(name: string): SetterFn;
     method(name: string): MethodFn;
     importUri(type: any): string;
-    resolveIdentifier(name: string, moduleUrl: string, runtime: any): any;
+    resourceUri(type: any): string;
+    resolveIdentifier(name: string, moduleUrl: string, members: string[], runtime: any): any;
     resolveEnum(enumIdentifier: any, name: string): any;
 }
