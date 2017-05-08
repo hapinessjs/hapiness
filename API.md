@@ -86,6 +86,30 @@ Declare an Hapiness module with the providers, routes and libs.
     - `OnModuleResolved` - Called when imported module is resolved
         - arguments: (module: string)
 
+## Provide config through a module
+When you import a module, you can provide data.
+
+    @HapinessModule({
+        ...
+    })
+    class ModuleNeedData {
+        static setConfig(config: MyConfig): CoreModuleWithProviders {
+            return {
+                module: ModuleNeedData,
+                providers: [{ provide: MyConfig, useValue: config }]
+            };
+        }
+        constructor(config: MyConfig) {
+            ...
+        }
+    }
+
+    @HapinessModule({
+        ...
+        imports: [ ModuleNeedData.setConfig({ hello: 'world!' }) ]
+    })
+    ...
+
 ## Route
 Declare HTTP routes
 
@@ -125,6 +149,17 @@ Declare an empty component for any use
 
     @Lib()
     class MyLib {}
+
+## Optional
+When you ask for a dependency, Optional tell to the DI to not throw an error if the dependency is not available.
+
+    ...
+    constructor(@Optional() dep: MyDep) {
+        if (dep) {
+            ...
+        }
+    }
+    ...
 
 ## Instance Providers
 ### HttpServer
@@ -189,5 +224,4 @@ Use Hapiness as a WebSocket server
         }
 
     }
-
     Hapiness.bootstrap(SocketServerModule);
