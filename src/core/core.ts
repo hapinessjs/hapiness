@@ -47,6 +47,15 @@ export interface CoreModule {
 }
 
 /**
+ * CoreModuleWithProviders Type
+ * Used to pass data while module importation
+ */
+export interface CoreModuleWithProviders {
+    module: Type<any>;
+    providers: CoreProvide[];
+}
+
+/**
  * CoreRoute Type
  * Represents an Http Route
  */
