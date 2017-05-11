@@ -4,7 +4,7 @@
     { "name":"API.md" },
     { "name":"package.json" },
     { "name":"src" },
-    { "name":"src/externals" },
+    { "name":"src/externals", "externals": true },
     { "name":"core", "remove":true },
     { "name":"module", "remove":true },
     { "name":"util", "remove":true },

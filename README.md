@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
     
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-beta.2",
+    "@hapiness/core": "^1.0.0-beta.3",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-beta.2**
+Actually, we're in **development** mode: **v1.0.0-beta.3**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -116,6 +116,11 @@ To set up your development environment:
     
 ## Change History
 
+* v1.0.0-beta.3 (2017-05-11)
+    * Websocket server wrapper
+    * Route config
+    * Module config
+    * Latest `injection-js` version
 * v1.0.0-beta.2 (2017-04-06)
     * Add typings to dependencies
     * Limit `Hapiness core` exports

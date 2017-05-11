@@ -99,7 +99,7 @@ When you import a module, you can provide data.
                 providers: [{ provide: MyConfig, useValue: config }]
             };
         }
-        constructor(config: MyConfig) {
+        constructor(@Optional() config: MyConfig) {
             ...
         }
     }
