@@ -17,7 +17,8 @@
             "hapi",
             "boom",
             "hoek",
-            "joi"
+            "joi",
+            "websocket"
         ],
         "lib": [
             "dom",
