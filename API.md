@@ -86,6 +86,30 @@ Declare an Hapiness module with the providers, routes and libs.
     - `OnModuleResolved` - Called when imported module is resolved
         - arguments: (module: string)
 
+## Provide config through a module
+When you import a module, you can provide data.
+
+    @HapinessModule({
+        ...
+    })
+    class ModuleNeedData {
+        static setConfig(config: MyConfig): CoreModuleWithProviders {
+            return {
+                module: ModuleNeedData,
+                providers: [{ provide: MyConfig, useValue: config }]
+            };
+        }
+        constructor(@Optional() config: MyConfig) {
+            ...
+        }
+    }
+
+    @HapinessModule({
+        ...
+        imports: [ ModuleNeedData.setConfig({ hello: 'world!' }) ]
+    })
+    ...
+
 ## Route
 Declare HTTP routes
 
@@ -125,3 +149,95 @@ Declare an empty component for any use
 
     @Lib()
     class MyLib {}
+
+## Optional
+When you ask for a dependency, Optional tell to the DI to not throw an error if the dependency is not available.
+
+    ...
+    constructor(@Optional() dep: MyDep) {
+        if (dep) {
+            ...
+        }
+    }
+    ...
+
+## Inject & InjectionToken
+Create custom token for the DI
+
+    const MY_CUSTOM_TOKEN = new InjectionToken('my-token');
+
+    @HapinessModule({
+        ...
+        imports: [{ provide: MY_CUSTOM_TOKEN, useValue: 'abcdef' }]
+        ...
+    })
+    class MyModule {
+        constructor(@Inject(MY_CUSTOM_TOKEN) myValue) {
+            console.log(myValue) // ouput: 'abcdef'
+        }
+    }
+
+## Instance Providers
+### HttpServer
+
+    ...
+    constructor(private httpServer: HttpServer) {}
+    ...
+
+- properties
+    - `instance` - HapiJS server instance
+
+### WSServer
+
+    ...
+    constructor(private wsServer: WSServer) {}
+    ...
+
+- properties
+    - `instance` - ServerSocket instance
+
+
+## Socket
+Socket object provided when a new connection comes in the ServerSocket
+
+- methods
+    - `on` - Add listener on a new event coming from the socket
+    - `emit` - Send data into the socket
+    - `emitAll` - Send data to all active sockets
+    - `close` - Close the socket
+
+
+## ServerSocket
+Use Hapiness as a WebSocket server
+
+- methods
+    - `onRequest` - Callback called at each new socket connection
+        - arguments: ((socket: Socket) => void)
+    - `getSockets` - Return all active sockets
+        - return: Socket[]
+    - `broadcast` - Broadcast data to all active sockets
+        - arguments: (event: string, data: any)
+
+### Example
+    @HapinessModule({
+        version: 'x.x.x',
+        options: {
+            host: '0.0.0.0',
+            port: 1234,
+            socketPort: 1235 // port websocket
+        }
+    })
+    class SocketServerModule implements OnStart {
+
+        constructor(private wsServer: WSServer) {}
+
+        onStart() {
+            this.wsServer.instance.onRequest((socket: Socket) => {
+                socket.on('message', _ => console.log(_));
+                socket.emit('message', 'Hello World!');
+                this.wsServer.instance.broadcast('join', 'Hello World!');
+            });
+        }
+
+    }
+    Hapiness.bootstrap(SocketServerModule);

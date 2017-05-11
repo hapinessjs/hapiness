@@ -1,13 +1,13 @@
 import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
-import { RouteLifecycleHook } from '../route';
+import { RouteConfig, RouteLifecycleHook } from '../route';
 import { RouteBuilder } from '../route';
 import { Observable } from 'rxjs/Observable';
 import { ModuleBuilder, ModuleLevel, ModuleLifecycleHook, eModuleLifecycleHooks } from '../module';
 import { HttpServer, WSServer } from './providers';
 import { ServerSocket } from './socket';
-import { ReflectiveInjector } from 'injection-js';
-import { Type } from 'injection-js/facade/type';
+import { ReflectiveInjector } from '../externals/injection-js';
+import { Type } from '../externals/injection-js/facade/type';
 import { Server } from 'hapi';
 import * as Hoek from 'hoek';
 import * as Boom from 'boom';
@@ -47,6 +47,15 @@ export interface CoreModule {
 }
 
 /**
+ * CoreModuleWithProviders Type
+ * Used to pass data while module importation
+ */
+export interface CoreModuleWithProviders {
+    module: Type<any>;
+    providers: CoreProvide[];
+}
+
+/**
  * CoreRoute Type
  * Represents an Http Route
  */
@@ -56,6 +65,7 @@ export interface CoreRoute {
     method: string | string[];
     module: CoreModule;
     providers?: CoreProvide[];
+    config?: RouteConfig;
 }
 
 /**
@@ -246,18 +256,20 @@ export class Hapiness {
         Hoek.assert((module && !!server), Boom.create(500, 'Please provide module and HapiJS server instance'));
         return Observable.create(observer => {
             module.routes.forEach(route => {
-                server.route({
-                    method: route.method,
-                    path: route.path,
+                const config = Object.assign({
                     handler: (req, reply) => {
-                        const instance = RouteBuilder.instantiateRouteAndDI(route);
                         RouteLifecycleHook.triggerHook(
                             RouteLifecycleHook.enumByMethod(req.method),
                             route.token,
-                            instance,
+                            RouteBuilder.instantiateRouteAndDI(route),
                             [ req, reply ]
                         );
                     }
+                }, route.config);
+                server.route({
+                    method: route.method,
+                    path: route.path,
+                    config
                 });
             });
             observer.next();

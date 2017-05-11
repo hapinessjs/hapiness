@@ -6,6 +6,7 @@ import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { HapinessModule, Route } from '../../src';
 import { ModuleBuilder } from '../../src/module';
+import * as Joi from 'joi';
 
 @suite('Route')
 class Routes {
@@ -117,5 +118,45 @@ class Routes {
         Hapiness.bootstrap(TestGet)
             .then(() => {});
 
+    }
+
+    @test('Test config validation')
+    testConfig(done) {
+        @Route({
+            path: '/test',
+            method: 'GET',
+            config: {
+                validate: {
+                    query: {
+                        param: Joi.number()
+                    }
+                }
+            }
+        })
+        class MyRoute implements OnGet {
+            onGet(req, reply) {
+                reply('test');
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            options: { host: '0.0.0.0', port: 4461 },
+            declarations: [ MyRoute ]
+        })
+        class TestGet implements OnStart {
+            onStart() {
+                Hapiness['mainModule'].server.inject('/test', res => {
+                    unit.must(res.result).equal('test');
+                    Hapiness['mainModule'].server.inject('/test?param=ABC', _res => {
+                        unit.must(_res.statusCode).equal(400);
+                        Hapiness.kill().subscribe(() => done());
+                    });
+                });
+            }
+        }
+
+        Hapiness.bootstrap(TestGet)
+            .then(() => {});
     }
 }

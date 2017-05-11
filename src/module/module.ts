@@ -1,7 +1,7 @@
 import { RouteBuilder } from '../route';
-import { CoreModule, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
+import { CoreModule, CoreModuleWithProviders, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
 import { extractMetadataByDecorator } from '../util';
-import { Type } from 'injection-js/facade/type';
+import { Type } from '../externals/injection-js/facade/type';
 import * as Hoek from 'hoek';
 import * as Debug from 'debug';
 const debug = Debug('module');
@@ -112,16 +112,23 @@ export class ModuleBuilder {
      * each module imported
      *
      * @todo Fix circular importation !!!
-     * @param  {Type<any>} module
+     * @param  {Type<any>|CoreModuleWithProviders} module
+     * @param  {CoreModule} parent
+     * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
     private static recursiveResolution(module: Type<any>, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
+        let _providers = [].concat(providers);
+        if (module['module'] && module['providers']) {
+            _providers = _providers.concat(module['providers']);
+            module = module['module'];
+        }
         debug('Recursive resolution', module.name);
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
             metadata.imports.map(x => this.recursiveResolution(x, coreModule, providers)) : [];
-        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule, providers));
+        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule, _providers));
         coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
         coreModule.routes = RouteBuilder.buildRoute(coreModule);
         coreModule.libs = this.instantiateLibs(coreModule);

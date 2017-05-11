@@ -1,9 +1,10 @@
-import { Lib } from '../../src/core/decorators';
-import { OpaqueToken } from '../../lib/injection-js';
+import { CoreModuleWithProviders } from '../../src/core';
+import { Lib, Optional, Inject } from '../../src/core/decorators';
+import { OpaqueToken } from '../../src/externals/injection-js';
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { HapinessModule } from '../../src';
-import { ModuleBuilder } from '../../src/module';
+import { ModuleBuilder, OnRegister } from '../../src/module';
 import { LoggerWrapper, SubModule, SubSubModule, TestModule } from './common/module.mock';
 
 @suite('Module')
@@ -197,6 +198,40 @@ class Decorators {
         class TestModule {}
 
         const module = ModuleBuilder.buildModule(TestModule);
+
+    }
+
+    @test('Module config')
+    testConfig(done) {
+
+        const CONFIG_TOKEN = new OpaqueToken('config');
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class SubModule {
+            static setConfig(config): CoreModuleWithProviders {
+                return {
+                    module: SubModule,
+                    providers: [{ provide: CONFIG_TOKEN, useValue: config }]
+                };
+            }
+
+            constructor(@Inject(CONFIG_TOKEN) @Optional() config) {
+                unit.must(config.data).equal(1);
+                done();
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [
+                SubModule.setConfig({ data: 1 })
+            ]
+        })
+        class MyModule {}
+
+        const module = ModuleBuilder.buildModule(MyModule);
 
     }
 }
