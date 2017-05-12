@@ -37,7 +37,7 @@
 
 It provides a real enhancement for building **web servers** and it enables to build **modules**, **services**, etc. quickly.
 
-It has a stable and tested [dependency injection](https://github.com/mgechev/injection-js) system thanks to [Angular](https://angular.io). 
+It has a stable and tested [dependency injection](https://github.com/mgechev/injection-js) system thanks to [Angular](https://angular.io).
 
 Better development experience with **typings**, **maintainability**, **improvement of productivity** and a **common project structure**.
 
@@ -84,7 +84,7 @@ or
 
 $ yarn add @hapiness/core
 ```
-    
+
 ```javascript
 "dependencies": {
     "@hapiness/core": "^1.0.0-beta.3",
@@ -109,11 +109,11 @@ To set up your development environment:
 2. in the shell `cd` to the main folder,
 3. hit `npm or yarn install`,
 4. run `npm or yarn run test`.
-    * It will lint the code and execute all tests. 
+    * It will lint the code and execute all tests.
     * The test coverage report can be viewed from `./coverage/lcov-report/index.html`.
-    
+
 [Back to top](#table-of-contents)
-    
+
 ## Change History
 
 * v1.0.0-beta.3 (2017-05-11)
@@ -133,7 +133,7 @@ To set up your development environment:
     * Providers
     * Web server
     * Websocket server
-    
+
 [Back to top](#table-of-contents)
 
 ## Maintainers

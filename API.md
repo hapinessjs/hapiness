@@ -69,7 +69,7 @@ Declare an Hapiness module with the providers, routes and libs.
 
     - `version` - module version
     - `options`
-        - bootstrapped module : 
+        - bootstrapped module :
             - `host` - server host
             - `port` - http server port
             - `socketPort` - websocket server port
@@ -89,26 +89,58 @@ Declare an Hapiness module with the providers, routes and libs.
 ## Provide config through a module
 When you import a module, you can provide data.
 
+```javascript
+
+  // external-module.ts
+  import {
+    HapinessModule,
+    CoreModuleWithProviders,
+    InjectionToken,
+    Inject,
+    Optional
+  } from '@hapiness/core';
+
+  const CONFIG = new InjectionToken('config');
+  interface Config {
+    baseUrl: string;
+  }
+
     @HapinessModule({
         ...
     })
-    class ModuleNeedData {
-        static setConfig(config: MyConfig): CoreModuleWithProviders {
+
+    export class ExternalModule {
+        static setConfig(config: Config): CoreModuleWithProviders {
             return {
-                module: ModuleNeedData,
-                providers: [{ provide: MyConfig, useValue: config }]
+                module: ExternalModule,
+                providers: [{ provide: CONFIG, useValue: config }]
             };
         }
-        constructor(@Optional() config: MyConfig) {
+        constructor(@Optional() config: Config) {
             ...
         }
     }
 
+    export class Service {
+      constructor(@Inject(CONFIG) config) {
+        ...
+      }
+    }
+```
+```javascript
+
+    // main-module.ts
+    import {
+      HapinessModule,
+    } from '@hapiness/core';
+    import { ExternalModule } from 'external-module';
+
     @HapinessModule({
         ...
-        imports: [ ModuleNeedData.setConfig({ hello: 'world!' }) ]
+        imports: [ ExternalModule.setConfig({ hello: 'world!' }) ]
     })
     ...
+```
 
 ## Route
 Declare HTTP routes
