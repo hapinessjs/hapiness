@@ -96,7 +96,6 @@ When you import a module, you can provide data.
     HapinessModule,
     CoreModuleWithProviders,
     InjectionToken,
-    Inject,
     Optional
   } from '@hapiness/core';
 
@@ -116,13 +115,10 @@ When you import a module, you can provide data.
                 providers: [{ provide: CONFIG, useValue: config }]
             };
         }
-        constructor(@Optional() config: Config) {
-            ...
-        }
     }
 
     export class Service {
-      constructor(@Inject(CONFIG) config) {
+      constructor(@Optional(CONFIG) config) { // if config is optional, use @Optional, if required, use @Inject
         ...
       }
     }
