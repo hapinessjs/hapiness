@@ -2,6 +2,7 @@
 
 ## Getting started
 
+```javascript
     @Injectable()
     class DataService {
         data(): Observable<any> {
@@ -49,8 +50,8 @@
     }
 
     // Start the server
-    Hapiness.bootstrap(DataModule);
-
+    Hapiness.bootstrap(DataModule);
+```
 
 
 ## Hapiness
@@ -62,8 +63,10 @@ Bootstrap a module and start the web server.
 ## HapinessModule
 Declare an Hapiness module with the providers, routes and libs.
 
+```javascript
     @HapinessModule({metadata})
-    class MyClass {}
+    class MyClass {}
+```
 
 - metadata
 
@@ -119,7 +122,7 @@ When you import a module, you can provide data.
     }
 
     export class Service {
-      constructor(@Optional @Inject(CONFIG) config) { // @Optional to not throw errors if config is not passed
+      constructor(@Optional() @Inject(CONFIG) config) { // @Optional to not throw errors if config is not passed
         ...
       }
     }
@@ -142,8 +145,10 @@ When you import a module, you can provide data.
 ## Route
 Declare HTTP routes
 
+```javascript
     @Route({metadata})
     class MyClass {}
+```
 
 - metadata
 
@@ -170,29 +175,37 @@ Declare HTTP routes
 ## Injectable
 Declare an injectable provider
 
+```javascript
     @Injectable()
-    class MyService {}
+    class MyService {}
+```
+    class MyService {}
 
 ## Lib
 Declare an empty component for any use
 
+```javascript
     @Lib()
-    class MyLib {}
+    class MyLib {}
+```
 
 ## Optional
 When you ask for a dependency, Optional tell to the DI to not throw an error if the dependency is not available.
 
+```javascript
     ...
     constructor(@Optional() dep: MyDep) {
         if (dep) {
             ...
         }
     }
-    ...
+    ...
+```
 
 ## Inject & InjectionToken
 Create custom token for the DI
 
+```javascript
     const MY_CUSTOM_TOKEN = new InjectionToken('my-token');
 
     @HapinessModule({
@@ -204,23 +217,28 @@ Create custom token for the DI
         constructor(@Inject(MY_CUSTOM_TOKEN) myValue) {
             console.log(myValue) // ouput: 'abcdef'
         }
-    }
+    }
+```
 
 ## Instance Providers
 ### HttpServer
 
+```javascript
     ...
     constructor(private httpServer: HttpServer) {}
-    ...
+    ...
+```
 
 - properties
     - `instance` - HapiJS server instance
 
 ### WSServer
 
+```javascript
     ...
     constructor(private wsServer: WSServer) {}
-    ...
+    ...
+```
 
 - properties
     - `instance` - ServerSocket instance
@@ -248,6 +266,8 @@ Use Hapiness as a WebSocket server
         - arguments: (event: string, data: any)
 
 ### Example
+
+```javascript
     @HapinessModule({
         version: 'x.x.x',
         options: {
@@ -269,4 +289,5 @@ Use Hapiness as a WebSocket server
         }
 
     }
-    Hapiness.bootstrap(SocketServerModule);
+    Hapiness.bootstrap(SocketServerModule);
+```
