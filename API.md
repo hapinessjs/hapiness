@@ -96,7 +96,8 @@ When you import a module, you can provide data.
     HapinessModule,
     CoreModuleWithProviders,
     InjectionToken,
-    Optional
+    Inject,
+    Optional,
   } from '@hapiness/core';
 
   const CONFIG = new InjectionToken('config');
@@ -118,7 +119,7 @@ When you import a module, you can provide data.
     }
 
     export class Service {
-      constructor(@Optional(CONFIG) config) { // if config is optional, use @Optional, if required, use @Inject
+      constructor(@Optional @Inject(CONFIG) config) { // @Optional to not throw errors if config is not passed
         ...
       }
     }
