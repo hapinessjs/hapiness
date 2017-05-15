@@ -5,7 +5,7 @@ import { RouteBuilder } from '../route';
 import { Observable } from 'rxjs/Observable';
 import { ModuleBuilder, ModuleLevel, ModuleLifecycleHook, eModuleLifecycleHooks } from '../module';
 import { HttpServer, WSServer } from './providers';
-import { ServerSocket } from './socket';
+import { ServerSocket, ServerSocketConfig } from './socket';
 import { ReflectiveInjector } from '../externals/injection-js';
 import { Type } from '../externals/injection-js/facade/type';
 import { Server } from 'hapi';
@@ -106,7 +106,10 @@ export class Hapiness {
         let providers = [].concat(this.provideServer(server));
         let socket;
         if (!!mainOptions && mainOptions.socketPort) {
-            socket = new ServerSocket(mainOptions.socketPort);
+            const socketConfig: ServerSocketConfig = {
+                port: parseInt(mainOptions.socketPort, 10)
+            };
+            socket = new ServerSocket(socketConfig);
             delete mainOptions.socketPort;
             providers = providers.concat(this.provideWSServer(socket));
         }
