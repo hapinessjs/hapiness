@@ -32,7 +32,7 @@ export class ServerSocket {
         this.subscribers = [];
         /* istanbul ignore next */
         this.server.on('request', req => {
-            const connection = req.accept('echo-protocol', req.origin);
+            const connection = req.accept(null, req.origin);
             const socket = new Socket(req, connection, this);
             const index = this.sockets.push(socket) - 1;
             this.subscribers.forEach(sub => sub.apply(this, [ socket ]));
