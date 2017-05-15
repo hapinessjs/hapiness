@@ -11,4 +11,4 @@ clean:
 packaging:
 	@node ./node_modules/.bin/ts-node ./tools/packaging.ts
 
-.PHONY: pretest test test-on-travis tsc clean packaging
+.PHONY: pretest test coveralls tsc clean packaging
