@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
+import { Lifecycle } from './lifecycle';
 import { RouteConfig, RouteLifecycleHook } from '../route';
 import { RouteBuilder } from '../route';
 import { Observable } from 'rxjs/Observable';
@@ -117,6 +118,7 @@ export class Hapiness {
         this.mainModule.server = server;
         this.mainModule.socket = socket;
         this.mainModule.server.connection(mainOptions);
+        Lifecycle.initialize(this.mainModule);
         return new Promise((resolve, reject) => {
             Observable.forkJoin(
                 this.registrationObservables(this.flattenModules()).concat(this.addRoutes(this.mainModule, this.mainModule.server))
