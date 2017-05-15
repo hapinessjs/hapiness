@@ -106,7 +106,7 @@ export class Hapiness {
         let providers = [].concat(this.provideServer(server));
         let socket;
         if (!!mainOptions && mainOptions.socketPort) {
-            socket = new ServerSocket(mainOptions.socketPort);
+            socket = new ServerSocket({ port: mainOptions.socketPort });
             delete mainOptions.socketPort;
             providers = providers.concat(this.provideWSServer(socket));
         }
