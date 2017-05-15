@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-beta.4",
+    "@hapiness/core": "^1.0.0-beta.5",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-beta.4**
+Actually, we're in **development** mode: **v1.0.0-beta.5**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -116,6 +116,8 @@ To set up your development environment:
 
 ## Change History
 
+* v1.0.0-beta.5 (2017-05-15)
+    * Fix Websocket config
 * v1.0.0-beta.4 (2017-05-15)
     * Fix Websocket server wrapper
 * v1.0.0-beta.3 (2017-05-11)
