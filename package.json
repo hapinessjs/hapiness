@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/core",
-    "version": "1.0.0-beta.3",
+    "version": "1.0.0-beta.4",
     "description": "Project to have a HapiJS (https://hapijs.com/) based framework to create easier NodeJS back-end with some awesome features",
     "main": "index.js",
     "types": "index.d.ts",
