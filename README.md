@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-beta.3",
+    "@hapiness/core": "^1.0.0-beta.4",
     //...
 }
 //...
