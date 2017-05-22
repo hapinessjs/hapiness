@@ -1,8 +1,9 @@
-import { OnGet } from '../../src/route/hook';
+import { HttpRequestInfo } from '../../src/core/lifecycle';
+import { OnGet, OnPreHandler } from '../../src/route/hook';
 import { OnStart } from '../../src/module/hook';
 import { Hapiness } from '../../src/core';
 import { RouteBuilder } from '../../src/route';
-import { test, suite, only } from 'mocha-typescript';
+import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { HapinessModule, Route } from '../../src';
 import { ModuleBuilder } from '../../src/module';
@@ -63,7 +64,7 @@ class Routes {
         }
 
         Hapiness.bootstrap(TestGet)
-            .then(() => {});
+            .then(() => {}).catch(e => console.error(e));
 
     }
 
@@ -158,46 +159,5 @@ class Routes {
 
         Hapiness.bootstrap(TestGet)
             .then(() => {});
-    }
-
-    @only
-    @test('Add route')
-    testAddRoute(done) {
-
-        @Route({
-            path: '/test',
-            method: 'get'
-        })
-        class MyRoute implements OnGet {
-            onGet(req, reply) {
-                reply('test');
-            }
-        }
-
-        @HapinessModule({
-            version: 'xx',
-            declarations: [ MyRoute ]
-        })
-        class MySubModule {}
-
-        @HapinessModule({
-            version: 'xx',
-            options: { host: '0.0.0.0', port: 2332 },
-            imports: [ MySubModule ]
-        })
-        class MyModule {}
-
-        Hapiness.bootstrap(MyModule).then(_ => {
-            Hapiness['mainModule'].server.inject('/test', res => {
-                done();
-            });
-        });
-
-
-        /* const server = new (require('hapi').Server);
-        server.connection({ host: '0.0.0.0', port: 8765 });
-
-        Hapiness['addRoutes'](ModuleBuilder.buildModule(MyModule), server).subscribe(_ => {});*/
-
     }
 }
