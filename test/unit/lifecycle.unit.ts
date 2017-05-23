@@ -111,7 +111,7 @@ class LifecycleSuite {
 
     }
 
-    @test('Lifecycle component - trigger')
+    @test('Lifecycle component - trigger without hook')
     testTrigger() {
         @Lifecycle({
             event: 'onPreAuth'
@@ -120,7 +120,7 @@ class LifecycleSuite {
         LifecycleManager.triggerHook(LC, new LC(), []);
     }
 
-    @test('Lifecycle component - routeLifecycle')
+    @test('Lifecycle component - test without routes provided')
     testRouteLC() {
         LifecycleManager.routeLifecycle(<any>{
             server: {
