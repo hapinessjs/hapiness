@@ -1,7 +1,11 @@
+import { LifecycleManager } from '../core/lifecycle';
 import { RouteBuilder } from '../route';
-import { CoreModule, CoreModuleWithProviders, CoreProvide, DependencyInjection, HapinessModule, Lib } from '../core';
+import { CoreModule, CoreModuleWithProviders, CoreProvide,
+    DependencyInjection, HapinessModule, Lib, Lifecycle } from '../core';
 import { extractMetadataByDecorator } from '../util';
 import { Type } from '../externals/injection-js/facade/type';
+import { reflector } from '../externals/injection-js/reflection/reflection';
+import { Server } from 'hapi';
 import * as Hoek from 'hoek';
 import * as Debug from 'debug';
 const debug = Debug('module');
@@ -66,6 +70,17 @@ export class ModuleBuilder {
                 .shift();
         }
         debug(`Didn't find module ${name}`);
+    }
+
+    /**
+     * Called once a module is registering as Plugin
+     * Provide the server instance
+     *
+     * @param  {Server} server
+     * @param  {CoreModule} module
+     */
+    public static registering(server: Server, module: CoreModule) {
+        this.instantiateLifecycle(server, module);
     }
 
     /**
@@ -157,5 +172,26 @@ export class ModuleBuilder {
     private static instantiateLibs(module: CoreModule): Type<any>[] {
         return [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lib'))
             .map(lib => <Type<any>>DependencyInjection.instantiateComponent(lib, module.di));
+    }
+
+    /**
+     * Initialize and instantiate lifecycle components
+     *
+     * @param  {Server} server
+     * @param  {CoreModule} module
+     */
+    private static instantiateLifecycle(server: Server, module: CoreModule) {
+        [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lifecycle'))
+            .map(lc => {
+                const metadata = <Lifecycle>extractMetadataByDecorator(lc, 'Lifecycle');
+                server.ext(<any>metadata.event, (request, reply) => {
+                    const instance = DependencyInjection.instantiateComponent(lc, module.di);
+                    if (LifecycleManager.hasLifecycleHook(lc)) {
+                        LifecycleManager.triggerHook(lc, instance, [ request, reply ]);
+                    } else {
+                        throw new Error('Lifecycle component without onEvent hook');
+                    }
+                });
+            });
     }
 }

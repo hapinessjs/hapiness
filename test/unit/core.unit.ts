@@ -12,7 +12,8 @@ import {
     OnError,
     OnRegister,
     HapinessModule,
-    HttpServer
+    HttpServer,
+    Optional
 } from '../../src';
 import { ModuleBuilder } from '../../src/module';
 import { MainModule } from '../../src/core';
@@ -366,6 +367,23 @@ class Decorators {
         Hapiness['mainModule'] = null;
         Hapiness.kill().subscribe(x => done());
 
+    }
+
+    @test('Optional decorator')
+    testOptional(done) {
+        class MyService {}
+        @HapinessModule({
+            options: { host: '0.0.0.0', port: 5555 },
+            version: 'x'
+        })
+        class MyMod {
+            constructor(@Optional() serv: MyService) {
+                unit.must(serv).equal(null);
+            }
+        }
+        Hapiness.bootstrap(MyMod).then(_ => {
+            done();
+        });
     }
 
 }

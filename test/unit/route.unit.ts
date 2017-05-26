@@ -1,4 +1,5 @@
-import { OnGet } from '../../src/route/hook';
+import { HttpRequestInfo } from '../../src/core/lifecycle';
+import { OnGet, OnPreHandler } from '../../src/route/hook';
 import { OnStart } from '../../src/module/hook';
 import { Hapiness } from '../../src/core';
 import { RouteBuilder } from '../../src/route';
@@ -63,7 +64,7 @@ class Routes {
         }
 
         Hapiness.bootstrap(TestGet)
-            .then(() => {});
+            .then(() => {}).catch(e => console.error(e));
 
     }
 
