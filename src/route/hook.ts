@@ -2,13 +2,12 @@ import { Observable } from 'rxjs/Observable';
 import { reflector } from '../externals/injection-js/reflection/reflection';
 import { Type } from '../externals/injection-js/facade/type';
 import { CoreModule } from '../core';
-import { Request } from 'hapi';
-import { IReply as Reply } from 'hapi';
+import { Request, ReplyWithContinue, ReplyNoContinue } from 'hapi';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('route/hook');
 
-export { Request, Reply };
+export { Request, ReplyWithContinue, ReplyNoContinue };
 
 export enum eRouteLifecycleHooks {
   OnGet,
@@ -127,7 +126,7 @@ export class RouteLifecycleHook {
  *
  * @returns void
  */
-export interface OnGet { onGet(request: Request, reply: Reply): void; }
+export interface OnGet { onGet(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * Route Handler
@@ -135,7 +134,7 @@ export interface OnGet { onGet(request: Request, reply: Reply): void; }
  *
  * @returns void
  */
-export interface OnPost { onPost(request: Request, reply: Reply): void; }
+export interface OnPost { onPost(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * Route Handler
@@ -144,7 +143,7 @@ export interface OnPost { onPost(request: Request, reply: Reply): void; }
  * @param  {Error} error
  * @returns void
  */
-export interface OnPut { onPut(request: Request, reply: Reply): void; }
+export interface OnPut { onPut(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * Route Handler
@@ -153,7 +152,7 @@ export interface OnPut { onPut(request: Request, reply: Reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnPatch { onPatch(request: Request, reply: Reply): void; }
+export interface OnPatch { onPatch(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * Route Handler
@@ -162,7 +161,7 @@ export interface OnPatch { onPatch(request: Request, reply: Reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnOptions { onOptions(request: Request, reply: Reply): void; }
+export interface OnOptions { onOptions(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * Route Handler
@@ -171,7 +170,7 @@ export interface OnOptions { onOptions(request: Request, reply: Reply): void; }
  * @param  {string} module
  * @returns void
  */
-export interface OnDelete { onDelete(request: Request, reply: Reply): void; }
+export interface OnDelete { onDelete(request: Request, reply: ReplyNoContinue): void; }
 
 /**
  * OnPreAuth Lifecycle hook
@@ -180,7 +179,7 @@ export interface OnDelete { onDelete(request: Request, reply: Reply): void; }
  * @param  {Reply} reply
  * @returns void
  */
-export interface OnPreAuth { onPreAuth(request: Request, reply: Reply ): void; }
+export interface OnPreAuth { onPreAuth(request: Request, reply: ReplyWithContinue ): void; }
 
 /**
  * OnPostAuth Lifecycle hook
@@ -189,7 +188,7 @@ export interface OnPreAuth { onPreAuth(request: Request, reply: Reply ): void; }
  * @param  {Reply} reply
  * @returns void
  */
-export interface OnPostAuth { onPostAuth(request: Request, reply: Reply ): void; }
+export interface OnPostAuth { onPostAuth(request: Request, reply: ReplyWithContinue ): void; }
 
 /**
  * OnPreHandler Lifecycle hook
@@ -198,7 +197,7 @@ export interface OnPostAuth { onPostAuth(request: Request, reply: Reply ): void;
  * @param  {Reply} reply
  * @returns void
  */
-export interface OnPreHandler { onPreHandler(request: Request, reply: Reply ): void; }
+export interface OnPreHandler { onPreHandler(request: Request, reply: ReplyWithContinue ): void; }
 
 /**
  * OnPostHandler Lifecycle hook
@@ -207,7 +206,7 @@ export interface OnPreHandler { onPreHandler(request: Request, reply: Reply ): v
  * @param  {Reply} reply
  * @returns void
  */
-export interface OnPostHandler { onPostHandler(request: Request, reply: Reply ): void; }
+export interface OnPostHandler { onPostHandler(request: Request, reply: ReplyWithContinue ): void; }
 
 /**
  * OnPreResponse Lifecycle hook
@@ -216,4 +215,4 @@ export interface OnPostHandler { onPostHandler(request: Request, reply: Reply ):
  * @param  {Reply} reply
  * @returns void
  */
-export interface OnPreResponse { onPreResponse(request: Request, reply: Reply ): void; }
+export interface OnPreResponse { onPreResponse(request: Request, reply: ReplyWithContinue ): void; }
