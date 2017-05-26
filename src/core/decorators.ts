@@ -81,4 +81,28 @@ export interface Lib {}
  */
 export const Lib = makeDecorator('Lib', null);
 
-export type Decorator = Injectable | HapinessModule | Route | Lib;
+/**
+ * Type of the Lifecycle decorator / constructor function.
+ */
+export interface LifecycleDecorator {
+  (obj: Lifecycle): TypeDecorator;
+  new (obj: Lifecycle): Lifecycle;
+}
+
+/**
+ * Type of the Lifecycle metadata.
+ */
+export interface Lifecycle {
+    event: string;
+}
+
+/**
+ * Lifecycle decorator and metadata.
+ *
+ * @Annotation
+ */
+export const Lifecycle: LifecycleDecorator = <LifecycleDecorator>makeDecorator('Lifecycle', {
+    event: undefined
+});
+
+export type Decorator = Injectable | HapinessModule | Route | Lib | Lifecycle;

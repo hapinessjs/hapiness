@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
+import { LifecycleManager } from './lifecycle';
 import { RouteConfig, RouteLifecycleHook } from '../route';
 import { RouteBuilder } from '../route';
 import { Observable } from 'rxjs/Observable';
@@ -121,6 +122,7 @@ export class Hapiness {
             Observable.forkJoin(
                 this.registrationObservables(this.flattenModules()).concat(this.addRoutes(this.mainModule, this.mainModule.server))
             ).subscribe(() => {
+                LifecycleManager.routeLifecycle(this.mainModule);
                 this.mainModule.server.start()
                     .then(() => {
                         ModuleLifecycleHook.triggerHook(eModuleLifecycleHooks.OnStart, this.mainModule, []);
@@ -252,7 +254,7 @@ export class Hapiness {
      * Add route from CoreModule
      *
      * @param  {CoreModule} module
-     * @param  {} server
+     * @param  {Server} server
      * @returns Observable
      */
     private static addRoutes(module: CoreModule, server: Server): Observable<void> {
@@ -264,7 +266,7 @@ export class Hapiness {
                         RouteLifecycleHook.triggerHook(
                             RouteLifecycleHook.enumByMethod(req.method),
                             route.token,
-                            RouteBuilder.instantiateRouteAndDI(route),
+                            req['_hapinessRoute'], // RouteBuilder.instantiateRouteAndDI(route),
                             [ req, reply ]
                         );
                     }
@@ -275,6 +277,7 @@ export class Hapiness {
                     config
                 });
             });
+            ModuleBuilder.registering(this.mainModule.server, module);
             observer.next();
             observer.complete();
         });

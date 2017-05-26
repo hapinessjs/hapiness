@@ -6,7 +6,7 @@ import { Request } from 'hapi';
 import { IReply as Reply } from 'hapi';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
-const debug = Debug('module/hook');
+const debug = Debug('route/hook');
 
 export { Request, Reply };
 
@@ -16,7 +16,12 @@ export enum eRouteLifecycleHooks {
   OnPut,
   OnPatch,
   OnOptions,
-  OnDelete
+  OnDelete,
+  OnPreAuth,
+  OnPostAuth,
+  OnPreHandler,
+  OnPostHandler,
+  OnPreResponse
 }
 
 export class RouteLifecycleHook {
@@ -99,6 +104,16 @@ export class RouteLifecycleHook {
         return 'onOptions';
       case eRouteLifecycleHooks.OnDelete:
         return 'onDelete';
+      case eRouteLifecycleHooks.OnPreAuth:
+        return 'onPreAuth';
+      case eRouteLifecycleHooks.OnPostAuth:
+        return 'onPostAuth';
+      case eRouteLifecycleHooks.OnPreHandler:
+        return 'onPreHandler';
+      case eRouteLifecycleHooks.OnPostHandler:
+        return 'onPostHandler';
+      case eRouteLifecycleHooks.OnPreResponse:
+        return 'onPreResponse';
       default:
         throw Boom.create(500, 'Hook does not exist');
     }
@@ -157,3 +172,48 @@ export interface OnOptions { onOptions(request: Request, reply: Reply): void; }
  * @returns void
  */
 export interface OnDelete { onDelete(request: Request, reply: Reply): void; }
+
+/**
+ * OnPreAuth Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreAuth { onPreAuth(request: Request, reply: Reply ): void; }
+
+/**
+ * OnPostAuth Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPostAuth { onPostAuth(request: Request, reply: Reply ): void; }
+
+/**
+ * OnPreHandler Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreHandler { onPreHandler(request: Request, reply: Reply ): void; }
+
+/**
+ * OnPostHandler Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPostHandler { onPostHandler(request: Request, reply: Reply ): void; }
+
+/**
+ * OnPreResponse Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreResponse { onPreResponse(request: Request, reply: Reply ): void; }

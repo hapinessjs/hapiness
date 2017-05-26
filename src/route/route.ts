@@ -90,7 +90,7 @@ export class RouteBuilder {
             module,
             config: data.config,
             path: data.path,
-            method: data.method,
+            method: data.method.toString().toLowerCase(),
             providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p})
         };
     }

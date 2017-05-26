@@ -33,7 +33,7 @@ class RouteHooks {
     @test('Hook does not exist')
     testHookDoesnotExist() {
 
-        unit.exception(() => unit.when(() => RouteLifecycleHook.hasLifecycleHook(9, TestRoute)))
+        unit.exception(() => unit.when(() => RouteLifecycleHook.hasLifecycleHook(99, TestRoute)))
             .is(Boom.create(500, 'Hook does not exist'));
 
     }

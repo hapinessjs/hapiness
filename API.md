@@ -171,6 +171,16 @@ Declare HTTP routes
         - arguments: (request, reply)
     - `OnOptions` - Http Options handler
         - arguments: (request, reply)
+    - `OnPreAuth` - Request lifecycle handler
+        - arguments: (request, reply)
+    - `OnPostAuth` - Request lifecycle handler
+        - arguments: (request, reply)
+    - `OnPreHandler` - Request lifecycle handler
+        - arguments: (request, reply)
+    - `OnPostHandler` - Request lifecycle handler
+        - arguments: (request, reply)
+    - `OnPreResponse` - Request lifecycle handler
+        - arguments: (request, reply)
 
 ## Injectable
 Declare an injectable provider
@@ -179,7 +189,6 @@ Declare an injectable provider
     @Injectable()
     class MyService {}
 ```
-    class MyService {}
 
 ## Lib
 Declare an empty component for any use
@@ -291,3 +300,27 @@ Use Hapiness as a WebSocket server
     }
     Hapiness.bootstrap(SocketServerModule);
 ```
+
+## Lifecycle
+
+Request lifecycle component
+
+```javascript
+    @Lifecycle({
+        event: 'onPreAuth'
+    })
+    class MyHook implements OnEvent {
+        onEvent(request, reply) {
+            ...
+        }
+    }
+```
+
+- metadata
+
+    - `event` - request lifecycle event, see [HapiJS Request lifecycle](https://hapijs.com/api#request-lifecycle)
+    
+- interfaces
+
+    - see request and reply on [HapiJS Docs](https://hapijs.com/api#requests)
+    - `OnEvent` - Lifecycle handler

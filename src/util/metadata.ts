@@ -1,4 +1,4 @@
-import { Decorator, HapinessModule, Injectable, Route, Lib } from '../core';
+import { Decorator, HapinessModule, Injectable, Route, Lib, Lifecycle } from '../core';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('util/metadata');
@@ -66,6 +66,8 @@ function getDecoratorType(name: string, value: any): Decorator {
             return <Route>value;
         case 'Lib':
             return <Lib>value;
+        case 'Lifecycle':
+            return <Lifecycle>value;
         default:
             throw Boom.create(500, `Decorator ${name} does not exists.`);
     }
