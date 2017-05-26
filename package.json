@@ -60,6 +60,10 @@
         {
             "name": "Nicolas Jessel",
             "url": "https://github.com/njl07"
+        },
+        {
+            "name": "Tara Lerias",
+            "url": "https://github.com/tlerias"
         }
     ],
     "license": "SEE LICENSE IN https://github.com/hapinessjs/hapiness/blob/master/LICENSE.md",

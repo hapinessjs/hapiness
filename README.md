@@ -118,7 +118,7 @@ To set up your development environment:
 
 * v1.0.0-beta.6 (2017-05-26)
     * Implementation of Request's Lifecycle: Hook & Component
-    * Fix Component's instentation
+    * Fix Component's instantiation
     * API Documentation
 * v1.0.0-beta.5 (2017-05-15)
     * Fix Websocket config
