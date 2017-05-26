@@ -3,4 +3,4 @@ export { Hapiness, HapinessModule, Route, Injectable,
         InjectionToken, CoreModuleWithProviders, HttpRequestInfo, OnEvent } from './core';
 export { OnRegister, OnError, OnModuleResolved, OnStart } from './module';
 export { OnGet, OnDelete, OnOptions, OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth,
-        OnPreHandler, OnPostHandler, OnPreResponse, Request, Reply } from './route';
+        OnPreHandler, OnPostHandler, OnPreResponse, Request, ReplyWithContinue, ReplyNoContinue } from './route';

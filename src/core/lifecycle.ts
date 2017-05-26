@@ -3,8 +3,7 @@ import { RouteBuilder } from '../route';
 import { CoreModule, CoreRoute, DependencyInjection, MainModule } from './';
 import { reflector } from '../externals/injection-js/reflection/reflection';
 import { Observable } from 'rxjs/Observable';
-import { Request } from 'hapi';
-import { IReply as Reply } from 'hapi';
+import { Request, ReplyWithContinue } from 'hapi';
 import * as uuid from 'uuid';
 import * as Debug from 'debug';
 const debug = Debug('lifecycle/hook');
@@ -123,4 +122,4 @@ export class LifecycleManager {
  *
  * @returns void
  */
-export interface OnEvent { onEvent(request: Request, reply: Reply): void; }
+export interface OnEvent { onEvent(request: Request, reply: ReplyWithContinue): void; }

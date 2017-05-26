@@ -9,7 +9,7 @@ import { HttpServer, WSServer } from './providers';
 import { ServerSocket, ServerSocketConfig } from './socket';
 import { ReflectiveInjector } from '../externals/injection-js';
 import { Type } from '../externals/injection-js/facade/type';
-import { Server } from 'hapi';
+import { Server, RouteConfiguration } from 'hapi';
 import * as Hoek from 'hoek';
 import * as Boom from 'boom';
 
@@ -271,7 +271,8 @@ export class Hapiness {
                         );
                     }
                 }, route.config);
-                server.route({
+
+                server.route(<RouteConfiguration>{
                     method: route.method,
                     path: route.path,
                     config
