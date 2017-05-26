@@ -120,6 +120,7 @@ To set up your development environment:
     * Implementation of Request's Lifecycle: Hook & Component
     * Fix Component's instantiation
     * API Documentation
+    * New HapiJS typings
 * v1.0.0-beta.5 (2017-05-15)
     * Fix Websocket config
 * v1.0.0-beta.4 (2017-05-15)
