@@ -32,7 +32,7 @@ export class DependencyInjection {
             .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), [])
             .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), []);
 
-        const deps = reflectiveDeps.map(d => di.get(d.key.token));
+        const deps = reflectiveDeps.map(d => di['_getByReflectiveDependency'](d));
         return Reflect.construct(component, deps);
     }
 
