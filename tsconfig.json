@@ -18,8 +18,7 @@
             "boom",
             "hoek",
             "joi",
-            "websocket",
-            "uuid"
+            "websocket"
         ],
         "lib": [
             "dom",
