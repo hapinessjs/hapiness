@@ -1,6 +1,6 @@
 import { Observable } from 'rxjs/Observable';
 import { reflector } from '../externals/injection-js/reflection/reflection';
-import { CoreModule } from '../core';
+import { CoreModule } from '../core_bis';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('module/hook');

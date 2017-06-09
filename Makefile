@@ -1,5 +1,5 @@
 pretest:
-	@node ./node_modules/.bin/tslint -p ./tsconfig.json --type-check "./src/**/*.ts" "./test/**/*.ts" --exclude "./src/**/*.d.ts"
+	@node ./node_modules/.bin/tslint -p ./tsconfig.json --type-check "./src/**/*.ts" "./test/**/*.ts" --exclude "./src/**/*.d.ts" "/coverage"
 test:
 	@node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test
 coveralls:

@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs/Observable';
 import { reflector } from '../externals/injection-js/reflection/reflection';
 import { Type } from '../externals/injection-js/facade/type';
-import { CoreModule } from '../core';
+import { CoreModule } from '../core_bis';
 import { Request, ReplyWithContinue, ReplyNoContinue } from 'hapi';
 import * as Boom from 'boom';
 import * as Debug from 'debug';

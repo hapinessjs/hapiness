@@ -1,28 +1,25 @@
-import { RouteConfig } from '../route';
 import { TypeDecorator, makeDecorator } from '../externals/injection-js/util/decorators';
 import { Type } from '../externals/injection-js/facade/type';
 import { Inject, Injectable, InjectionToken, Optional } from '../externals/injection-js';
-
-export { Injectable, Inject, Optional, InjectionToken };
+export { Injectable, Inject, Optional, InjectionToken, Type };
 
 /**
- * Type of the HapinessModule decorator / constructor function.
+ * Decorator signature
  */
-export interface HapinessModuleDecorator {
-  (obj: HapinessModule): TypeDecorator;
-  new (obj: HapinessModule): HapinessModule;
+export interface CoreDecorator<T> {
+    (obj: T): TypeDecorator;
+    new (obj: T): T
 }
 
 /**
- * Type of the HapinessModule metadata.
+ * Create a decorator with metadata
+ *
+ * @param  {string} name
+ * @param  {{[name:string]:any;}} props?
+ * @returns CoreDecorator
  */
-export interface HapinessModule {
-    version: string;
-    options?: Object;
-    declarations?: Array<Type<any>|any>;
-    providers?: Array<Type<any>|any>;
-    imports?: Array<Type<any>|any>;
-    exports?: Array<Type<any>|any>;
+export function createDecorator<T>(name: string, props?: { [name: string]: any; }): CoreDecorator<T> {
+    return <CoreDecorator<T>>makeDecorator(name, props);
 }
 
 /**
@@ -30,79 +27,21 @@ export interface HapinessModule {
  *
  * @Annotation
  */
-export const HapinessModule: HapinessModuleDecorator = <HapinessModuleDecorator>makeDecorator('HapinessModule', {
-    version: undefined,
-    options: undefined,
-    declarations: undefined,
-    providers: undefined,
-    imports: undefined,
-    exports: undefined
-});
-
-/**
- * Type of the Route decorator / constructor function.
- */
-export interface RouteDecorator {
-  (obj: Route): TypeDecorator;
-  new (obj: Route): Route;
-}
-
-/**
- * Type of the Route metadata.
- */
-export interface Route {
-    path: string;
-    method: string | string[];
-    config?: RouteConfig;
+export interface HapinessModule {
+    version: string;
+    declarations?: Array<Type<any>|any>;
     providers?: Array<Type<any>|any>;
+    imports?: Array<Type<any>|any>;
+    exports?: Array<Type<any>|any>;
 }
+export const HapinessModule = createDecorator<HapinessModule>('HapinessModule');
 
 /**
- * Route decorator and metadata.
+ * Extention decorator and metadata.
  *
  * @Annotation
  */
-export const Route: RouteDecorator = <RouteDecorator>makeDecorator('Route', {
-    path: undefined,
-    method: undefined,
-    config: undefined,
-    providers: undefined
-});
-
-/**
- * Type of the Lib metadata.
- */
-export interface Lib {}
-
-/**
- * Lib decorator and metadata.
- *
- * @Annotation
- */
-export const Lib = makeDecorator('Lib', null);
-
-/**
- * Type of the Lifecycle decorator / constructor function.
- */
-export interface LifecycleDecorator {
-  (obj: Lifecycle): TypeDecorator;
-  new (obj: Lifecycle): Lifecycle;
+export interface Extention {
+    version: string;
 }
-
-/**
- * Type of the Lifecycle metadata.
- */
-export interface Lifecycle {
-    event: string;
-}
-
-/**
- * Lifecycle decorator and metadata.
- *
- * @Annotation
- */
-export const Lifecycle: LifecycleDecorator = <LifecycleDecorator>makeDecorator('Lifecycle', {
-    event: undefined
-});
-
-export type Decorator = Injectable | HapinessModule | Route | Lib | Lifecycle;
+export const Extention = createDecorator<Extention>('Extention');

@@ -1,5 +1,5 @@
 import { extractMetadataByDecorator } from '../util';
-import { CoreRoute, CoreModule, Route, DependencyInjection } from '../core';
+import { CoreRoute, CoreModule, Route, DependencyInjection } from '../core_bis';
 import { Type } from '../externals/injection-js/facade/type';
 import * as Hoek from 'hoek';
 import * as Boom from 'boom';

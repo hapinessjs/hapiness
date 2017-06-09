@@ -1,14 +1,53 @@
-import { LifecycleManager } from '../core_bis/lifecycle';
-import { RouteBuilder } from '../route';
-import { CoreModule, CoreModuleWithProviders, CoreProvide,
-    DependencyInjection, HapinessModule, Lib, Lifecycle } from '../core_bis';
-import { extractMetadataByDecorator } from '../util';
-import { Type } from '../externals/injection-js/facade/type';
+import { extractMetadataByDecorator } from './metadata';
+import { Type, HapinessModule } from './decorators';
+import { DependencyInjection } from './di';
 import { reflector } from '../externals/injection-js/reflection/reflection';
+import { ReflectiveInjector } from '../externals/injection-js';
 import { Server } from 'hapi';
 import * as Hoek from 'hoek';
-import * as Debug from 'debug';
-const debug = Debug('module');
+const debug = require('debug')('hapiness:module');
+
+/**
+ * CoreProvide Type
+ * Used by CoreModule Type
+ */
+export interface CoreProvide {
+    provide: any;
+    useClass?: any;
+    useValue?: any;
+    useExisting?: any;
+    useFactory?: any;
+    deps?: any[];
+}
+
+/**
+ * CoreModule Type
+ * Represents a Module
+ */
+export interface CoreModule {
+    token: Type<any> | any;
+    name: string;
+    version: string;
+    instance?: any;
+    level: ModuleLevel;
+    di?: ReflectiveInjector;
+    providers?: CoreProvide[];
+    modules?: CoreModule[];
+    parent?: CoreModule;
+    exports?: Type<any>[] | any[];
+    declarations?: Type<any>[] | any[];
+    // routes?: CoreRoute[];
+    libs?: Type<any>[];
+}
+
+/**
+ * CoreModuleWithProviders Type
+ * Used to pass data while module importation
+ */
+export interface CoreModuleWithProviders {
+    module: Type<any>;
+    providers: CoreProvide[];
+}
 
 /**
  * Represents the position where
@@ -42,9 +81,9 @@ export class ModuleBuilder {
      * @returns CoreModule
      */
      public static buildModule(module: Type<any>, providers?: CoreProvide[]): CoreModule {
-        debug('Module entrypoint', module.name);
+        debug('building module', module.name);
         const moduleResolved = this.recursiveResolution(module, null, providers);
-        debug('Module resolved', moduleResolved);
+        debug('module resolved', module.name);
         return moduleResolved;
     }
 
@@ -57,30 +96,19 @@ export class ModuleBuilder {
      * @returns CoreModule | null
      */
     public static findNestedModule(name: string, module: CoreModule): CoreModule {
-        debug(`Looking for nested module ${name} in ${module.name}`);
+        debug(`looking for nested module ${name} in ${module.name}`);
         if (module.modules && module.modules.length > 0 &&
             module.modules.find(m => m.name === name)) {
-                debug(`Found nested module ${name} in ${module.name}`);
+                debug(`found nested module ${name} in ${module.name}`);
                 return module.modules.find(m => m.name === name);
         } else if (module.modules && module.modules.length > 0) {
-            debug(`Looking in sub-modules`);
+            debug(`looking in sub-modules`);
             return module.modules
                 .map(m => this.findNestedModule(name, m))
                 .filter(m => !!m)
                 .shift();
         }
-        debug(`Didn't find module ${name}`);
-    }
-
-    /**
-     * Called once a module is registering as Plugin
-     * Provide the server instance
-     *
-     * @param  {Server} server
-     * @param  {CoreModule} module
-     */
-    public static registering(server: Server, module: CoreModule) {
-        this.instantiateLifecycle(server, module);
+        debug(`didn't find module ${name}`);
     }
 
     /**
@@ -93,14 +121,12 @@ export class ModuleBuilder {
     */
     private static coreModuleFromMetadata(data: HapinessModule, module: Type<any>, parent?: CoreModule): CoreModule {
         const providers = data.providers || [];
-        debug('Collect providers', providers, module.name);
-        const di = DependencyInjection.createAndResolve(providers);
+        debug('converting module to CoreModule', module.name);
         return {
             parent,
             token: module,
             name: module.name,
             version: data.version,
-            options: data.options || {},
             exports: data.exports,
             declarations: data.declarations || [],
             providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
@@ -138,15 +164,13 @@ export class ModuleBuilder {
             _providers = _providers.concat(module['providers']);
             module = module['module'];
         }
-        debug('Recursive resolution', module.name);
+        debug('recursive resolution', module.name);
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
             metadata.imports.map(x => this.recursiveResolution(x, coreModule, providers)) : [];
         coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule, _providers));
         coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
-        coreModule.routes = RouteBuilder.buildRoute(coreModule);
-        coreModule.libs = this.instantiateLibs(coreModule);
         return coreModule;
     }
 
@@ -161,37 +185,5 @@ export class ModuleBuilder {
             .concat(providers)
             .filter(x => !!x)
             .concat((module.modules || []).reduce((a, c) => a.concat(c.exports || []), []));
-    }
-
-    /**
-     * Instantiate and return array of libs
-     *
-     * @param  {CoreModule} module
-     * @returns Type
-     */
-    private static instantiateLibs(module: CoreModule): Type<any>[] {
-        return [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lib'))
-            .map(lib => <Type<any>>DependencyInjection.instantiateComponent(lib, module.di));
-    }
-
-    /**
-     * Initialize and instantiate lifecycle components
-     *
-     * @param  {Server} server
-     * @param  {CoreModule} module
-     */
-    private static instantiateLifecycle(server: Server, module: CoreModule) {
-        [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lifecycle'))
-            .map(lc => {
-                const metadata = <Lifecycle>extractMetadataByDecorator(lc, 'Lifecycle');
-                server.ext(<any>metadata.event, (request, reply) => {
-                    const instance = DependencyInjection.instantiateComponent(lc, module.di);
-                    if (LifecycleManager.hasLifecycleHook(lc)) {
-                        LifecycleManager.triggerHook(lc, instance, [ request, reply ]);
-                    } else {
-                        throw new Error('Lifecycle component without onEvent hook');
-                    }
-                });
-            });
     }
 }
