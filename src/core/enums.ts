@@ -1,8 +1,19 @@
-export class Enum {
-    constructor(public value: string) {}
-    toString() { return this.value; }
+export enum ExtentionHooksEnum {
+    OnExtentionLoaded = <any>'onExtentionLoaded'
 }
 
-export class ExtentionHooksEnum extends Enum {
-    static OnExtentionLoaded = 'onExtentionLoaded';
+export enum LifecycleHooksEnum {
+    OnPreAuth = <any>'onPreAuth',
+    OnPostAuth = <any>'onPostAuth',
+    OnPreHandler = <any>'onPreHandler',
+    OnPostHandler = <any>'onPostHandler',
+    OnPreResponse = <any>'onPreResponse'
+}
+
+export enum LifecycleEventsEnum {
+    OnPreAuth = <any>'onPreAuth',
+    OnPostAuth = <any>'onPostAuth',
+    OnPreHandler = <any>'onPreHandler',
+    OnPostHandler = <any>'onPostHandler',
+    OnPreResponse = <any>'onPreResponse'
 }

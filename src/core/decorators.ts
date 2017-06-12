@@ -37,11 +37,9 @@ export interface HapinessModule {
 export const HapinessModule = createDecorator<HapinessModule>('HapinessModule');
 
 /**
- * Extention decorator and metadata.
+ * Lib decorator and metadata.
  *
  * @Annotation
  */
-export interface Extention {
-    version: string;
-}
-export const Extention = createDecorator<Extention>('Extention');
+export interface Lib {}
+export const Lib = createDecorator<Lib>('Lib');

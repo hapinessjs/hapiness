@@ -24,7 +24,7 @@ export interface CoreProvide {
  * CoreModule Type
  * Represents a Module
  */
-export interface CoreModule {
+export class CoreModule {
     token: Type<any> | any;
     name: string;
     version: string;
@@ -36,8 +36,6 @@ export interface CoreModule {
     parent?: CoreModule;
     exports?: Type<any>[] | any[];
     declarations?: Type<any>[] | any[];
-    // routes?: CoreRoute[];
-    libs?: Type<any>[];
 }
 
 /**
@@ -60,10 +58,10 @@ export enum ModuleLevel {
 }
 
 /**
- * ModuleBuilder
- * Class used to build a module
+ * ModuleManage
+ * Class used to manage modules
  */
-export class ModuleBuilder {
+export class ModuleManager {
 
     /**
      * Helper to extract metadata
@@ -72,17 +70,16 @@ export class ModuleBuilder {
     private static decoratorName = 'HapinessModule';
 
     /**
-     * Entrypoint to build a CoreModule
-     * Get the metadata and build the
-     * module instance with the DI
+     * Entrypoint to resolve a CoreModule
+     * Get the metadata.
      *
      * @param  {Type<any>} module
      * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
-     public static buildModule(module: Type<any>, providers?: CoreProvide[]): CoreModule {
+     public static resolveModule(module: Type<any>): CoreModule {
         debug('building module', module.name);
-        const moduleResolved = this.recursiveResolution(module, null, providers);
+        const moduleResolved = this.recursiveResolution(module, null);
         debug('module resolved', module.name);
         return moduleResolved;
     }
@@ -109,6 +106,15 @@ export class ModuleBuilder {
                 .shift();
         }
         debug(`didn't find module ${name}`);
+    }
+
+    public static getElements(module: CoreModule, element: string): Type<any>[] {
+        Hoek.assert(!!element, 'You need to provide the element you want to get');
+        const lookup = (_module: CoreModule) => {
+            const els = [].concat((_module[element] && Array.isArray(_module[element])) ? _module[element] : []);
+            return (_module.modules || []).map(m => lookup(m)).reduce((acc, cur) => acc.concat(cur), []).concat(els);
+        }
+        return lookup(module);
     }
 
     /**
@@ -158,20 +164,23 @@ export class ModuleBuilder {
      * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
-    private static recursiveResolution(module: Type<any>, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
-        let _providers = [].concat(providers);
-        if (module['module'] && module['providers']) {
-            _providers = _providers.concat(module['providers']);
-            module = module['module'];
-        }
+    private static recursiveResolution(module: Type<any>, parent?: CoreModule): CoreModule {
         debug('recursive resolution', module.name);
         const metadata = this.metadataFromModule(module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
-            metadata.imports.map(x => this.recursiveResolution(x, coreModule, providers)) : [];
-        coreModule.di = DependencyInjection.createAndResolve(this.collectProviders(coreModule, _providers));
-        coreModule.instance = DependencyInjection.instantiateComponent(module, coreModule.di);
+            metadata.imports.map(m => this.recursiveResolution(m, coreModule)) : [];
         return coreModule;
+    }
+
+    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
+        debug('recursive instantiation', module.name);
+        if (module.modules && module.modules.length > 0) {
+            module.modules.forEach(m => this.recursiveInstantiation(m, module, providers));
+        }
+        module.di = DependencyInjection.createAndResolve(this.collectProviders(module, providers));
+        module.instance = DependencyInjection.instantiateComponent(module.token, module.di);
+        return module;
     }
 
     /**
