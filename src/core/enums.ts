@@ -1,19 +1,8 @@
 export enum ExtentionHooksEnum {
-    OnExtentionLoaded = <any>'onExtentionLoaded'
+    OnExtentionLoad = <any>'onExtentionLoad'
 }
 
-export enum LifecycleHooksEnum {
-    OnPreAuth = <any>'onPreAuth',
-    OnPostAuth = <any>'onPostAuth',
-    OnPreHandler = <any>'onPreHandler',
-    OnPostHandler = <any>'onPostHandler',
-    OnPreResponse = <any>'onPreResponse'
-}
-
-export enum LifecycleEventsEnum {
-    OnPreAuth = <any>'onPreAuth',
-    OnPostAuth = <any>'onPostAuth',
-    OnPreHandler = <any>'onPreHandler',
-    OnPostHandler = <any>'onPostHandler',
-    OnPreResponse = <any>'onPreResponse'
+export enum ModuleEnum {
+    OnStart = <any>'onStart',
+    OnError = <any>'onError'
 }

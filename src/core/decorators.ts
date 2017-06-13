@@ -34,7 +34,13 @@ export interface HapinessModule {
     imports?: Array<Type<any>|any>;
     exports?: Array<Type<any>|any>;
 }
-export const HapinessModule = createDecorator<HapinessModule>('HapinessModule');
+export const HapinessModule = createDecorator<HapinessModule>('HapinessModule', {
+    version: undefined,
+    declarations: undefined,
+    providers: undefined,
+    imports: undefined,
+    exports: undefined
+});
 
 /**
  * Lib decorator and metadata.

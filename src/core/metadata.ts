@@ -1,7 +1,7 @@
 import { Decorator, HapinessModule, Injectable, Route, Lib, Lifecycle } from '../core_bis';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
-const debug = Debug('util/metadata');
+const debug = Debug('hapiness:metadata');
 
 /**
  * Helper to extract Metadata
@@ -13,7 +13,6 @@ const debug = Debug('util/metadata');
  */
 export function extractMetadata(type: any): Decorator {
     return extractMetadatas(type)
-        .map(x => getDecoratorType(x.toString().slice(1), x))
         .pop();
 };
 
@@ -24,10 +23,10 @@ export function extractMetadata(type: any): Decorator {
  * @param  {any} type
  * @param  {string} name
  */
-export function extractMetadataByDecorator(type: any, name: string) {
+export function extractMetadataByDecorator<T>(type: any, name: string): T {
     return extractMetadatas(type)
-        .map(x => getDecoratorType(x.toString().slice(1), x))
         .filter(x => x.toString().slice(1) === name)
+        .map(x => <T>x)
         .pop();
 }
 
@@ -46,29 +45,3 @@ export function extractMetadatas(decorator: any): any[] {
         .map(x => [].concat(x))
         .pop() || [];
 };
-
-/**
- * Cast the right decorator type
- * to the value provided
- *
- * @param  {string} name
- * @param  {any} value
- * @returns any
- */
-function getDecoratorType(name: string, value: any): Decorator {
-    debug('Get decorator type', name);
-    switch (name) {
-        case 'Injectable':
-            return <Injectable>value;
-        case 'HapinessModule':
-            return <HapinessModule>value;
-        case 'Route':
-            return <Route>value;
-        case 'Lib':
-            return <Lib>value;
-        case 'Lifecycle':
-            return <Lifecycle>value;
-        default:
-            throw Boom.create(500, `Decorator ${name} does not exists.`);
-    }
-}

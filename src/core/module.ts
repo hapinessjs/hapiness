@@ -84,6 +84,11 @@ export class ModuleManager {
         return moduleResolved;
     }
 
+    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]) {
+        debug('instantiate module', module.name);
+        this.recursiveInstantiation(module, null, providers);
+    }
+
     /**
      * Lookup for module in the
      * importation tree by its name
@@ -149,7 +154,7 @@ export class ModuleManager {
      * @returns HapinessModule
      */
     public static metadataFromModule(module: Type<any>): HapinessModule {
-        const metadata = <HapinessModule>extractMetadataByDecorator(module, this.decoratorName);
+        const metadata = extractMetadataByDecorator<HapinessModule>(module, this.decoratorName);
         Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
         return metadata;
     }
@@ -173,14 +178,13 @@ export class ModuleManager {
         return coreModule;
     }
 
-    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
+    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]) {
         debug('recursive instantiation', module.name);
         if (module.modules && module.modules.length > 0) {
             module.modules.forEach(m => this.recursiveInstantiation(m, module, providers));
         }
         module.di = DependencyInjection.createAndResolve(this.collectProviders(module, providers));
         module.instance = DependencyInjection.instantiateComponent(module.token, module.di);
-        return module;
     }
 
     /**

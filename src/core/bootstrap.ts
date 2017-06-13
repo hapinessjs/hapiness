@@ -1,15 +1,15 @@
 import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
 import { ModuleManager, CoreModule } from './module';
-import { ExtentionHooksEnum } from './enums';
+import { ExtentionHooksEnum, ModuleEnum } from './enums';
 import { Observable } from 'rxjs/Observable';
-import { HapinessModule, Extention, Type } from './decorators';
+import { HapinessModule, Type } from './decorators';
 import { HookManager } from './hook';
 import * as Hoek from 'hoek';
 const debug = require('debug')('hapiness:bootstrap');
 
 export interface ExtentionWithConfig {
-    token: Type<Extention>;
+    token: Type<any>;
     config: any;
 }
 
@@ -36,8 +36,12 @@ export class Hapiness {
                 .map(ext => this.loadExtention(ext));
             Observable.forkJoin(extentionsObs).subscribe(results => {
                 this.extentions = results;
+                ModuleManager.instantiateModule(this.module);
+                HookManager.triggerHook(ModuleEnum.OnStart.toString(), this.module.token, this.module.instance);
                 resolve();
             }, err => {
+                ModuleManager.instantiateModule(this.module);
+                HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ err ]);
                 reject(err);
             });
         });
@@ -56,6 +60,7 @@ export class Hapiness {
     private static loadExtention(extention: ExtentionWithConfig): Observable<any> {
         debug(`loading ${extention.token.name}`);
         const instance = Reflect.construct(extention.token, []);
-        return HookManager.triggerHook(ExtentionHooksEnum.OnExtentionLoaded.toString(), extention.token, instance, [ extention.config ]);
+        return HookManager.triggerHook(ExtentionHooksEnum.OnExtentionLoad.toString(),
+            extention.token, instance, [ this.module, extention.config ]);
     }
 }

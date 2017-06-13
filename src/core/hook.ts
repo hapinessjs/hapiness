@@ -29,8 +29,8 @@ export class HookManager {
    * @returns Observable
    */
   public static triggerHook<T>(hook: string, token: Type<T>, instance: T, args?: any[]): Observable<any> {
+    debug('triggering hook', hook, token ? token.name : undefined);
     Hoek.assert((!!token && !!instance), 'Cannot trigger without token/instance');
-    debug('triggering hook', hook, token.name);
     if (this.hasLifecycleHook<T>(hook, token)) {
       const result = Reflect.apply(instance[hook], instance, args);
       if (result instanceof Observable) {
