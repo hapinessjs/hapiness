@@ -2,10 +2,13 @@ import { extractMetadataByDecorator } from '../../core/metadata';
 import { Route } from './decorators';
 import { CoreModule, CoreProvide, DependencyInjection } from '../../core';
 import { Type } from '../../core/decorators';
+import { Request, ReplyWithContinue, ReplyNoContinue } from 'hapi';
 import * as Hoek from 'hoek';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
-const debug = Debug('hapiness:extention:httpserver:route');
+const debug = Debug('hapiness:extension:httpserver:route');
+
+export { Request, ReplyWithContinue, ReplyNoContinue };
 
 interface InternalType {
     route: Route;
@@ -91,6 +94,7 @@ export class RouteBuilder {
         const di = DependencyInjection.createAndResolve(route.providers
             .map(p => Object.assign(<Type<any>>{}, p)), route.module.di
         );
+        debug('instantiate route', route.method, route.path);
         return DependencyInjection.instantiateComponent(<Type<any>>route.token, di);
     }
 
@@ -108,7 +112,7 @@ export class RouteBuilder {
             config: data.config,
             path: data.path,
             method: data.method.toString().toLowerCase(),
-            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p})
+            providers: providers.map((p: any) => !!p.provide ? p : { provide: p, useClass: p })
         };
     }
 
@@ -132,3 +136,100 @@ export class RouteBuilder {
     }
 
 }
+
+/**
+ * Route Handler
+ * called on Http Get request
+ *
+ * @returns void
+ */
+export interface OnGet { onGet(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * Route Handler
+ * called on Http Post request
+ *
+ * @returns void
+ */
+export interface OnPost { onPost(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * Route Handler
+ * called on Http Put request
+ *
+ * @param  {Error} error
+ * @returns void
+ */
+export interface OnPut { onPut(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * Route Handler
+ * called on Http Patch request
+ *
+ * @param  {string} module
+ * @returns void
+ */
+export interface OnPatch { onPatch(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * Route Handler
+ * called on Http Options request
+ *
+ * @param  {string} module
+ * @returns void
+ */
+export interface OnOptions { onOptions(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * Route Handler
+ * called on Http Delete request
+ *
+ * @param  {string} module
+ * @returns void
+ */
+export interface OnDelete { onDelete(request: Request, reply: ReplyNoContinue): void; }
+
+/**
+ * OnPreAuth Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreAuth { onPreAuth(request: Request, reply: ReplyWithContinue ): void; }
+
+/**
+ * OnPostAuth Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPostAuth { onPostAuth(request: Request, reply: ReplyWithContinue ): void; }
+
+/**
+ * OnPreHandler Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreHandler { onPreHandler(request: Request, reply: ReplyWithContinue ): void; }
+
+/**
+ * OnPostHandler Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPostHandler { onPostHandler(request: Request, reply: ReplyWithContinue ): void; }
+
+/**
+ * OnPreResponse Lifecycle hook
+ *
+ * @param  {Request} request
+ * @param  {Reply} reply
+ * @returns void
+ */
+export interface OnPreResponse { onPreResponse(request: Request, reply: ReplyWithContinue ): void; }

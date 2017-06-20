@@ -1,4 +1,3 @@
-import { Decorator, HapinessModule, Injectable, Route, Lib, Lifecycle } from '../core_bis';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:metadata');
@@ -9,9 +8,9 @@ const debug = Debug('hapiness:metadata');
  *
  * @todo Filter with the right type
  * @param  {any} type
- * @returns Decorator
+ * @returns any
  */
-export function extractMetadata(type: any): Decorator {
+export function extractMetadata(type: any): any {
     return extractMetadatas(type)
         .pop();
 };

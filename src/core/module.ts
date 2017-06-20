@@ -77,7 +77,7 @@ export class ModuleManager {
      * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
-     public static resolveModule(module: Type<any>): CoreModule {
+     public static resolveModule(module: any): CoreModule {
         debug('building module', module.name);
         const moduleResolved = this.recursiveResolution(module, null);
         debug('module resolved', module.name);
@@ -85,7 +85,7 @@ export class ModuleManager {
     }
 
     public static instantiateModule(module: CoreModule, providers?: CoreProvide[]) {
-        debug('instantiate module', module.name);
+        debug('instantiate module', module.name, 'extra providers:', providers ? providers.length : 0);
         this.recursiveInstantiation(module, null, providers);
     }
 
@@ -122,6 +122,13 @@ export class ModuleManager {
         return lookup(module);
     }
 
+    public static getModules(module: CoreModule): CoreModule[] {
+        const lookup = (_module: CoreModule) => {
+            return [].concat(_module).concat(_module.modules.map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
+        }
+        return lookup(module);
+    }
+
     /**
     * Transform metadata to instance CoreModule
     *
@@ -130,17 +137,17 @@ export class ModuleManager {
     * @param  {CoreModule} parent
     * @returns CoreModule
     */
-    private static coreModuleFromMetadata(data: HapinessModule, module: Type<any>, parent?: CoreModule): CoreModule {
+    private static coreModuleFromMetadata(data: HapinessModule, module: CoreModuleWithProviders, parent?: CoreModule): CoreModule {
         const providers = data.providers || [];
-        debug('converting module to CoreModule', module.name);
+        debug('converting module to CoreModule', module.module.name);
         return {
             parent,
-            token: module,
-            name: module.name,
+            token: module.module,
+            name: module.module.name,
             version: data.version,
             exports: data.exports,
             declarations: data.declarations || [],
-            providers: providers.map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
+            providers: providers.concat(module.providers).map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
             level: parent ? parent.level === ModuleLevel.ROOT ? ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
         };
     }
@@ -154,6 +161,7 @@ export class ModuleManager {
      * @returns HapinessModule
      */
     public static metadataFromModule(module: Type<any>): HapinessModule {
+        debug('metadata for', module);
         const metadata = extractMetadataByDecorator<HapinessModule>(module, this.decoratorName);
         Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
         return metadata;
@@ -169,9 +177,15 @@ export class ModuleManager {
      * @param  {CoreProvide[]} providers
      * @returns CoreModule
      */
-    private static recursiveResolution(module: Type<any>, parent?: CoreModule): CoreModule {
-        debug('recursive resolution', module.name);
-        const metadata = this.metadataFromModule(module);
+    private static recursiveResolution(module: CoreModuleWithProviders, parent?: CoreModule): CoreModule {
+        if (!module['module']) {
+            module = <any>{
+                module,
+                providers: []
+            }
+        }
+        debug('recursive resolution', module.module.name);
+        const metadata = this.metadataFromModule(module.module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
             metadata.imports.map(m => this.recursiveResolution(m, coreModule)) : [];
@@ -185,6 +199,7 @@ export class ModuleManager {
         }
         module.di = DependencyInjection.createAndResolve(this.collectProviders(module, providers));
         module.instance = DependencyInjection.instantiateComponent(module.token, module.di);
+        this.instantiateLibs(module);
     }
 
     /**
@@ -194,9 +209,48 @@ export class ModuleManager {
      * @param  {HapinessModule} module
      */
     private static collectProviders(module: CoreModule, providers?: CoreProvide[]): any[] {
+        debug('collect providers');
         return <any>[].concat(module.providers || [])
             .concat(providers)
             .filter(x => !!x)
             .concat((module.modules || []).reduce((a, c) => a.concat(c.exports || []), []));
     }
+
+    /**
+     * Instantiate and return array of libs
+     *
+     * @param  {CoreModule} module
+     * @returns Type
+     */
+    private static instantiateLibs(module: CoreModule): Type<any>[] {
+        return [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lib'))
+            .map(lib => <Type<any>>DependencyInjection.instantiateComponent(lib, module.di));
+    }
 }
+
+/**
+ * Module Lifecycle Hook
+ * called once the module has been
+ * registered into the server
+ *
+ * @returns void
+ */
+export interface OnRegister { onRegister(): void; }
+
+/**
+ * Module Lifecycle Hook
+ * called once the server has started
+ * only for the MainModule
+ *
+ * @returns void
+ */
+export interface OnStart { onStart(): void; }
+
+/**
+ * Module Lifecycle Hook
+ * called when error are catched
+ *
+ * @param  {Error} error
+ * @returns void
+ */
+export interface OnError { onError(error: Error): void; }

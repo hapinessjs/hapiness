@@ -14,10 +14,9 @@ export enum LifecycleEventsEnum {
     OnPreResponse = <any>'onPreResponse'
 }
 
-/* export enum RouteEnum {
-    OnModuleResolved = <any>'onModuleResolved',
-    OnRegister = <any>'onRegister'
-} */
+export enum LifecycleComponentEnum {
+    OnEvent = <any>'onEvent'
+}
 
 export enum RouteMethodsEnum {
     OnGet =  <any>'onGet',

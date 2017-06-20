@@ -28,11 +28,11 @@ export class HookManager {
    * @param  {any[]}    args
    * @returns Observable
    */
-  public static triggerHook<T>(hook: string, token: Type<T>, instance: T, args?: any[]): Observable<any> {
+  public static triggerHook<T>(hook: string, token: Type<any>, instance: T, args?: any[], throwErr?: boolean): Observable<any> {
     debug('triggering hook', hook, token ? token.name : undefined);
     Hoek.assert((!!token && !!instance), 'Cannot trigger without token/instance');
     if (this.hasLifecycleHook<T>(hook, token)) {
-      const result = Reflect.apply(instance[hook], instance, args);
+      const result = Reflect.apply(instance[hook], instance, args || []);
       if (result instanceof Observable) {
         return result;
       } else {
@@ -43,7 +43,11 @@ export class HookManager {
       }
     }
     return Observable.create((observer) => {
-      observer.error(new Error('Hook missing'));
+      if (throwErr) {
+        observer.error(new Error(`Hook missing ${hook} on ${token.name}`));
+      } else {
+        observer.next();
+      }
       observer.complete();
     });
   }

@@ -1,46 +1,53 @@
-import { ExtentionWithConfig } from '../../core';
-import { RouteBuilder, CoreRoute } from './route';
-import { RouteMethodsEnum, enumByMethod } from './enums';
+import { ExtensionWithConfig } from '../../core';
+import { Extension, OnExtensionLoad, OnModuleInstantiated } from '../../core/bootstrap';
+import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
-import { CoreModule, ModuleManager, ModuleLevel } from '../../core/module';
-import { OnExtentionLoad, Extention } from '../../core/bootstrap';
+import { extractMetadataByDecorator } from '../../core/metadata';
+import { CoreModule, ModuleLevel, ModuleManager } from '../../core/module';
+import { Lifecycle } from './decorators';
+import { enumByMethod, LifecycleComponentEnum, RouteMethodsEnum } from './enums';
 import { LifecycleManager } from './lifecycle';
+import { CoreRoute, RouteBuilder } from './route';
 import { Observable } from 'rxjs/Observable';
-import { Server, RouteConfiguration } from 'hapi';
-import * as Hoek from 'hoek';
+import { RouteConfiguration, Server } from 'hapi';
 import * as Boom from 'boom';
+import * as Hoek from 'hoek';
 import * as Debug from 'debug';
-const debug = Debug('hapiness:extention:httpserver');
+const debug = Debug('hapiness:extension:httpserver');
 
 export interface HapiConfig {
     host: string;
     port: number;
 }
 
-export class HttpServer implements OnExtentionLoad {
+export class HttpServer implements OnExtensionLoad, OnModuleInstantiated {
 
-    public static setConfig(config: HapiConfig): ExtentionWithConfig {
+    private server: Server;
+
+    public static setConfig(config: HapiConfig): ExtensionWithConfig {
         return {
             token: HttpServer,
             config
         };
     }
 
-    onExtentionLoad(module: CoreModule, config: HapiConfig): Observable<Extention> {
-        const server = new Server();
-        const connection = server.connection(config);
-        debug('server instantiation', server.info.host);
+    onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
+        this.server = new Server();
+        const connection = this.server.connection(config);
+        debug('server instantiation');
         return Observable.create(observer => {
             Observable.forkJoin(
-                this.registrationObservables(module, server, this.flattenModules(module)).concat(this.addRoutes(module, server))
+                this.registrationObservables(module, this.server, this.flattenModules(module)).concat(this.addRoutes(module, this.server))
             ).subscribe(routes => {
                 debug('routes and plugins registered');
-                LifecycleManager.routeLifecycle(server, routes.reduce((a, c) => a.concat(c), []));
-                server.start()
+                LifecycleManager.routeLifecycle(this.server, routes.reduce((a, c) => a.concat(c), []));
+                this.server.start()
                     .then(() => {
-                        debug('http server started');
+                        debug('http server started', this.server.info.uri);
                         observer.next({
-                            instance: server
+                            instance: this,
+                            token: HttpServer,
+                            value: this.server
                         });
                         observer.complete();
                     })
@@ -52,6 +59,14 @@ export class HttpServer implements OnExtentionLoad {
                 observer.error(err);
                 observer.complete();
             });
+        });
+    }
+
+    onModuleInstantiated(module: CoreModule) {
+        return Observable.create(observer => {
+            this.instantiateLifecycle(this.server, module);
+            observer.next();
+            observer.complete();
         });
     }
 
@@ -151,6 +166,26 @@ export class HttpServer implements OnExtentionLoad {
             });
             observer.next(routes);
             observer.complete();
+        });
+    }
+
+    /**
+     * Initialize and instantiate lifecycle components
+     *
+     * @param  {Server} server
+     * @param  {CoreModule} module
+     */
+    private instantiateLifecycle(server: Server, module: CoreModule) {
+        ModuleManager.getModules(module).forEach(_module => {
+            [].concat(_module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lifecycle'))
+            .map(lc => {
+                debug('add lifecycle', lc.name, _module.token.name);
+                const metadata = <Lifecycle>extractMetadataByDecorator(lc, 'Lifecycle');
+                server.ext(<any>metadata.event, (request, reply) => {
+                    const instance = DependencyInjection.instantiateComponent(lc, _module.di);
+                    HookManager.triggerHook(LifecycleComponentEnum.OnEvent.toString(), lc, instance, [ request, reply ]);
+                });
+            });
         });
     }
 }
