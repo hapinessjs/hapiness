@@ -19,7 +19,21 @@ export interface Extension {
     token: Type<any>;
 }
 
+/**
+ * OnExtensionLoad Hook
+ *
+ * @param  {CoreModule} module
+ * @param  {any} config
+ * @returns Observable
+ */
 export interface OnExtensionLoad { onExtensionLoad(module: CoreModule, config: any): Observable<Extension> }
+
+/**
+ * OnModuleInstantiated Hook
+ *
+ * @param  {CoreModule} module
+ * @returns Observable
+ */
 export interface OnModuleInstantiated { onModuleInstantiated(module: CoreModule): Observable<any> }
 
 export class Hapiness {
@@ -28,6 +42,15 @@ export class Hapiness {
 
     private static extensions: Extension[];
 
+    /**
+     * Entrypoint to bootstrap a module
+     * will load the extentions and trigger
+     * module's hooks
+     *
+     * @param  {Type<any>} module
+     * @param  {Array<Type<any>|ExtensionWithConfig>} extensions?
+     * @returns Promise
+     */
     public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<{}> {
         return new Promise((resolve, reject) => {
             Hoek.assert(!!module, 'Please provide a module to bootstrap');
@@ -64,6 +87,12 @@ export class Hapiness {
         });
     }
 
+    /**
+     * Convert an extension type to ExtensionWithConfig
+     *
+     * @param  {} extension
+     * @returns ExtensionWithConfig
+     */
     private static toExtensionWithConfig(extension): ExtensionWithConfig {
         if (extension && <ExtensionWithConfig>extension.token) {
             return <ExtensionWithConfig>extension;
@@ -74,6 +103,13 @@ export class Hapiness {
         };
     }
 
+    /**
+     * Call the OnExtensionLoad hook
+     * of an extension
+     *
+     * @param  {ExtensionWithConfig} extension
+     * @returns Observable
+     */
     private static loadExtention(extension: ExtensionWithConfig): Observable<any> {
         debug(`loading ${extension.token.name}`);
         const instance = Reflect.construct(extension.token, []);
@@ -81,6 +117,13 @@ export class Hapiness {
             extension.token, instance, [ this.module, extension.config ]);
     }
 
+    /**
+     * Call the OnModuleInstantiated hook
+     * of an extension
+     *
+     * @param  {Extension} extension
+     * @returns Observable
+     */
     private static moduleInstantiated(extension: Extension): Observable<any> {
         debug('moduleInstantiated', extension.token.name);
         return HookManager.triggerHook(ExtentionHooksEnum.OnModuleInstantiated.toString(),
