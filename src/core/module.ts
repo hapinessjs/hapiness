@@ -1,10 +1,11 @@
 import { extractMetadataByDecorator } from './metadata';
-import { Type, HapinessModule } from './decorators';
-import { DependencyInjection } from './di';
-import { reflector } from '../externals/injection-js/reflection/reflection';
 import { ReflectiveInjector } from '../externals/injection-js';
+import { reflector } from '../externals/injection-js/reflection/reflection';
+import { HapinessModule, Type, InjectionToken } from './decorators';
+import { DependencyInjection } from './di';
 import { Server } from 'hapi';
 import * as Hoek from 'hoek';
+import { Observable } from 'rxjs/Rx';
 const debug = require('debug')('hapiness:module');
 
 /**
@@ -84,9 +85,18 @@ export class ModuleManager {
         return moduleResolved;
     }
 
-    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]) {
+    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]): Observable<void> {
         debug('instantiate module', module.name, 'extra providers:', providers ? providers.length : 0);
-        this.recursiveInstantiation(module, null, providers);
+        return Observable.create(observer => {
+            try {
+                this.recursiveInstantiation(module, null, providers);
+                observer.next();
+                observer.complete();
+            } catch (err) {
+                observer.error(err);
+                observer.complete();
+            }
+        });
     }
 
     /**
@@ -113,6 +123,13 @@ export class ModuleManager {
         debug(`didn't find module ${name}`);
     }
 
+    /**
+     * Get elements of a module
+     *
+     * @param  {CoreModule} module
+     * @param  {string} element
+     * @returns Type
+     */
     public static getElements(module: CoreModule, element: string): Type<any>[] {
         Hoek.assert(!!element, 'You need to provide the element you want to get');
         const lookup = (_module: CoreModule) => {
@@ -122,6 +139,12 @@ export class ModuleManager {
         return lookup(module);
     }
 
+    /**
+     * Get all the tree modules
+     *
+     * @param  {CoreModule} module
+     * @returns CoreModule
+     */
     public static getModules(module: CoreModule): CoreModule[] {
         const lookup = (_module: CoreModule) => {
             return [].concat(_module).concat(_module.modules.map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
@@ -161,7 +184,7 @@ export class ModuleManager {
      * @returns HapinessModule
      */
     public static metadataFromModule(module: Type<any>): HapinessModule {
-        debug('metadata for', module);
+        debug('metadata for', module.name);
         const metadata = extractMetadataByDecorator<HapinessModule>(module, this.decoratorName);
         Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
         return metadata;
@@ -213,7 +236,26 @@ export class ModuleManager {
         return <any>[].concat(module.providers || [])
             .concat(providers)
             .filter(x => !!x)
-            .concat((module.modules || []).reduce((a, c) => a.concat(c.exports || []), []));
+            .concat(this.extractExportedProviders(module));
+    }
+
+    /**
+     * Extract exported providers
+     *
+     * @param  {CoreModule} module
+     * @returns CoreProvide
+     */
+    private static extractExportedProviders(module: CoreModule): CoreProvide[] {
+        Hoek.assert(!!module, 'Provide a module');
+        debug('exported providers extraction', module.name);
+        return (module.modules || [])
+            .filter(_ => (!!_.exports && _.exports.length > 0))
+            .map(_ => {
+                const exp = <any[]>_.exports;
+                return exp.concat(_.providers.filter(__ => (__.provide instanceof InjectionToken)));
+            })
+            .reduce((a, c) => a.concat(c), [])
+            .filter(_ => !!_);
     }
 
     /**

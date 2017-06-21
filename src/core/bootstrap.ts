@@ -39,23 +39,27 @@ export class Hapiness {
                 .map(ext => this.loadExtention(ext));
             Observable.forkJoin(extensionsObs).subscribe(results => {
                 this.extensions = results;
-                ModuleManager.instantiateModule(this.module, this.extensions.map(ext => {
+                const providers = this.extensions.map(ext => {
                     return <CoreProvide>{ provide: ext.token, useValue: ext.value };
-                }));
-                Observable.forkJoin(
-                    ModuleManager.getModules(this.module)
-                        .filter(m => !!m.parent)
-                        .filter(m => HookManager.hasLifecycleHook(ModuleEnum.OnRegister.toString(), m.token))
-                        .map(m => HookManager.triggerHook(ModuleEnum.OnRegister.toString(), m.token, m.instance))
-                        .concat(
-                            HookManager.triggerHook(ModuleEnum.OnStart.toString(), this.module.token, this.module.instance, null, false)
-                        )
-                        .concat(this.extensions.map(ext => this.moduleInstantiated(ext)))
-                ).subscribe(_ => resolve(), _ => reject(_));
+                });
+                ModuleManager.instantiateModule(this.module, providers).subscribe(() => {
+                    Observable.forkJoin(
+                            ModuleManager.getModules(this.module)
+                                .filter(m => !!m.parent)
+                                .filter(m => HookManager.hasLifecycleHook(ModuleEnum.OnRegister.toString(), m.token))
+                                .map(m => HookManager.triggerHook(ModuleEnum.OnRegister.toString(), m.token, m.instance))
+                                .concat(
+                                    HookManager.triggerHook(ModuleEnum.OnStart.toString(), this.module.token,
+                                        this.module.instance, null, false)
+                                )
+                                .concat(this.extensions.map(ext => this.moduleInstantiated(ext)))
+                    ).subscribe(_ => resolve(), _ => reject(_));
+                }, _ => reject(_));
             }, err => {
-                ModuleManager.instantiateModule(this.module);
-                HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ err ], false);
-                reject(err);
+                ModuleManager.instantiateModule(this.module).subscribe(_ => {
+                    HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ err ], false);
+                    reject(err);
+                }, _ => reject(_));
             });
         });
     }

@@ -20,13 +20,13 @@ export interface HapiConfig {
     port: number;
 }
 
-export class HttpServer implements OnExtensionLoad, OnModuleInstantiated {
+export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
 
     private server: Server;
 
     public static setConfig(config: HapiConfig): ExtensionWithConfig {
         return {
-            token: HttpServer,
+            token: HttpServerExt,
             config
         };
     }
@@ -46,7 +46,7 @@ export class HttpServer implements OnExtensionLoad, OnModuleInstantiated {
                         debug('http server started', this.server.info.uri);
                         observer.next({
                             instance: this,
-                            token: HttpServer,
+                            token: HttpServerExt,
                             value: this.server
                         });
                         observer.complete();
