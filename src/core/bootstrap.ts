@@ -1,4 +1,3 @@
-import 'reflect-metadata';
 import 'rxjs/add/observable/forkJoin';
 import { HapinessModule, Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum } from './enums';
@@ -57,15 +56,17 @@ export class Hapiness {
             Hoek.assert(typeof module === 'function', 'Wrong module to bootstrap');
             debug(`bootstrapping ${module.name}`);
             this.module = ModuleManager.resolveModule(module);
-            const extensionsObs = extensions
+            const extensionsObs = (extensions || [])
                 .map(ext => this.toExtensionWithConfig(ext))
-                .map(ext => this.loadExtention(ext));
+                .map(ext => this.loadExtention(ext))
+                .concat(Observable.of(null));
             Observable.forkJoin(extensionsObs).subscribe(results => {
-                this.extensions = results;
+                this.extensions = results.filter(_ => !!_);
                 const providers = this.extensions.map(ext => {
                     return <CoreProvide>{ provide: ext.token, useValue: ext.value };
                 });
-                ModuleManager.instantiateModule(this.module, providers).subscribe(() => {
+                ModuleManager.instantiateModule(this.module, providers).subscribe(instance => {
+                    this.module = instance;
                     Observable.forkJoin(
                             ModuleManager.getModules(this.module)
                                 .filter(m => !!m.parent)
@@ -110,7 +111,7 @@ export class Hapiness {
      * @param  {ExtensionWithConfig} extension
      * @returns Observable
      */
-    private static loadExtention(extension: ExtensionWithConfig): Observable<any> {
+    private static loadExtention(extension: ExtensionWithConfig): Observable<Extension> {
         debug(`loading ${extension.token.name}`);
         const instance = Reflect.construct(extension.token, []);
         return HookManager.triggerHook(ExtentionHooksEnum.OnExtensionLoad.toString(),

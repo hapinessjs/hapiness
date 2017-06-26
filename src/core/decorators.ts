@@ -48,4 +48,4 @@ export const HapinessModule = createDecorator<HapinessModule>('HapinessModule', 
  * @Annotation
  */
 export interface Lib {}
-export const Lib = createDecorator<Lib>('Lib');
+export const Lib = makeDecorator('Lib', null);

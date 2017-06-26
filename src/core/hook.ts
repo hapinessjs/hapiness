@@ -14,7 +14,7 @@ export class HookManager {
    * @returns boolean
    */
   public static hasLifecycleHook<T>(hook: string, token: Type<T>): boolean {
-    debug('checking hook', hook, token.name);
+    debug('checking hook', hook, token ? token.name : null);
     return reflector.hasLifecycleHook(token, hook);
   }
 
@@ -29,7 +29,7 @@ export class HookManager {
    * @returns Observable
    */
   public static triggerHook<T>(hook: string, token: Type<any>, instance: T, args?: any[], throwErr?: boolean): Observable<any> {
-    debug('triggering hook', hook, token ? token.name : undefined);
+    debug('triggering hook', hook, token ? token.name : null);
     Hoek.assert((!!token && !!instance), 'Cannot trigger without token/instance');
     if (this.hasLifecycleHook<T>(hook, token)) {
       const result = Reflect.apply(instance[hook], instance, args || []);

@@ -11,9 +11,9 @@ export class Socket {
      * Listen events
      *
      * @param  {string} event
-     * @param  {()=>void} callback
+     * @param  {(data: any)=>void} callback
      */
-    on(event: string, callback: () => void) {
+    on(event: 'message', callback: (data: any) => void) {
         this.connection.on(event, callback);
     }
 

@@ -85,12 +85,12 @@ export class ModuleManager {
         return moduleResolved;
     }
 
-    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]): Observable<void> {
-        debug('instantiate module', module.name, 'extra providers:', providers ? providers.length : 0);
+    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]): Observable<CoreModule> {
+        const _module = Object.assign({}, module);
+        debug('instantiate module', _module.name, 'extra providers:', providers ? providers.length : 0);
         return Observable.create(observer => {
             try {
-                this.recursiveInstantiation(module, null, providers);
-                observer.next();
+                observer.next(this.recursiveInstantiation(_module, null, providers));
                 observer.complete();
             } catch (err) {
                 observer.error(err);
@@ -215,7 +215,7 @@ export class ModuleManager {
         return coreModule;
     }
 
-    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]) {
+    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
         debug('recursive instantiation', module.name);
         if (module.modules && module.modules.length > 0) {
             module.modules.forEach(m => this.recursiveInstantiation(m, module, providers));
@@ -223,6 +223,7 @@ export class ModuleManager {
         module.di = DependencyInjection.createAndResolve(this.collectProviders(module, providers));
         module.instance = DependencyInjection.instantiateComponent(module.token, module.di);
         this.instantiateLibs(module);
+        return module;
     }
 
     /**

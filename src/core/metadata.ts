@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:metadata');
@@ -42,5 +43,5 @@ export function extractMetadatas(decorator: any): any[] {
         .filter(x => x === 'annotations')
         .map(x => <any[]>Reflect.getOwnMetadata(x, decorator))
         .map(x => [].concat(x))
-        .pop() || [];
+        .pop();
 };
