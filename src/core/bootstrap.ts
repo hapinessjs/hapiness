@@ -77,15 +77,18 @@ export class Hapiness {
                                         this.module.instance, null, false)
                                 )
                                 .concat(this.extensions.map(ext => this.moduleInstantiated(ext)))
-                    ).subscribe(_ => resolve(), _ => reject(_));
-                }, _ => reject(_));
-            }, err => {
-                ModuleManager.instantiateModule(this.module).subscribe(_ => {
-                    HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ err ], false);
-                    reject(err);
-                }, _ => reject(_));
-            });
+                    ).subscribe(_ => resolve(), _ => this.handleError(_, reject));
+                }, /* istanbul ignore next */ _ => this.handleError(_, reject));
+            }, /* istanbul ignore next */ _ => this.handleError(_, reject));
         });
+    }
+
+    private static handleError(error: Error, reject) {
+        debug('an error occured', error.message);
+        ModuleManager.instantiateModule(this.module).subscribe(_ => {
+            HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ error ], false);
+            reject(error);
+        }, /* istanbul ignore next */ _ => reject(_));
     }
 
     /**

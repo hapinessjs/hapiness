@@ -93,7 +93,9 @@ export class ModuleManager {
                 observer.next(this.recursiveInstantiation(_module, null, providers));
                 observer.complete();
             } catch (err) {
+                /* istanbul ignore next */
                 observer.error(err);
+                /* istanbul ignore next */
                 observer.complete();
             }
         });
@@ -134,7 +136,7 @@ export class ModuleManager {
         Hoek.assert(!!element, 'You need to provide the element you want to get');
         const lookup = (_module: CoreModule) => {
             const els = [].concat((_module[element] && Array.isArray(_module[element])) ? _module[element] : []);
-            return (_module.modules || []).map(m => lookup(m)).reduce((acc, cur) => acc.concat(cur), []).concat(els);
+            return (_module.modules || []).map(m => lookup(m)).reduce((acc, cur) => acc.concat(cur), []).concat(els).filter(_ => !!_);
         }
         return lookup(module);
     }
@@ -147,7 +149,7 @@ export class ModuleManager {
      */
     public static getModules(module: CoreModule): CoreModule[] {
         const lookup = (_module: CoreModule) => {
-            return [].concat(_module).concat(_module.modules.map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
+            return [].concat(_module).concat((_module.modules || []).map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
         }
         return lookup(module);
     }
@@ -170,8 +172,10 @@ export class ModuleManager {
             version: data.version,
             exports: data.exports,
             declarations: data.declarations || [],
-            providers: providers.concat(module.providers).map((p: any) => !!p.provide ? p : {provide: p, useClass: p}),
-            level: parent ? parent.level === ModuleLevel.ROOT ? ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
+            providers: providers.concat(module.providers).map((p: any) => !!p.provide ?
+                /* istanbul ignore next */ p : {provide: p, useClass: p}),
+            level: parent ? parent.level === ModuleLevel.ROOT ?
+                ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
         };
     }
 
@@ -253,7 +257,7 @@ export class ModuleManager {
             .filter(_ => (!!_.exports && _.exports.length > 0))
             .map(_ => {
                 const exp = <any[]>_.exports;
-                return exp.concat(_.providers.filter(__ => (__.provide instanceof InjectionToken)));
+                return exp.concat((_.providers || []).filter(__ => (__.provide instanceof InjectionToken)));
             })
             .reduce((a, c) => a.concat(c), [])
             .filter(_ => !!_);
