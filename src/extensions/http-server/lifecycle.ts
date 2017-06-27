@@ -24,6 +24,7 @@ export class LifecycleManager {
     static routeLifecycle(server: Server, routes: CoreRoute[]) {
         server.ext(<any>LifecycleEventsEnum.OnPreAuth.toString(), (request: Request, reply: ReplyWithContinue) => {
             const route = routes.find(r => (r.method === request.route.method && r.path === request.route.path));
+            /* istanbul ignore else */
             if (route && route.token) {
                 const reqInfo = new HttpRequestInfo(request.id);
                 route.providers = route.providers.concat({ provide: HttpRequestInfo, useValue: reqInfo });

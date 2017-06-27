@@ -14,9 +14,11 @@ export class WebSocketServer {
     private subscribers: Array<(socket: Socket) => void>;
     private sockets: Socket[];
 
-    constructor(module: CoreModule, config: SocketConfig) {
+    constructor(config: SocketConfig) {
         const httpServer = http.createServer((request, response) => {
+            /* istanbul ignore next */
             response.writeHead(404);
+            /* istanbul ignore next */
             response.end();
         });
         httpServer.listen(config.port);
@@ -26,8 +28,9 @@ export class WebSocketServer {
         });
         this.sockets = [];
         this.subscribers = [];
-        /* istanbul ignore next */
-        this.server.on('request', this.onRequestHandler);
+        this.server.on('request', request => {
+            this.onRequestHandler(request);
+        });
     }
 
     /**

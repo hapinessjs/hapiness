@@ -40,7 +40,7 @@ export class SocketServerExt implements OnExtensionLoad {
      */
     onExtensionLoad(module: CoreModule, config: SocketConfig): Observable<Extension> {
         debug('server instantiation');
-        const instance = new WebSocketServer(module, config);
+        const instance = new WebSocketServer(config);
         return Observable.create(observer => {
             observer.next({
                 instance: this,

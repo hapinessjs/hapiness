@@ -173,31 +173,4 @@ class CoreIntegration {
 
         Hapiness.bootstrap(ModuleTest).catch(_ => {});
     }
-
-    @test('Extension')
-    test6(done) {
-
-        @HapinessModule({
-            version: '1.0.0'
-        })
-        class ModuleTest implements OnError {
-
-            onStart() {
-                return Observable.create(observer => {
-                    observer.error(new Error('error'));
-                    observer.complete();
-                });
-            }
-
-            onError(err) {
-                unit.object(err)
-                    .isInstanceOf(Error)
-                    .hasProperty('message', 'error');
-                done();
-            }
-        }
-
-        Hapiness.bootstrap(ModuleTest).catch(_ => {});
-    }
-
 }

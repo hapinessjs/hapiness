@@ -86,7 +86,7 @@ export class Hapiness {
     private static handleError(error: Error, reject) {
         debug('an error occured', error.message);
         ModuleManager.instantiateModule(this.module).subscribe(_ => {
-            HookManager.triggerHook(ModuleEnum.OnError.toString(), this.module.token, this.module.instance, [ error ], false);
+            HookManager.triggerHook(ModuleEnum.OnError.toString(), _.token, _.instance, [ error ], false);
             reject(error);
         }, /* istanbul ignore next */ _ => reject(_));
     }
