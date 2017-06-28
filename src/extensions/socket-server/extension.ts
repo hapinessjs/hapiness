@@ -1,20 +1,18 @@
-import { ExtensionWithConfig } from '../../core';
-import { Extension, OnExtensionLoad, OnModuleInstantiated } from '../../core/bootstrap';
-import { DependencyInjection } from '../../core/di';
-import { HookManager } from '../../core/hook';
-import { CoreModule, ModuleLevel, ModuleManager } from '../../core/module';
+import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad } from '../../core';
 import { Observable } from 'rxjs/Observable';
 import { server, connection, request } from 'websocket';
 import { Socket } from './socket';
 import { WebSocketServer } from './server';
 import * as http from 'http';
-import * as Boom from 'boom';
-import * as Hoek from 'hoek';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:extension:socketserver');
 
 export interface SocketConfig {
     port: number;
+    autoAcceptConnections?: boolean;
+    keepaliveInterval?: number;
+    keepaliveGracePeriod?: number;
+    closeTimeout?: number;
 }
 
 export class SocketServerExt implements OnExtensionLoad {
