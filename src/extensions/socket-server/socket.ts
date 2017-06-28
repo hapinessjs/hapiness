@@ -13,8 +13,38 @@ export class Socket {
      * @param  {string} event
      * @param  {(data: any)=>void} callback
      */
-    on(event: 'message', callback: (data: any) => void) {
-        this.connection.on(event, callback);
+    on(event: string, callback: (data: any) => void) {
+        switch (event) {
+            case '*':
+                this.connection.on('message', callback);
+                break;
+            case 'close':
+                this.connection.on(event, callback);
+                break;
+            case 'error':
+                this.connection.on(event, callback);
+                break;
+            default:
+                this.connection.on('message', message => {
+                    if (message.type === 'utf8') {
+                        const parsed = this.getJSON(message.utf8Data);
+                        if (parsed.event === event) { callback(parsed.data); }
+                    }
+                });
+        }
+    }
+
+    /**
+     * Listen to binary data
+     *
+     * @param  {(data:Buffer)=>void} callback
+     */
+    onBytes(callback: (data: Buffer) => void) {
+        this.connection.on('message', message => {
+            if (message.type === 'binary') {
+                callback(message.binaryData);
+            }
+        });
     }
 
     /**
@@ -25,9 +55,18 @@ export class Socket {
      */
     emit(event: string, data: any) {
         this.connection.sendUTF(JSON.stringify({
-            type: event,
+            event,
             data
         }));
+    }
+
+    /**
+     * Send bytes
+     *
+     * @param  {Buffer} data
+     */
+    emitBytes(data: Buffer) {
+        this.connection.sendBytes(data);
     }
 
     /**
@@ -35,5 +74,14 @@ export class Socket {
      */
     close() {
         this.connection.close();
+    }
+
+    private getJSON(data: string) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            /* istanbul ignore next */
+            return {};
+        }
     }
 }

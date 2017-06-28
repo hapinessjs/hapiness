@@ -22,10 +22,9 @@ export class WebSocketServer {
             response.end();
         });
         httpServer.listen(config.port);
-        this.server = new server({
-            httpServer,
-            autoAcceptConnections: false
-        });
+        delete config.port;
+        const _config = Object.assign({ httpServer }, config);
+        this.server = new server(_config);
         this.sockets = [];
         this.subscribers = [];
         this.server.on('request', request => {
@@ -75,8 +74,12 @@ export class WebSocketServer {
      */
     public broadcast(event: string, data: any) {
         this.server.broadcastUTF(JSON.stringify({
-            type: event,
+            event,
             data
         }));
+    }
+
+    public getServer() {
+        return this.server;
     }
 }

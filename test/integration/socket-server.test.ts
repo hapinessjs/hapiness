@@ -22,12 +22,25 @@ class SocketServerIntegration {
                 this.server.onRequest(socket => {
                     unit.array(this.server.getSockets())
                         .hasLength(1);
-                    socket.emit('message', 'test');
-                    socket.on('message', data => {
-                        unit.string(data.utf8Data)
-                            .is('123');
-                        this.server.broadcast('message', 'test');
+                    socket.emit('toto', 'test');
+                    socket.on('close', data => {});
+                    socket.on('error', data => {});
+                    socket.on('tata', data => {});
+                    socket.on('ev', data => {
+                        this.server.broadcast('test', 'test');
+                    });
+                    socket.on('*', data => {
+                        if (data.utf8Data === '123') {
+                            unit.string(data.utf8Data)
+                                .is('123');
+                            socket.emitBytes(new Buffer('test'));
+                        }
+                    });
+                    socket.onBytes(data => {
+                        unit.string(data.toString())
+                            .is('test');
                         socket.close();
+                        this.server.getServer().closeAllConnections();
                         done();
                     });
                 });
@@ -35,9 +48,13 @@ class SocketServerIntegration {
                 const W3CWebSocket = require('websocket').w3cwebsocket;
                 const client = new W3CWebSocket('ws://localhost:2222/');
                 client.onmessage = (e) => {
-                    unit.string(e.data)
-                        .is(JSON.stringify({ type: 'message', data: 'test' }));
-                    client.send('123');
+                    if (e.data === JSON.stringify({ event: 'toto', data: 'test' })) {
+                        client.send('{"event":"ev","data":"abc"}');
+                    } else if (e.data instanceof ArrayBuffer) {
+                        client.send(e.data);
+                    } else {
+                        client.send('123');
+                    }
                 };
             }
         }

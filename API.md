@@ -1,63 +1,9 @@
 # API Reference
 
-## Getting started
-
-```javascript
-    @Injectable()
-    class DataService {
-        data(): Observable<any> {
-            return Observable.create(obs => {
-                obs.next('my-data');
-                obs.complete();
-            })
-        }
-    }
-
-    @Route({
-        path: '/data',
-        method: 'get'
-    })
-    class DataRoute implements OnGet {
-        constructor(private dataService: DataService) {}
-
-        onGet(request, reply) {
-            this.dataService.data()
-                .subscribe(d => reply(d));
-        }
-    }
-
-    @HapinessModule({
-        version: '1.0.0',
-        declaration: [ DataRoute ],
-        providers: [ DataService ],
-        options: {
-            host: '0.0.0.0',
-            port: 8080
-        }
-    })
-    class DataModule implements OnStart, OnError {
-
-        constructor(private httpServer: HttpServer) {}
-
-        onStart() {
-            console.log('Server started at: ', this.httpServer.info.uri);
-        }
-
-        onError(err: Error) {
-            console.error(err);
-        }
-
-    }
-
-    // Start the server
-    Hapiness.bootstrap(DataModule);
-```
-
-
 ## Hapiness
 The Hapiness object is used to bootstrap a module as Web Server.
 
-### bootstrap(module)
+### bootstrap(module, [ Extensions ])
 Bootstrap a module and start the web server.
 
 ## HapinessModule
@@ -142,46 +88,6 @@ When you import a module, you can provide data.
     ...
 ```
 
-## Route
-Declare HTTP routes
-
-```javascript
-    @Route({metadata})
-    class MyClass {}
-```
-
-- metadata
-
-    - `path` - route path (/my/path)
-    - `method` - can be an array, values: (get, post, put, delete, patch, options)
-    - `config` - partially implemented, see [HapiJS Route config](https://hapijs.com/api#route-configuration)
-    - `providers` - Providers to add in the request DI, it means at each request a new instance of the provider will be created
-
-- interfaces
-    - see request and reply on [HapiJS Docs](https://hapijs.com/api#requests)
-    - `OnGet` - Http Get handler
-        - arguments: (request, reply)
-    - `OnPost` - Http Post handler
-        - arguments: (request, reply)
-    - `OnPut` - Http Put handler
-        - arguments: (request, reply)
-    - `OnDelete` - Http Delete handler
-        - arguments: (request, reply)
-    - `OnPatch` - Http Patch handler
-        - arguments: (request, reply)
-    - `OnOptions` - Http Options handler
-        - arguments: (request, reply)
-    - `OnPreAuth` - Request lifecycle handler
-        - arguments: (request, reply)
-    - `OnPostAuth` - Request lifecycle handler
-        - arguments: (request, reply)
-    - `OnPreHandler` - Request lifecycle handler
-        - arguments: (request, reply)
-    - `OnPostHandler` - Request lifecycle handler
-        - arguments: (request, reply)
-    - `OnPreResponse` - Request lifecycle handler
-        - arguments: (request, reply)
-
 ## Injectable
 Declare an injectable provider
 
@@ -229,98 +135,52 @@ Create custom token for the DI
     }
 ```
 
-## Instance Providers
-### HttpServer
+## Extensions
+
+An extension is a class provided to the boostrap.
 
 ```javascript
-    ...
-    constructor(private httpServer: HttpServer) {}
-    ...
-```
-
-- properties
-    - `instance` - HapiJS server instance
-
-### WSServer
-
-```javascript
-    ...
-    constructor(private wsServer: WSServer) {}
-    ...
-```
-
-- properties
-    - `instance` - ServerSocket instance
-
-
-## Socket
-Socket object provided when a new connection comes in the ServerSocket
-
-- methods
-    - `on` - Add listener on a new event coming from the socket
-    - `emit` - Send data into the socket
-    - `emitAll` - Send data to all active sockets
-    - `close` - Close the socket
-
-
-## ServerSocket
-Use Hapiness as a WebSocket server
-
-- methods
-    - `onRequest` - Callback called at each new socket connection
-        - arguments: ((socket: Socket) => void)
-    - `getSockets` - Return all active sockets
-        - return: Socket[]
-    - `broadcast` - Broadcast data to all active sockets
-        - arguments: (event: string, data: any)
-
-### Example
-
-```javascript
-    @HapinessModule({
-        version: 'x.x.x',
-        options: {
-            host: '0.0.0.0',
-            port: 1234,
-            socketPort: 1235 // port websocket
-        }
-    })
-    class SocketServerModule implements OnStart {
-
-        constructor(private wsServer: WSServer) {}
-
-        onStart() {
-            this.wsServer.instance.onRequest((socket: Socket) => {
-                socket.on('message', _ => console.log(_));
-                socket.emit('message', 'Hello World!');
-                this.wsServer.instance.broadcast('join', 'Hello World!');
-            });
+    class ExampleExt implements OnExtensionLoad {
+        
+        public static setConfig(config: any): ExtensionWithConfig {
+            return {
+                token: HttpServerExt,
+                config
+            };
         }
 
-    }
-    Hapiness.bootstrap(SocketServerModule);
-```
-
-## Lifecycle
-
-Request lifecycle component
-
-```javascript
-    @Lifecycle({
-        event: 'onPreAuth'
-    })
-    class MyHook implements OnEvent {
-        onEvent(request, reply) {
+        onExtensionLoad(module: CoreModule, config: any) {
             ...
         }
-    }
+
+    }
 ```
 
-- metadata
+Methods to implement:
+- `onExtensionLoad` - Called while bootstrapping
+    - arguments: (module: CoreModule, config: any)
+    - returns: Observable<Extension>
+- `OnModuleInstantiated` - (Optional) Called once the bootstrapped module is instanciated
+    - arguments: (module: CoreModule)
+    - returns: void
 
-    - `event` - request lifecycle event, see [HapiJS Request lifecycle](https://hapijs.com/api#request-lifecycle)
-    
-- interfaces
+Extension:
+```javascript
+    {
+        value: any;
+        instance: any;
+        token: Type<any>;
+    }
+```
+- `value` - It's the value provided through the DI
+- `instance` - Extension instance, `this`
+- `token` - Class token (ex: ExampleExt)
 
-    - see request and reply on [HapiJS Docs](https://hapijs.com/api#requests)
-    - `OnEvent` - Lifecycle handler
+
+# HTTP Server Extension
+
+See the documentation: [here](src/extensions/http-server/README.md)
+
+# Socket Server Extension
+
+See the documentation: [here](src/extensions/socket-server/README.md)
