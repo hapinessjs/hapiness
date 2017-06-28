@@ -40,6 +40,7 @@ class SocketServerIntegration {
                         unit.string(data.toString())
                             .is('test');
                         socket.close();
+                        this.server.getServer().closeAllConnections();
                         done();
                     });
                 });

@@ -78,4 +78,8 @@ export class WebSocketServer {
             data
         }));
     }
+
+    public getServer() {
+        return this.server;
+    }
 }
