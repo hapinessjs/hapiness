@@ -31,23 +31,8 @@ export class DependencyInjection {
         const reflectiveDeps: ReflectiveDependency[] = ReflectiveInjector.resolve([component])
             .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), [])
             .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), []);
-
         const deps = reflectiveDeps.map(d => di['_getByReflectiveDependency'](d));
         return Reflect.construct(component, deps);
     }
-
-    /**
-     * Instanciate components
-     * resolving dependencies
-     * without inject the components
-     * into the DI
-     *
-     * @param  {Type<T>[]} components
-     * @param  {ReflectiveInjector} di
-     * @returns Array
-     */
-    /*static instantiateComponents<T>(components: Type<T>[], di: ReflectiveInjector): Array<T> {
-        return components.map(c => this.instantiateComponent(c, di));
-    }*/
 
 }

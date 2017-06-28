@@ -1,6 +1,8 @@
-export { Hapiness, HapinessModule, Route, Injectable,
-        Lib, HttpServer, WSServer, Socket, Inject, Optional,
-        InjectionToken, CoreModuleWithProviders, HttpRequestInfo, OnEvent } from './core';
-export { OnRegister, OnError, OnModuleResolved, OnStart } from './module';
-export { OnGet, OnDelete, OnOptions, OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth,
-        OnPreHandler, OnPostHandler, OnPreResponse, Request, ReplyWithContinue, ReplyNoContinue } from './route';
+export { Hapiness, HapinessModule, Inject, Injectable, Optional, Lib, InjectionToken,
+        CoreModuleWithProviders, OnRegister, OnError, OnStart } from './core';
+
+export { HttpServerExt, HapiConfig, Route, Lifecycle, HttpRequestInfo, OnEvent, OnGet, OnDelete, OnOptions,
+        OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth, OnPreHandler, OnPostHandler, OnPreResponse, Request,
+        ReplyWithContinue, ReplyNoContinue } from './extensions/http-server';
+
+export { SocketServerExt, Socket, SocketConfig, WebSocketServer } from './extensions/socket-server';

@@ -1,237 +1,154 @@
-import { CoreModuleWithProviders } from '../../src/core';
-import { Lib, Optional, Inject } from '../../src/core/decorators';
-import { OpaqueToken } from '../../src/externals/injection-js';
-import { test, suite } from 'mocha-typescript';
+import { suite, test } from 'mocha-typescript';
+import { Observable } from 'rxjs/Observable';
 import * as unit from 'unit.js';
-import { HapinessModule } from '../../src';
-import { ModuleBuilder, OnRegister } from '../../src/module';
-import { LoggerWrapper, SubModule, SubSubModule, TestModule } from './common/module.mock';
+import { ModuleManager, ModuleLevel, HapinessModule, InjectionToken } from '../../src/core';
 
-@suite('Module')
-class Decorators {
+@suite('Unit - Module')
+class Module {
 
-    @test('Metadata extraction')
-    testMetadataExtraction() {
+    @test('findNestedModule')
+    test1() {
 
-        @HapinessModule({
+        const cm = {
+            name: 'TestModule',
+            modules: [{
+                name: 'SubTestModule',
+                parent: this
+            }]
+        }
+
+        unit.must(ModuleManager.findNestedModule('TestModule', <any>cm))
+            .equal(undefined);
+
+        unit.must(ModuleManager.findNestedModule('SubTestModule', <any>cm).name)
+            .is('SubTestModule');
+
+    }
+
+    @test('getElements')
+    test2() {
+
+        class Comp1 {}
+        class Comp2 {}
+        class Comp3 {}
+
+        const cm = {
+            name: 'TestModule',
+            declarations: [ Comp1, Comp2 ],
+            modules: [{
+                name: 'SubTestModule',
+                declarations: [ Comp3 ]
+            }]
+        }
+
+        unit.array(ModuleManager.getElements(<any>cm, 'providers'))
+            .is([]);
+
+        unit.array(ModuleManager.getElements(<any>cm, 'declarations'))
+            .is([ Comp3, Comp1, Comp2 ]);
+
+        unit.error(ModuleManager.getElements, /You need to provide the element you want to get/);
+
+    }
+
+    @test('getModules')
+    test3() {
+
+        const cm = {
+            name: 'TestModule',
+            modules: [{
+                name: 'SubTestModule',
+                modules: [{
+                    name: 'SubSubModule1'
+                }, {
+                    name: 'SubSubModule2'
+                }]
+            }]
+        }
+
+        unit.array(ModuleManager.getModules(<any>cm))
+            .hasLength(4);
+
+    }
+
+    @test('coreModuleFromMetadata')
+    test4() {
+
+        class ModuleTest {}
+        class ServiceTest {}
+
+        const data = {
             version: '1.0.0',
-            options: { test: 'test' }
-        })
-        class TestModule {}
-
-        const meta = Reflect.apply(ModuleBuilder['metadataFromModule'], ModuleBuilder, [TestModule]);
-        unit.must(meta.version).equal('1.0.0');
-        unit.object(meta.options).is({ test: 'test' });
-    }
-
-    @test('Metadata extraction - Error')
-    testMetadataExtractionError() {
-
-        class TestModule {}
-        unit.exception(() => unit.when('', () => Reflect.apply(ModuleBuilder['metadataFromModule'], ModuleBuilder, [TestModule])))
-            .is(new Error('Please define a Module with the right annotation'));
-
-    }
-
-    @test('Convert metadata to object')
-    testMetadataToObject() {
-
-        class TestModule {}
-        const meta = {
-            version: '1.0.0'
+            exports: [],
+            declarations: [ 'declaration' ]
         };
-        const module = Reflect.apply(ModuleBuilder['coreModuleFromMetadata'], ModuleBuilder, [meta, TestModule]);
-        unit.must(module.version).equal('1.0.0');
-        unit.must(module.name).equal('TestModule');
 
-    }
-
-    @test('Convert metadata to object - With providers')
-    testMetadataToObjectProviders() {
-
-        class TestModule {}
-        class MyType {}
-        class MyType2 {}
-        const token = new OpaqueToken('Toto');
-        const meta = {
-            version: '1.0.0',
-            providers: [MyType, { provide: token, useClass: MyType2 }]
+        const module = {
+            module: ModuleTest,
+            providers: [ ServiceTest ]
         };
-        const module = Reflect.apply(ModuleBuilder['coreModuleFromMetadata'], ModuleBuilder, [meta, TestModule]);
-        unit.must(module.name).equal('TestModule');
 
-        unit.must(module.providers[0].useClass).equal(MyType);
-        unit.must(module.providers[0].provide).equal(MyType);
-
-        unit.must(module.providers[1].useClass).equal(MyType2);
-        unit.must(module.providers[1].provide).equal(token);
-
-    }
-
-    @test('Build module')
-    testBuild() {
-
-        const module = ModuleBuilder.buildModule(TestModule);
-        unit.must(module.instance).instanceof(TestModule);
-        unit.must(module.name).equal('TestModule');
-        unit.must(module.version).equal('1.0.0');
-        unit.object(module.options).is({ host: '0.0.0.0', port: 4443 });
-        unit.must(module.di.get(LoggerWrapper).log('test')).equal('test');
+        unit.object(ModuleManager['coreModuleFromMetadata'](data, <any>module))
+            .is({
+                parent: undefined,
+                token: ModuleTest,
+                name: 'ModuleTest',
+                version: '1.0.0',
+                exports: [],
+                declarations: [ 'declaration' ],
+                providers: [{ provide: ServiceTest, useClass: ServiceTest }],
+                level: ModuleLevel.ROOT
+            });
 
     }
 
-    @test('Build module - Error')
-    testBuildError() {
-
-        class TestModuleError {}
-        unit.exception(() => unit.when('', () => ModuleBuilder.buildModule(TestModuleError)))
-            .is(new Error('Please define a Module with the right annotation'));
-
-    }
-
-    @test('Build module - Check module instance')
-    testBuildInstance() {
-
-        const module = ModuleBuilder.buildModule(TestModule);
-        unit.must(module.instance).instanceof(TestModule);
-        unit.must(module.instance.logStuff('yolo')).equal('yolo');
-
-    }
-
-    @test('Find nested module - Find sub')
-    testFindNestedModuleSub() {
-
-        const module = ModuleBuilder.buildModule(TestModule);
-        const result = ModuleBuilder.findNestedModule(SubModule.name, module);
-        unit.must(result.instance).instanceof(SubModule);
-
-    }
-
-    @test('Find nested module - Find sub sub')
-    testFindNestedModuleSubSub() {
-
-        const module = ModuleBuilder.buildModule(TestModule);
-        const result = ModuleBuilder.findNestedModule(SubSubModule.name, module);
-        unit.must(result.instance).instanceof(SubSubModule);
-
-    }
-
-    @test('Find nested module - Nothing found')
-    testFindNestedModuleNothingFound() {
-
-        class NotFound {}
-        const module = ModuleBuilder.buildModule(TestModule);
-        const result = ModuleBuilder.findNestedModule(NotFound.name, module);
-        unit.value(result).isUndefined();
-
-    }
-
-    @test('Exports providers')
-    testExportsProviders() {
-
-        class MyService {
-            load() {
-                return 'loaded';
-            }
-        }
-
-        class TestService {
-            load() {
-                return 'test';
-            }
-        }
+    @test('metadataFromModule')
+    test5() {
 
         @HapinessModule({
-            version: '1.0.0',
-            exports: [ MyService ]
+            version: 'xxx',
         })
-        class SubModule {}
+        class ModuleTest {}
 
-        @HapinessModule({
-            version: '1.0.0',
-            providers: [ TestService ],
-            imports: [ SubModule ]
-        })
-        class MyModule {
-            constructor(private svc: MyService) {}
-            load() {
-                return this.svc.load();
-            }
-        }
-
-        const module = ModuleBuilder.buildModule(MyModule);
-        unit.must(module.instance.load()).equal('loaded');
+        unit.object(ModuleManager['metadataFromModule'](ModuleTest))
+            .contains({
+                version: 'xxx',
+                declarations: undefined,
+                providers: undefined,
+                imports: undefined,
+                exports: undefined
+            });
 
     }
 
-    @test('Exports providers - Empty')
-    testExportsProvidersEmpty() {
+    @test('collectProviders - extractExportedProviders')
+    test6() {
 
-        @HapinessModule({
-            version: '1.0.0'
-        })
-        class TestEmptyProviders {}
+        class Service1 {}
+        class Service2 {}
+        class Service3 {}
+        const token = new InjectionToken('config');
 
-        const module = ModuleBuilder.buildModule(TestEmptyProviders);
-        module.providers = null;
-        module.modules = null;
-        const providers = Reflect.apply(ModuleBuilder['collectProviders'], ModuleBuilder, [module]);
-        unit.object(providers).is([]);
+        const module = {
+            providers: [ Service1 ],
+            modules: [{
+                exports: [ Service3 ],
+                providers: [{ provide: token, useValue: 'test' }]
+            }]
+        };
 
-    }
+        const providers = [
+            { provide: Service2, useClass: Service2 }
+        ];
 
-    @test('Libs')
-    testLib(done) {
-
-        @Lib()
-        class MyLib {
-            constructor() {
-                unit.must(true).equal(true);
-                done();
-            }
-        }
-
-        @HapinessModule({
-            version: '1.0.0',
-            declarations: [ MyLib ]
-        })
-        class TestModule {}
-
-        const module = ModuleBuilder.buildModule(TestModule);
+        unit.array(ModuleManager['collectProviders'](<any>module, providers))
+            .is([
+                Service1,
+                { provide: Service2, useClass: Service2 },
+                Service3,
+                { provide: token, useValue: 'test' }
+            ]);
 
     }
 
-    @test('Module config')
-    testConfig(done) {
-
-        const CONFIG_TOKEN = new OpaqueToken('config');
-
-        @HapinessModule({
-            version: '1.0.0'
-        })
-        class SubModule {
-            static setConfig(config): CoreModuleWithProviders {
-                return {
-                    module: SubModule,
-                    providers: [{ provide: CONFIG_TOKEN, useValue: config }]
-                };
-            }
-
-            constructor(@Inject(CONFIG_TOKEN) @Optional() config) {
-                unit.must(config.data).equal(1);
-                done();
-            }
-        }
-
-        @HapinessModule({
-            version: '1.0.0',
-            imports: [
-                SubModule.setConfig({ data: 1 })
-            ]
-        })
-        class MyModule {}
-
-        const module = ModuleBuilder.buildModule(MyModule);
-
-    }
 }

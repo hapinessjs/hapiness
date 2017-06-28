@@ -1,7 +1,6 @@
 import { test, suite } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { Injectable } from '../../src';
-import { DependencyInjection } from '../../src/core';
+import { Injectable, Inject, Lib, DependencyInjection } from '../../src/core';
 
 class MyService {
     method() {
@@ -17,10 +16,10 @@ class MyService2 {
     }
 }
 
-@suite('Dependency Injection')
+@suite('Unit - Dependency Injection')
 class DI {
 
-    @test('Service Injection')
+    @test('service injection')
     testInjection() {
 
         const injector = DependencyInjection.createAndResolve([MyService, MyService2]);
@@ -28,7 +27,7 @@ class DI {
 
     }
 
-    @test('Service Injection - Extends')
+    @test('service injection - extends')
     testInjectionExtends() {
 
         const injector = DependencyInjection.createAndResolve([MyService, MyService2]);
@@ -47,7 +46,7 @@ class DI {
 
     }
 
-    @test('Service Injection - Error')
+    @test('service injection - error')
     testInjectionError() {
 
         const injector = DependencyInjection.createAndResolve([MyService2]);
@@ -57,5 +56,19 @@ class DI {
             unit.must(e.message).contain('No provider for MyService!');
         }
 
+    }
+
+    @test('instantiate a component')
+    testInstantiate() {
+        @Injectable()
+        class Service {
+            meth() { return 1; }
+        }
+        @Lib()
+        class Component {
+            constructor(@Inject(Service) public serv: Service) {}
+        }
+        const injector = DependencyInjection.createAndResolve([ Service ]);
+        unit.must(DependencyInjection.instantiateComponent(Component, injector).serv.meth()).equal(1);
     }
 }
