@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-beta.6",
+    "@hapiness/core": "^1.0.0-rc.1",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-beta.6**
+Actually, we're in **development** mode: **v1.0.0-rc.1**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -116,6 +116,14 @@ To set up your development environment:
 
 ## Change History
 
+* v1.0.0-rc.1 (2017-06-28)
+    * Socket Server more features
+    * API Documentation
+* v1.0.0-rc.0 (2017-06-28)
+    * Core refactoring with extensions
+    * Http Server Extension
+    * Socket Server Extension
+    * API Documentation
 * v1.0.0-beta.6 (2017-05-26)
     * Implementation of Request's Lifecycle: Hook & Component
     * Fix Component's instantiation
