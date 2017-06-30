@@ -44,8 +44,17 @@ class HttpServerIntegration {
     @test('lifecycle')
     test2(done) {
 
-        class Service1 {}
+        class Service1 {
+            getData() {
+                return '123';
+            }
+        }
         class Service2 {}
+        class Service3 {
+            getData() {
+                return '456';
+            }
+        }
 
         @Route({
             path: '/',
@@ -53,11 +62,12 @@ class HttpServerIntegration {
             providers: [ Service1, { provide: Service2, useClass: Service2 } ]
         })
         class RouteTest implements OnGet, OnPreResponse {
+            constructor(private serv: Service1, private serv3: Service3) {}
             onGet(request, reply) {
-                reply('test');
+                reply('x');
             }
             onPreResponse(request, reply) {
-                request.response.source = request.response.source + '123';
+                request.response.source = request.response.source + this.serv.getData() + this.serv3.getData();
                 reply.continue();
             }
         }
@@ -74,7 +84,8 @@ class HttpServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            declarations: [ RouteTest, LF ]
+            declarations: [ RouteTest, LF ],
+            providers: [ Service3 ]
         })
         class ModuleTest implements OnStart {
 
@@ -83,13 +94,14 @@ class HttpServerIntegration {
             onStart() {
                 this.server.inject('/', res => {
                     unit.string(res.result)
-                        .is('toto123');
+                        .is('toto123456');
                     done();
                 });
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4445 }) ]);
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4445 }) ])
+            .catch(_ => done(_));
     }
 
     @test('route submodule')
@@ -136,15 +148,13 @@ class HttpServerIntegration {
         @HapinessModule({
             version: '1.0.0'
         })
-        class ModuleTest implements OnError {
-            onError(err) {
-                unit.object(err)
+        class ModuleTest {}
+
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4446 }) ]).catch(_ => {
+            unit.object(_)
                     .isInstanceOf(Error)
                     .hasProperty('message', 'listen EADDRINUSE 0.0.0.0:4446');
                 done();
-            }
-        }
-
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4446 }) ]).catch(_ => {});
+        });
     }
 }

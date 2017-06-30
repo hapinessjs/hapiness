@@ -4,7 +4,7 @@ import { ExtentionHooksEnum, ModuleEnum } from './enums';
 import { HookManager } from './hook';
 import { CoreModule, CoreProvide, ModuleManager } from './module';
 import * as Hoek from 'hoek';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs/Rx';
 const debug = require('debug')('hapiness:bootstrap');
 
 export interface ExtensionWithConfig {
@@ -58,10 +58,12 @@ export class Hapiness {
             this.module = ModuleManager.resolveModule(module);
             const extensionsObs = (extensions || [])
                 .map(ext => this.toExtensionWithConfig(ext))
-                .map(ext => this.loadExtention(ext))
-                .concat(Observable.of(null));
-            Observable.forkJoin(extensionsObs).subscribe(results => {
-                this.extensions = results.filter(_ => !!_);
+                .map(ext => this.loadExtention(ext));
+            let _extensions = [];
+            Observable.merge(...extensionsObs).subscribe(result => {
+                _extensions = [].concat(_extensions, result);
+            }, /* istanbul ignore next */ _ => reject(_), () => {
+                this.extensions = [].concat(_extensions).filter(_ => !!_);
                 const providers = this.extensions.map(ext => {
                     return <CoreProvide>{ provide: ext.token, useValue: ext.value };
                 });
@@ -78,8 +80,8 @@ export class Hapiness {
                                 )
                                 .concat(this.extensions.map(ext => this.moduleInstantiated(ext)))
                     ).subscribe(_ => resolve(), _ => this.handleError(_, reject));
-                }, /* istanbul ignore next */ _ => this.handleError(_, reject));
-            }, /* istanbul ignore next */ _ => this.handleError(_, reject));
+                }, /* istanbul ignore next */ _ => reject(_));
+            });
         });
     }
 
