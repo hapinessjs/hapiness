@@ -86,11 +86,10 @@ export class ModuleManager {
     }
 
     public static instantiateModule(module: CoreModule, providers?: CoreProvide[]): Observable<CoreModule> {
-        const _module = Object.assign({}, module);
-        debug('instantiate module', _module.name, 'extra providers:', providers ? providers.length : 0);
+        debug('instantiate module', module.name, 'extra providers:', providers ? providers.length : 0);
         return Observable.create(observer => {
             try {
-                observer.next(this.recursiveInstantiation(_module, null, providers));
+                observer.next(this.recursiveInstantiation(module, null, providers));
                 observer.complete();
             } catch (err) {
                 /* istanbul ignore next */
