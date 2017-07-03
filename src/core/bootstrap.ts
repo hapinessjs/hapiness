@@ -67,7 +67,7 @@ export class Hapiness {
             }, /* istanbul ignore next */ _ => reject(_), () => {
                 this.extensions = [].concat(_extensions).filter(_ => !!_);
                 if (errors.length) {
-                    reject(errors.shift());
+                    return reject(errors.shift());
                 }
                 const providers = this.extensions.map(ext => {
                     return <CoreProvide>{ provide: ext.token, useValue: ext.value };
