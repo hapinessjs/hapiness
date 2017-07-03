@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-rc.2",
+    "@hapiness/core": "^1.0.0-rc.3",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-rc.2**
+Actually, we're in **development** mode: **v1.0.0-rc.3**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -116,6 +116,8 @@ To set up your development environment:
 
 ## Change History
 
+* v1.0.0-rc.3 (2017-07-3)
+    * Boostrap extension loader fix
 * v1.0.0-rc.2 (2017-06-29)
     * Boostrap bug fixes
 * v1.0.0-rc.1 (2017-06-28)
