@@ -56,14 +56,19 @@ export class Hapiness {
             Hoek.assert(typeof module === 'function', 'Wrong module to bootstrap');
             debug(`bootstrapping ${module.name}`);
             this.module = ModuleManager.resolveModule(module);
+            let errors = [];
             const extensionsObs = (extensions || [])
                 .map(ext => this.toExtensionWithConfig(ext))
-                .map(ext => this.loadExtention(ext));
+                .map(ext => this.loadExtention(ext))
+                .map(ext => ext.catch(e => errors = errors.concat(e)));
             let _extensions = [];
             Observable.merge(...extensionsObs).subscribe(result => {
-                _extensions = [].concat(_extensions, result);
+                _extensions = [].concat(_extensions, result).filter(_ => !(_ instanceof Error));
             }, /* istanbul ignore next */ _ => reject(_), () => {
                 this.extensions = [].concat(_extensions).filter(_ => !!_);
+                if (errors.length) {
+                    return reject(errors.shift());
+                }
                 const providers = this.extensions.map(ext => {
                     return <CoreProvide>{ provide: ext.token, useValue: ext.value };
                 });
