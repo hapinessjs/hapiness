@@ -48,9 +48,9 @@
   dependencies:
     "@types/mime-db" "*"
 
-"@types/node@*", "@types/node@^8.0.4":
-  version "8.0.4"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.4.tgz#d0ca03fa4a3d7ab66c1f4e78a0fd06e30e46a7a9"
+"@types/node@*", "@types/node@^8.0.7":
+  version "8.0.7"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.7.tgz#fb0ad04b5b6f6eabe0372a32a8f1fbba5c130cae"
 
 "@types/podium@*":
   version "1.0.0"
@@ -62,13 +62,17 @@
   dependencies:
     "@types/node" "*"
 
-"@types/websocket@^0.0.33":
-  version "0.0.33"
-  resolved "https://registry.yarnpkg.com/@types/websocket/-/websocket-0.0.33.tgz#e0f54460969b89f4429f2e1e60bebd970ca9ff01"
+"@types/websocket@^0.0.34":
+  version "0.0.34"
+  resolved "https://registry.yarnpkg.com/@types/websocket/-/websocket-0.0.34.tgz#25596764cec885eda070fdb6d19cd76fe582747c"
   dependencies:
     "@types/node" "*"
 
-abbrev@1, abbrev@1.0.x:
+abbrev@1:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.1.0.tgz#d0554c2256636e2f56e7c2e5ad183f859428d81f"
+
+abbrev@1.0.x:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.0.9.tgz#91b4792588a7738c25f35dd6f63752a2f8776135"
 
@@ -369,10 +373,8 @@ commander@2.9.0:
     graceful-readlink ">= 1.0.0"
 
 commander@^2.9.0:
-  version "2.10.0"
-  resolved "https://registry.yarnpkg.com/commander/-/commander-2.10.0.tgz#e1f5d3245de246d1a5ca04702fa1ad1bd7e405fe"
-  dependencies:
-    graceful-readlink ">= 1.0.0"
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/commander/-/commander-2.11.0.tgz#157152fd1e7a6c8d98a5b715cf376df928004563"
 
 component-emitter@1.1.2:
   version "1.1.2"
@@ -897,8 +899,8 @@ joi@10.x.x:
     topo "2.x.x"
 
 js-tokens@^3.0.0:
-  version "3.0.1"
-  resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.1.tgz#08e9f132484a2c45a30907e9dc4d5567b7f114d7"
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-3.0.2.tgz#9866df395102130e38f7f996bceb65443209c25b"
 
 js-yaml@3.6.1:
   version "3.6.1"
@@ -1103,13 +1105,17 @@ minimatch@^3.0.2, minimatch@^3.0.3, minimatch@^3.0.4:
   dependencies:
     brace-expansion "^1.1.7"
 
-minimist@0.0.8, minimist@~0.0.1:
+minimist@0.0.8:
   version "0.0.8"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.8.tgz#857fcabfc3397d2625b8228262e86aa7a011b05d"
 
 minimist@1.2.0, minimist@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.0.tgz#a35008b20f41383eec1fb914f4cd5df79a264284"
+
+minimist@~0.0.1:
+  version "0.0.10"
+  resolved "https://registry.yarnpkg.com/minimist/-/minimist-0.0.10.tgz#de3f98543dbf96082be48ad1a0c7cda836301dcf"
 
 mkdirp@0.5.1, mkdirp@0.5.x, mkdirp@^0.5.1:
   version "0.5.1"
@@ -1386,9 +1392,13 @@ rxjs@^5.4.1:
   dependencies:
     symbol-observable "^1.0.1"
 
-samsam@1.1.2, samsam@~1.1:
+samsam@1.1.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/samsam/-/samsam-1.1.2.tgz#bec11fdc83a9fda063401210e40176c3024d1567"
+
+samsam@~1.1:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/samsam/-/samsam-1.1.3.tgz#9f5087419b4d091f232571e7fa52e90b0f552621"
 
 "semver@2 || 3 || 4 || 5", semver@^5.3.0:
   version "5.3.0"
@@ -1572,7 +1582,7 @@ superagent@~0.21.0:
     methods "1.x"
     superagent "~0.21.0"
 
-supports-color@3.1.2, supports-color@^3.1.2:
+supports-color@3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.1.2.tgz#72a262894d9d408b956ca05ff37b2ed8a6e2a2d5"
   dependencies:
@@ -1581,6 +1591,12 @@ supports-color@3.1.2, supports-color@^3.1.2:
 supports-color@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-2.0.0.tgz#535d045ce6b6363fa40117084629995e9df324c7"
+
+supports-color@^3.1.2:
+  version "3.2.3"
+  resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-3.2.3.tgz#65ac0504b3954171d8a64946b2ae3cbb8a5f54f6"
+  dependencies:
+    has-flag "^1.0.0"
 
 symbol-observable@^1.0.1:
   version "1.0.4"
@@ -1648,8 +1664,10 @@ tslint@^5.4.3:
     tsutils "^2.3.0"
 
 tsutils@^2.3.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.4.0.tgz#ad4ce6dba0e5a3edbddf8626b7ca040782189fea"
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/tsutils/-/tsutils-2.5.1.tgz#c2001390c79eec1a5ccfa7ac12d599639683e0cf"
+  dependencies:
+    tslib "^1.7.1"
 
 tunnel-agent@~0.4.1:
   version "0.4.3"
