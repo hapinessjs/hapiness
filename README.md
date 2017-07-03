@@ -116,7 +116,7 @@ To set up your development environment:
 
 ## Change History
 
-* v1.0.0-rc.3 (2017-07-3)
+* v1.0.0-rc.3 (2017-07-03)
     * Boostrap extension loader fix
 * v1.0.0-rc.2 (2017-06-29)
     * Boostrap bug fixes
@@ -166,14 +166,14 @@ To set up your development environment:
     <tr>
         <td align="center"><a href="https://github.com/Juneil"><img src="https://avatars3.githubusercontent.com/u/6546204?v=3&s=117" width="117"/></a></td>
         <td align="center"><a href="https://github.com/antoinegomez"><img src="https://avatars3.githubusercontent.com/u/997028?v=3&s=117" width="117"/></a></td>
-        <td align="center"><a href="https://github.com/srz09"><img src="https://avatars3.githubusercontent.com/u/6841511?v=3&s=117" width="117"/></a></td>
+        <td align="center"><a href="https://github.com/reptilbud"><img src="https://avatars3.githubusercontent.com/u/6841511?v=3&s=117" width="117"/></a></td>
         <td align="center"><a href="https://github.com/njl07"><img src="https://avatars3.githubusercontent.com/u/1673977?v=3&s=117" width="117"/></a></td>
 	<td align="center"><a href="https://github.com/tlerias"><img src="https://avatars1.githubusercontent.com/u/3011845?v=3&s=117" width="117"/></a></td>
     </tr>
     <tr>
         <td align="center"><a href="https://github.com/Juneil">Julien Fauville</a></td>
         <td align="center"><a href="https://github.com/antoinegomez">Antoine Gomez</a></td>
-        <td align="center"><a href="https://github.com/srz09">Sébastien Ritz</a></td>
+        <td align="center"><a href="https://github.com/reptilbud">Sébastien Ritz</a></td>
         <td align="center"><a href="https://github.com/njl07">Nicolas Jessel</a></td>
 	<td align="center"><a href="https://github.com/tlerias">Tara Lerias</a></td>
     </tr>
