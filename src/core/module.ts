@@ -292,11 +292,3 @@ export interface OnRegister { onRegister(): void; }
  */
 export interface OnStart { onStart(): void; }
 
-/**
- * Module Lifecycle Hook
- * called when error are catched
- *
- * @param  {Error} error
- * @returns void
- */
-export interface OnError { onError(error: Error): void; }

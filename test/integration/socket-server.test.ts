@@ -2,7 +2,7 @@ import { suite, test, only} from 'mocha-typescript';
 import { Observable, SubscribableOrPromise } from 'rxjs/Observable';
 import { ConsumerType } from 'tslint/lib';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Injectable, Inject, OnError, OnRegister, OnStart } from '../../src/core';
+import { Hapiness, HapinessModule, Injectable, Inject, OnRegister, OnStart } from '../../src/core';
 import { SocketServerExt, WebSocketServer } from '../../src/extensions/socket-server';
 
 @suite('Integration - Socket Server')
