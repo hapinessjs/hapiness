@@ -1,5 +1,5 @@
 import 'rxjs/add/observable/forkJoin';
-import { HapinessModule, Type } from './decorators';
+import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum } from './enums';
 import { HookManager } from './hook';
 import { CoreModule, CoreProvide, ModuleManager } from './module';

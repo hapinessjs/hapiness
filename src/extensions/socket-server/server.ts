@@ -1,7 +1,4 @@
-import { HookManager } from '../../core/hook';
-import { CoreModule, ModuleLevel, ModuleManager } from '../../core/module';
-import { Observable } from 'rxjs/Observable';
-import { server, connection, request } from 'websocket';
+import { server, request } from 'websocket';
 import { Socket } from './socket';
 import { SocketConfig } from './extension';
 import * as http from 'http';
@@ -15,11 +12,11 @@ export class WebSocketServer {
     private sockets: Socket[];
 
     constructor(config: SocketConfig) {
-        const httpServer = http.createServer((request, response) => {
+        const httpServer = http.createServer((_request, _response) => {
             /* istanbul ignore next */
-            response.writeHead(404);
+            _response.writeHead(404);
             /* istanbul ignore next */
-            response.end();
+            _response.end();
         });
         httpServer.listen(config.port);
         delete config.port;
@@ -27,8 +24,8 @@ export class WebSocketServer {
         this.server = new server(_config);
         this.sockets = [];
         this.subscribers = [];
-        this.server.on('request', request => {
-            this.onRequestHandler(request);
+        this.server.on('request', _request => {
+            this.onRequestHandler(_request);
         });
     }
 
@@ -36,11 +33,11 @@ export class WebSocketServer {
      * Resquest handler
      * Accept the request
      *
-     * @param  {request} request
+     * @param  {request} _request
      */
-    private onRequestHandler(request: request) {
-        const connection = request.accept(null, request.origin);
-        const socket = new Socket(request, connection);
+    private onRequestHandler(_request: request) {
+        const connection = _request.accept(null, _request.origin);
+        const socket = new Socket(_request, connection);
         const index = this.sockets.push(socket) - 1;
         this.subscribers.forEach(sub => sub.apply(this, [ socket ]));
         connection.on('close', conn => {

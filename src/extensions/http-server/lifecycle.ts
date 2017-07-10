@@ -1,8 +1,6 @@
 import { HookManager } from '../../core/hook';
 import { LifecycleEventsEnum, LifecycleHooksEnum } from './enums';
 import { RouteBuilder, CoreRoute } from './route';
-import { CoreModule, DependencyInjection } from '../../core';
-import { Observable } from 'rxjs/Observable';
 import { Request, ReplyWithContinue, Server } from 'hapi';
 import * as Debug from 'debug';
 const debug = Debug('lifecycle/hook');

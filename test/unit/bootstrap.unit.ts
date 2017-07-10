@@ -1,17 +1,10 @@
-import { OnExtensionLoad } from '../../src/core';
 import { Hapiness } from '../../src/core/bootstrap';
-import { HapinessModule, Inject, Injectable, InjectionToken } from '../../src/core/decorators';
 import { HookManager } from '../../src/core/hook';
-import { CoreModuleWithProviders, ModuleManager } from '../../src/core/module';
-import { HttpServerExt } from '../../src/extensions/http-server';
-import { Lifecycle, Route } from '../../src/extensions/http-server/decorators';
-import { SocketServerExt } from '../../src/extensions/socket-server/extension';
-import { Optional } from '../../src/externals/injection-js';
+import { ModuleManager } from '../../src/core/module';
 import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/observable/throw';
 import { only, suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { RouteConfiguration, Server } from 'hapi';
 
 @only
 @suite('Unit - Bootstrap')

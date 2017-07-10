@@ -1,5 +1,4 @@
 import 'reflect-metadata';
-import * as Boom from 'boom';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:metadata');
 

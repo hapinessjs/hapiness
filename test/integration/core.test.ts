@@ -1,6 +1,5 @@
 import { suite, test } from 'mocha-typescript';
-import { Observable, SubscribableOrPromise } from 'rxjs/Observable';
-import { ConsumerType } from 'tslint/lib';
+import { Observable } from 'rxjs/Observable';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, Injectable, OnStart, OnRegister, Lib } from '../../src/core';
 

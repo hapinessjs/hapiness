@@ -1,11 +1,11 @@
-import { Hapiness, ExtensionWithConfig } from '../../core';
+import { ExtensionWithConfig } from '../../core';
 import { Extension, OnExtensionLoad, OnModuleInstantiated } from '../../core/bootstrap';
 import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
 import { extractMetadataByDecorator } from '../../core/metadata';
-import { CoreModule, ModuleLevel, ModuleManager } from '../../core/module';
+import { CoreModule, ModuleManager } from '../../core/module';
 import { Lifecycle } from './decorators';
-import { enumByMethod, LifecycleComponentEnum, RouteMethodsEnum } from './enums';
+import { enumByMethod, LifecycleComponentEnum } from './enums';
 import { LifecycleManager } from './lifecycle';
 import { CoreRoute, RouteBuilder } from './route';
 import { Observable } from 'rxjs/Observable';

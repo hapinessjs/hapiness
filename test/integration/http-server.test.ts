@@ -1,8 +1,6 @@
 import { suite, test} from 'mocha-typescript';
-import { Observable, SubscribableOrPromise } from 'rxjs/Observable';
-import { ConsumerType } from 'tslint/lib';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Injectable, Inject, OnRegister, OnStart } from '../../src/core';
+import { Hapiness, HapinessModule, Inject, OnRegister, OnStart } from '../../src/core';
 import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse } from '../../src/extensions/http-server';
 import { Server } from 'hapi';
 
