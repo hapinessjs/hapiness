@@ -2,7 +2,7 @@ import { suite, test } from 'mocha-typescript';
 import { Observable, SubscribableOrPromise } from 'rxjs/Observable';
 import { ConsumerType } from 'tslint/lib';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Injectable, OnStart, OnRegister, OnError, Lib } from '../../src/core';
+import { Hapiness, HapinessModule, Injectable, OnStart, OnRegister, Lib } from '../../src/core';
 
 @suite('Integration - Core')
 class CoreIntegration {
@@ -154,7 +154,7 @@ class CoreIntegration {
         @HapinessModule({
             version: '1.0.0'
         })
-        class ModuleTest implements OnError {
+        class ModuleTest {
 
             onStart() {
                 return Observable.create(observer => {
@@ -162,15 +162,13 @@ class CoreIntegration {
                     observer.complete();
                 });
             }
+        }
 
-            onError(err) {
-                unit.object(err)
+        Hapiness.bootstrap(ModuleTest).catch(_ => {
+                unit.object(_)
                     .isInstanceOf(Error)
                     .hasProperty('message', 'error');
                 done();
-            }
-        }
-
-        Hapiness.bootstrap(ModuleTest).catch(_ => {});
+            });
     }
 }

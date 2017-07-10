@@ -32,6 +32,7 @@ export class HookManager {
     debug('triggering hook', hook, token ? token.name : null);
     Hoek.assert((!!token && !!instance), 'Cannot trigger without token/instance');
     if (this.hasLifecycleHook<T>(hook, token)) {
+      try {
       const result = Reflect.apply(instance[hook], instance, args || []);
       if (result instanceof Observable) {
         return result;
@@ -40,6 +41,9 @@ export class HookManager {
             observer.next(result);
             observer.complete();
         });
+      }
+      } catch (e) {
+        console.error.apply(console, e);
       }
     }
     return Observable.create((observer) => {

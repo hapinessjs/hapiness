@@ -1,4 +1,4 @@
-import { ExtensionWithConfig } from '../../core';
+import { Hapiness, ExtensionWithConfig } from '../../core';
 import { Extension, OnExtensionLoad, OnModuleInstantiated } from '../../core/bootstrap';
 import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
@@ -41,20 +41,12 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             ).subscribe(routes => {
                 debug('routes and plugins registered');
                 LifecycleManager.routeLifecycle(this.server, routes.reduce((a, c) => a.concat(c), []));
-                this.server.start()
-                    .then(() => {
-                        debug('http server started', this.server.info.uri);
-                        observer.next({
-                            instance: this,
-                            token: HttpServerExt,
-                            value: this.server
-                        });
-                        observer.complete();
-                    })
-                    .catch(err => {
-                        observer.error(err);
-                        observer.complete();
-                    });
+                observer.next({
+                    instance: this,
+                    token: HttpServerExt,
+                    value: this.server
+                });
+                observer.complete();
             }, err => {
                 observer.error(err);
                 observer.complete();
@@ -65,8 +57,16 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     onModuleInstantiated(module: CoreModule) {
         return Observable.create(observer => {
             this.instantiateLifecycle(this.server, module);
-            observer.next();
-            observer.complete();
+            this.server.start()
+                .then(() => {
+                    debug('http server started', this.server.info.uri);
+                    observer.next();
+                    observer.complete();
+                })
+                .catch(err => {
+                    observer.error(err);
+                    observer.complete();
+                });
         });
     }
 
