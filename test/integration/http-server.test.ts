@@ -1,8 +1,6 @@
-import { suite, test, only} from 'mocha-typescript';
-import { Observable, SubscribableOrPromise } from 'rxjs/Observable';
-import { ConsumerType } from 'tslint/lib';
+import { suite, test} from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Injectable, Inject, OnError, OnRegister, OnStart } from '../../src/core';
+import { Hapiness, HapinessModule, Inject, OnRegister, OnStart } from '../../src/core';
 import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse } from '../../src/extensions/http-server';
 import { Server } from 'hapi';
 
@@ -33,7 +31,7 @@ class HttpServerIntegration {
             onStart() {
                 this.server.inject('/', res => {
                     unit.must(res.result).equal('test');
-                    done();
+                    this.server.stop().then(_ => done());
                 });
             }
         }
@@ -95,12 +93,12 @@ class HttpServerIntegration {
                 this.server.inject('/', res => {
                     unit.string(res.result)
                         .is('toto123456');
-                    done();
+                    this.server.stop().then(_ => done());
                 });
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4445 }) ])
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ])
             .catch(_ => done(_));
     }
 
@@ -139,7 +137,8 @@ class HttpServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4446 }) ]);
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ])
+            .catch(_ => console.log(_.message));
     }
 
     @test('port already used')
@@ -150,11 +149,44 @@ class HttpServerIntegration {
         })
         class ModuleTest {}
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4446 }) ]).catch(_ => {
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ]).catch(_ => {
             unit.object(_)
                     .isInstanceOf(Error)
-                    .hasProperty('message', 'listen EADDRINUSE 0.0.0.0:4446');
-                done();
+                    .hasProperty('message', 'listen EADDRINUSE 0.0.0.0:4444');
+            Hapiness['extensions'][0].value.stop().then(__ => done());
         });
+    }
+
+    @test('make sure register are done before start hook')
+    test5(done) {
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class SubModuleTest implements OnRegister {
+            constructor(@Inject(HttpServerExt) private server: Server) {}
+            onRegister() {
+                this.server.route({
+                    path: '/route1',
+                    method: 'GET',
+                    handler: () => {}
+                });
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [ SubModuleTest ]
+        })
+        class ModuleTest implements OnStart {
+            constructor(@Inject(HttpServerExt) private server: Server) {}
+            onStart() {
+                unit.object(this.server.table().pop().table.pop())
+                    .hasProperty('path', '/route1');
+                this.server.stop().then(_ => done());
+            }
+        }
+
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4445 }) ]);
     }
 }

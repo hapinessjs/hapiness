@@ -1,9 +1,7 @@
 import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad } from '../../core';
 import { Observable } from 'rxjs/Observable';
-import { server, connection, request } from 'websocket';
-import { Socket } from './socket';
+import { server } from 'websocket';
 import { WebSocketServer } from './server';
-import * as http from 'http';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:extension:socketserver');
 
@@ -18,8 +16,6 @@ export interface SocketConfig {
 export class SocketServerExt implements OnExtensionLoad {
 
     private server: server;
-    private subscribers: Array<(socket: Socket) => void>;
-    private sockets: Socket[];
 
     public static setConfig(config: SocketConfig): ExtensionWithConfig {
         return {

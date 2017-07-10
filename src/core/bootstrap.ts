@@ -1,5 +1,5 @@
 import 'rxjs/add/observable/forkJoin';
-import { HapinessModule, Type } from './decorators';
+import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum } from './enums';
 import { HookManager } from './hook';
 import { CoreModule, CoreProvide, ModuleManager } from './module';
@@ -79,23 +79,15 @@ export class Hapiness {
                                 .filter(m => !!m.parent)
                                 .filter(m => HookManager.hasLifecycleHook(ModuleEnum.OnRegister.toString(), m.token))
                                 .map(m => HookManager.triggerHook(ModuleEnum.OnRegister.toString(), m.token, m.instance))
-                                .concat(
-                                    HookManager.triggerHook(ModuleEnum.OnStart.toString(), this.module.token,
-                                        this.module.instance, null, false)
-                                )
                                 .concat(this.extensions.map(ext => this.moduleInstantiated(ext)))
-                    ).subscribe(_ => resolve(), _ => this.handleError(_, reject));
+                                .concat(Observable.of(''))
+                    )
+                    .switchMap(_ => HookManager.triggerHook(ModuleEnum.OnStart.toString(), this.module.token,
+                                        this.module.instance, null, false))
+                    .subscribe(_ => resolve(), _ => reject(_));
                 }, /* istanbul ignore next */ _ => reject(_));
             });
         });
-    }
-
-    private static handleError(error: Error, reject) {
-        debug('an error occured', error.message);
-        ModuleManager.instantiateModule(this.module).subscribe(_ => {
-            HookManager.triggerHook(ModuleEnum.OnError.toString(), _.token, _.instance, [ error ], false);
-            reject(error);
-        }, /* istanbul ignore next */ _ => reject(_));
     }
 
     /**

@@ -28,11 +28,15 @@ export class DependencyInjection {
      * @returns T
      */
     static instantiateComponent<T>(component: Type<T>, di: ReflectiveInjector): T {
-        const reflectiveDeps: ReflectiveDependency[] = ReflectiveInjector.resolve([component])
-            .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), [])
-            .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), []);
-        const deps = reflectiveDeps.map(d => di['_getByReflectiveDependency'](d));
-        return Reflect.construct(component, deps);
+        try {
+            const reflectiveDeps: ReflectiveDependency[] = ReflectiveInjector.resolve([component])
+                .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), [])
+                .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), []);
+            const deps = reflectiveDeps.map(d => di['_getByReflectiveDependency'](d));
+            return Reflect.construct(component, deps);
+        } catch (e) {
+            console.error.apply(console, e);
+        }
     }
 
 }

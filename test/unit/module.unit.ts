@@ -1,5 +1,4 @@
 import { suite, test } from 'mocha-typescript';
-import { Observable } from 'rxjs/Observable';
 import * as unit from 'unit.js';
 import { ModuleManager, ModuleLevel, HapinessModule, InjectionToken } from '../../src/core';
 

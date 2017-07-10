@@ -1,9 +1,7 @@
 import { extractMetadataByDecorator } from './metadata';
 import { ReflectiveInjector } from '../externals/injection-js';
-import { reflector } from '../externals/injection-js/reflection/reflection';
 import { HapinessModule, Type, InjectionToken } from './decorators';
 import { DependencyInjection } from './di';
-import { Server } from 'hapi';
 import * as Hoek from 'hoek';
 import { Observable } from 'rxjs/Rx';
 const debug = require('debug')('hapiness:module');
@@ -136,7 +134,7 @@ export class ModuleManager {
         const lookup = (_module: CoreModule) => {
             const els = [].concat((_module[element] && Array.isArray(_module[element])) ? _module[element] : []);
             return (_module.modules || []).map(m => lookup(m)).reduce((acc, cur) => acc.concat(cur), []).concat(els).filter(_ => !!_);
-        }
+        };
         return lookup(module);
     }
 
@@ -149,7 +147,7 @@ export class ModuleManager {
     public static getModules(module: CoreModule): CoreModule[] {
         const lookup = (_module: CoreModule) => {
             return [].concat(_module).concat((_module.modules || []).map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
-        }
+        };
         return lookup(module);
     }
 
@@ -292,11 +290,3 @@ export interface OnRegister { onRegister(): void; }
  */
 export interface OnStart { onStart(): void; }
 
-/**
- * Module Lifecycle Hook
- * called when error are catched
- *
- * @param  {Error} error
- * @returns void
- */
-export interface OnError { onError(error: Error): void; }
