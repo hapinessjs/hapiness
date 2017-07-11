@@ -21,7 +21,7 @@ export class LifecycleManager {
      */
     static routeLifecycle(server: Server, routes: CoreRoute[]) {
         server.ext(<any>LifecycleEventsEnum.OnPreAuth.toString(), (request: Request, reply: ReplyWithContinue) => {
-            const route = routes.find(r => (r.method === request.route.method && r.path === request.route.path));
+            const route = this.findRoute(request, routes);
             /* istanbul ignore else */
             if (route && route.token) {
                 const reqInfo = new HttpRequestInfo(request.id);
@@ -46,6 +46,11 @@ export class LifecycleManager {
             (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPreResponse, routes, request, reply));
     }
 
+    private static findRoute(request: Request, routes: CoreRoute[]): CoreRoute {
+        return routes.find(r => ((r.method === request.route.method || r.method.indexOf(request.route.method) > -1) &&
+                r.path === request.route.path));
+    }
+
     /**
      * Find the route and call
      * the hook if the route component
@@ -57,7 +62,7 @@ export class LifecycleManager {
      * @param  {} reply
      */
     private static eventHandler(hook: LifecycleHooksEnum, routes: CoreRoute[], request, reply) {
-        const route = routes.find(r => (r.method === request.route.method && r.path === request.route.path));
+        const route = this.findRoute(request, routes);
         if (request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), route.token)) {
             HookManager.triggerHook(hook.toString(), route.token, request['_hapinessRoute'], [request, reply]);
         } else {
