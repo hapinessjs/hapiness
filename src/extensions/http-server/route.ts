@@ -106,12 +106,15 @@ export class RouteBuilder {
      */
     private static coreRouteFromMetadata(data: Route, token: Type<any>, module: CoreModule): CoreRoute {
         const providers = data.providers || [];
+        const method = Array.isArray(data.method) ?
+            data.method.map(_ => _.toLowerCase()) :
+            data.method.toString().toLowerCase();
         return {
             token,
             module,
             config: data.config,
             path: data.path,
-            method: data.method.toString().toLowerCase(),
+            method,
             providers: providers.map((p: any) => !!p.provide ? p : { provide: p, useClass: p })
         };
     }
