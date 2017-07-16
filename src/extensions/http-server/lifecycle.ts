@@ -43,7 +43,10 @@ export class LifecycleManager {
             (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPostHandler, routes, request, reply));
 
         server.ext(<any>LifecycleEventsEnum.OnPreResponse.toString(),
-            (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPreResponse, routes, request, reply));
+            (request, reply) => {
+                this.eventHandler(LifecycleHooksEnum.OnPreResponse, routes, request, reply);
+                request['_hapinessRoute'] = undefined;
+            });
     }
 
     private static findRoute(request: Request, routes: CoreRoute[]): CoreRoute {

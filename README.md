@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-5",
+    "@hapiness/core": "^1.0.0-rc.6",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-rc.5**
+Actually, we're in **development** mode: **v1.0.0-rc.6**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.0.0-rc.6 (2017-07-16)
+    * DI/req performance issue temp. fix
 * v1.0.0-rc.5 (2017-07-11)
     * Route with array of methods fix
     * Move rxjs to peer deps
