@@ -56,6 +56,68 @@ class HttpServerIntegration {
 
         @Route({
             path: '/',
+            method: 'GET'
+        })
+        class RouteTest implements OnGet, OnPreResponse {
+            constructor(private serv: Service1, private serv3: Service3) {}
+            onGet(request, reply) {
+                reply('x');
+            }
+            onPreResponse(request, reply) {
+                request.response.source = request.response.source + this.serv.getData() + this.serv3.getData();
+                reply.continue();
+            }
+        }
+
+        @Lifecycle({
+            event: 'onPostHandler'
+        })
+        class LF implements OnEvent {
+            onEvent(request, reply) {
+                request.response.source = 'toto';
+                reply.continue();
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            declarations: [ RouteTest, LF ],
+            providers: [ Service3, Service1, { provide: Service2, useClass: Service2 }  ]
+        })
+        class ModuleTest implements OnStart {
+
+            constructor(@Inject(HttpServerExt) private server: Server) {}
+
+            onStart() {
+                this.server.inject('/', res => {
+                    unit.string(res.result)
+                        .is('toto123456');
+                    this.server.stop().then(_ => done());
+                });
+            }
+        }
+
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ])
+            .catch(_ => done(_));
+    }
+
+    /* @test('lifecycle')
+    test2(done) {
+
+        class Service1 {
+            getData() {
+                return '123';
+            }
+        }
+        class Service2 {}
+        class Service3 {
+            getData() {
+                return '456';
+            }
+        }
+
+        @Route({
+            path: '/',
             method: 'GET',
             providers: [ Service1, { provide: Service2, useClass: Service2 } ]
         })
@@ -100,7 +162,7 @@ class HttpServerIntegration {
 
         Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ])
             .catch(_ => done(_));
-    }
+    }*/
 
     @test('route submodule')
     test3(done) {
