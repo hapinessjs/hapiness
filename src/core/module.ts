@@ -211,6 +211,11 @@ export class ModuleManager {
         debug('recursive resolution', module.module.name);
         const metadata = this.metadataFromModule(module.module);
         const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
+        coreModule.providers = coreModule.providers.concat(
+            (parent && parent.providers) ?
+                parent.providers.filter(_ => (_.provide instanceof InjectionToken)) :
+                []
+            );
         coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
             metadata.imports.map(m => this.recursiveResolution(m, coreModule)) : [];
         return coreModule;
