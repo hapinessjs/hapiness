@@ -1,7 +1,16 @@
 import { suite, test } from 'mocha-typescript';
 import { Observable } from 'rxjs/Observable';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Injectable, OnStart, OnRegister, Lib } from '../../src/core';
+import {
+    Hapiness,
+    HapinessModule,
+    Injectable,
+    OnStart,
+    OnRegister,
+    Lib,
+    InjectionToken,
+    Inject
+} from '../../src/core';
 
 @suite('Integration - Core')
 class CoreIntegration {
@@ -169,5 +178,49 @@ class CoreIntegration {
                     .hasProperty('message', 'error');
                 done();
             });
+    }
+
+    @test('HapinessModule - Provide parent config to sub module')
+    test6(done) {
+
+        const TOKEN = new InjectionToken('token');
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class SubModuleTest {
+
+            constructor(@Inject(TOKEN) private config) {}
+
+            onRegister() {
+                unit.must(this.config.test)
+                    .is(true);
+                done();
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [ SubModuleTest ]
+        })
+        class ModuleTest {
+
+            static setConfig(config) {
+                return {
+                    module: ModuleTest,
+                    providers: [
+                        { provide: TOKEN, useValue: config }
+                    ]
+                }
+            }
+        }
+
+        @HapinessModule({
+            version: '1.0.0',
+            imports: [ ModuleTest.setConfig({ test: true }) ]
+        })
+        class AppModuleTest {}
+
+        Hapiness.bootstrap(AppModuleTest);
     }
 }

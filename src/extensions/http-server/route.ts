@@ -87,15 +87,25 @@ export class RouteBuilder {
      * Instantiate a new Route
      * with its own DI/request
      *
+     * /!\ Create a DI/req give some
+     * perf issues. Still investigating
+     * for a solution. For now, we provide
+     * just the DI's module
+     *
      * @param  {CoreRoute} route
      * @returns Type
      */
     public static instantiateRouteAndDI(route: CoreRoute): Type<any> {
-        const di = DependencyInjection.createAndResolve(route.providers
-            .map(p => Object.assign(<Type<any>>{}, p)), route.module.di
-        );
         debug('instantiate route', route.method, route.path);
-        return DependencyInjection.instantiateComponent(<Type<any>>route.token, di);
+        if (route.providers && route.providers.length > 0) {
+            console.warn(`${route.path} - Providers for a route are not available`);
+        }
+        return DependencyInjection.instantiateComponent(
+            <Type<any>>route.token,
+            /*DependencyInjection.createAndResolve(route.providers
+                .map(p => Object.assign(<Type<any>>{}, p)), route.module.di
+            )*/route.module.di
+        );
     }
 
     /**
