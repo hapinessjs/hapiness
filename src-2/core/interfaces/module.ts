@@ -1,6 +1,7 @@
 import { Type } from '../decorators';
 import { ReflectiveInjector } from '../../externals/injection-js';
 import { Observable } from 'rxjs';
+import { ModuleLevel } from '../enums';
 
 /**
  * CoreProvide Type
@@ -40,16 +41,6 @@ export class CoreModule {
 export interface CoreModuleWithProviders {
     module: Type<any>;
     providers: CoreProvide[];
-}
-
-/**
- * Represents the position where
- * the module is instantiate
- */
-export enum ModuleLevel {
-    ROOT,
-    PRIMARY,
-    SECONDARY
 }
 
 /**

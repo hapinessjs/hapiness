@@ -2,16 +2,14 @@ import { Observable } from 'rxjs';
 import { CoreModule, Extension, ExtensionWithConfig } from './interfaces';
 import { InternalLogger } from './logger';
 import { Type } from './decorators';
-import { ExtentionHooksEnum, ModuleEnum } from './enums';
+import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
 import { ModuleManager } from './module';
 import { HookManager } from './hook';
 
 export class Hapiness {
 
     private static module: CoreModule;
-
     private static extensions: Extension[];
-
     private static logger = new InternalLogger('bootstrap');
 
     /**
@@ -28,41 +26,7 @@ export class Hapiness {
             this
                 .checkArg(module)
                 .flatMap(_ => ModuleManager.resolve(_))
-                .flatMap(moduleResolved =>
-                    Observable
-                        .from([].concat(extensions).filter(_ => !!_))
-                        .map(_ => this.toExtensionWithConfig(_))
-                        .flatMap(_ => this.loadExtention(_))
-                        .toArray()
-                        .do(_ => this.extensions = _)
-                        .flatMap(extensionsLoaded =>
-                            Observable
-                                .from(extensionsLoaded)
-                                .map(_ => ({ provide: _.token, useValue: _.value }))
-                                .toArray()
-                                .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
-                                .do(_ => this.module = _)
-                                .flatMap(moduleInstanciated =>
-                                    Observable
-                                        .from(ModuleManager.getModules(moduleInstanciated))
-                                        .filter(_ => !!_.parent)
-                                        .filter(_ => HookManager
-                                            .hasLifecycleHook(ModuleEnum.OnRegister.toString(), _.token)
-                                        )
-                                        .flatMap(_ => HookManager
-                                            .triggerHook(ModuleEnum.OnRegister.toString(), _.token, _.instance)
-                                        )
-                                        .toArray()
-                                        .flatMap(_ => HookManager.triggerHook(
-                                            ModuleEnum.OnStart.toString(),
-                                            moduleInstanciated.token,
-                                            moduleInstanciated.instance,
-                                            null,
-                                            false
-                                        ))
-                                )
-                        )
-                )
+                .flatMap(_ => this.loadExtensions(extensions, _))
                 .subscribe(
                     _ => resolve(),
                     _ => reject(_)
@@ -70,6 +34,75 @@ export class Hapiness {
         });
     }
 
+    /**
+     * Load extensions
+     *
+     * @param  {Array<Type<any>|ExtensionWithConfig>} extensions
+     * @param  {CoreModule} moduleResolved
+     * @returns Observable
+     */
+    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule): Observable<void> {
+        return Observable
+            .from([].concat(extensions).filter(_ => !!_))
+            .map(_ => this.toExtensionWithConfig(_))
+            .flatMap(_ => this.loadExtention(_))
+            .toArray()
+            .do(_ => this.extensions = _)
+            .flatMap(_ => this.instantiateModule(_, moduleResolved));
+    }
+
+    /**
+     * Instantiate module
+     *
+     * @param  {Extension[]} extensionsLoaded
+     * @param  {CoreModule} moduleResolved
+     * @returns Observable
+     */
+    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule): Observable<void> {
+        return Observable
+            .from(extensionsLoaded)
+            .map(_ => ({ provide: _.token, useValue: _.value }))
+            .toArray()
+            .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
+            .do(_ => this.module = _)
+            .flatMap(_ => this.callHooks(_));
+    }
+
+    /**
+     * Call Register and Start Hooks
+     *
+     * @param  {CoreModule} moduleInstantiated
+     * @returns Observable
+     */
+    private static callHooks(moduleInstantiated: CoreModule): Observable<void> {
+        return Observable
+            .from(ModuleManager.getModules(moduleInstantiated))
+            .filter(_ => _.level !== ModuleLevel.ROOT)
+            .filter(_ => HookManager
+                .hasLifecycleHook(ModuleEnum.OnRegister.toString(), _.token)
+            )
+            .flatMap(_ => HookManager
+                .triggerHook(ModuleEnum.OnRegister.toString(), _.token, _.instance)
+            )
+            .toArray()
+            .flatMap(_ => HookManager
+                .triggerHook(
+                    ModuleEnum.OnStart.toString(),
+                    moduleInstantiated.token,
+                    moduleInstantiated.instance,
+                    null,
+                    false
+                )
+            );
+    }
+
+    /**
+     * Check if the provided module
+     * is right
+     *
+     * @param  {Type<any>} module
+     * @returns Observable
+     */
     private static checkArg(module: Type<any>): Observable<Type<any>> {
         return Observable
             .of(module)
@@ -139,4 +172,25 @@ export class Hapiness {
             .do(_ => this.logger.debug(`moduleInstantiated ${extension.token.name}`));
     }
 
+}
+
+/**
+ * @param  {Error} error
+ * @returns void
+ */
+export function errorHandler(error: Error): void {
+    Observable
+        .of(Hapiness['module'])
+        .filter(_ => !!(_ && _.instance))
+        .flatMap(_ =>
+            HookManager
+                .triggerHook(
+                    ModuleEnum.OnError.toString(),
+                    _.token,
+                    _.instance,
+                    [ error ],
+                    false
+                )
+        )
+        .subscribe(null, _ => console.error(_));
 }

@@ -37,21 +37,17 @@ export class HookManager {
                     .of(this.hasLifecycleHook(hook, token))
                     .filter(_ => !!_)
                     .map(_ => Reflect.apply(instance[hook], instance, args || []))
-                    .flatMap(_ => (_ instanceof Observable) ?
-                        _ :
-                        Observable.of(_)
+                    .flatMap(_ =>
+                        (_ instanceof Observable) ?
+                        _ : !!_ ?
+                        Observable.of(_) :
+                        Observable.empty()
                     ),
 
                 Observable
                     .of(this.hasLifecycleHook(hook, token))
                     .filter(_ => !_ && throwErr)
-                    .flatMap(_ => Observable.throw(new Error(`Hook missing ${hook} on ${token ? token.name : null}`))),
-
-                Observable
-                    .of(this.hasLifecycleHook(hook, token))
-                    .filter(_ => !_ && !throwErr)
-                    .map(_ => null)
-
+                    .flatMap(_ => Observable.throw(new Error(`Hook missing ${hook} on ${token ? token.name : null}`)))
             )
     }
 }

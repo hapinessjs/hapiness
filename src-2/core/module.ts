@@ -2,8 +2,9 @@ import { Observable } from 'rxjs';
 import { InternalLogger } from './logger';
 import { extractMetadataByDecorator } from './metadata';
 import { HapinessModule, Type, InjectionToken } from './decorators';
-import { CoreModule, CoreProvide, CoreModuleWithProviders, ModuleLevel } from './interfaces';
+import { CoreModule, CoreProvide, CoreModuleWithProviders } from './interfaces';
 import { DependencyInjection } from './di';
+import { ModuleLevel } from './enums';
 
 export class ModuleManager {
 
@@ -186,7 +187,7 @@ export class ModuleManager {
             });
     }
 
-        /**
+    /**
      * ===========================================================================
      *
      *  MODULE INSTANTIATION
@@ -222,7 +223,23 @@ export class ModuleManager {
                 DependencyInjection
                     .instantiateComponent(_.token, _.di)
                     .map(instance => <CoreModule>Object.assign({ instance }, _))
-            );
+            )
+            .flatMap(_ => this.instantiateLibs(_));
+    }
+
+    /**
+     * Instantiate and return array of libs
+     *
+     * @param  {CoreModule} module
+     * @returns Type
+     */
+    private static instantiateLibs(module: CoreModule): Observable<CoreModule> {
+        return Observable
+            .from(module.declarations)
+            .filter(_ => !!extractMetadataByDecorator(_, 'Lib'))
+            .flatMap(_ => DependencyInjection.instantiateComponent(_, module.di))
+            .toArray()
+            .map(_ => module);
     }
 
     /**
