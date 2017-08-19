@@ -1,7 +1,8 @@
 import 'reflect-metadata';
 
-import { CoreModule, ModuleLevel } from '../../src-2/core/interfaces'
-import { InjectionToken, HapinessModule } from '../../src-2/core/decorators';
+import { CoreModule } from '../../src/core/interfaces'
+import { ModuleLevel } from '../../src/core/enums';
+import { InjectionToken, HapinessModule } from '../../src/core/decorators';
 
 export class EmptyModule {}
 export class EmptyProvider {}

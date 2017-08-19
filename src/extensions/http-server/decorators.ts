@@ -1,5 +1,5 @@
 import { createDecorator, CoreDecorator, Type } from '../../core/decorators';
-import { RouteConfig } from './route';
+import { RouteConfig } from './interfaces';
 
 export interface Route {
     path: string;

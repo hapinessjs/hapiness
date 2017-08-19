@@ -1,7 +1,7 @@
 pretest:
 	@node ./node_modules/.bin/tslint -p ./tsconfig.json --type-check "./src/**/*.ts" "./test/**/*.ts" --exclude "./src/**/*.d.ts"
 test:
-	@node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test-2
+	@node ./node_modules/.bin/istanbul cover ./node_modules/.bin/_mocha ./test
 coveralls:
 	cat ./coverage/lcov.info | node ./node_modules/.bin/coveralls
 tsc:

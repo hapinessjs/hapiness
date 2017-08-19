@@ -1,11 +1,11 @@
 import { suite, test } from 'mocha-typescript';
-import { ModuleManager } from '../../src-2/core/module';
-import { ModuleLevel } from '../../src-2/core/interfaces';
-import { HapinessModule } from '../../src-2/core/decorators';
+import { ModuleManager } from '../../src/core/module';
+import { ModuleLevel } from '../../src/core/enums';
+import { HapinessModule } from '../../src/core/decorators';
 import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
-import { extractMetadataByDecorator } from '../../src-2/core/metadata';
+import { extractMetadataByDecorator } from '../../src/core/metadata';
 
 import {
     EmptyProvider,
@@ -154,7 +154,7 @@ class ModuleTestSuite {
     testExtractMetadata1() {
 
         const stub = unit
-            .stub(require('../../src-2/core/metadata'), 'extractMetadataByDecorator')
+            .stub(require('../../src/core/metadata'), 'extractMetadataByDecorator')
             .withArgs(ModuleWithMetadata)
             .returns(<HapinessModule>{ version: '123' });
 
@@ -172,7 +172,7 @@ class ModuleTestSuite {
     testExtractMetadata2() {
 
         const stub = unit
-            .stub(require('../../src-2/core/metadata'), 'extractMetadataByDecorator')
+            .stub(require('../../src/core/metadata'), 'extractMetadataByDecorator')
             .withArgs(null).returns(null)
             .withArgs(EmptyModule).returns(null);
 

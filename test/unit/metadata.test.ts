@@ -1,7 +1,7 @@
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { extractMetadataByDecorator, extractMetadata, extractMetadatas } from '../../src-2/core/metadata';
-import { HapinessModule } from '../../src-2/core/decorators';
+import { extractMetadataByDecorator, extractMetadata, extractMetadatas } from '../../src/core/metadata';
+import { HapinessModule } from '../../src/core/decorators';
 
 @suite('Unit - Metadata')
 class Metadata {
