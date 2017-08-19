@@ -1,13 +1,10 @@
+import { Observable } from 'rxjs';
 import { HookManager } from '../../core/hook';
 import { LifecycleEventsEnum, LifecycleHooksEnum } from './enums';
-import { RouteBuilder, CoreRoute } from './route';
+import { RouteBuilder } from './route';
+import { CoreRoute } from './interfaces';
+import { errorHandler } from '../../core/hapiness';
 import { Request, ReplyWithContinue, Server } from 'hapi';
-import * as Debug from 'debug';
-const debug = Debug('lifecycle/hook');
-
-export class HttpRequestInfo {
-    constructor(public id: string) {}
-}
 
 export class LifecycleManager {
 
@@ -19,38 +16,85 @@ export class LifecycleManager {
      *
      * @param  {MainModule} main
      */
-    static routeLifecycle(server: Server, routes: CoreRoute[]) {
-        server.ext(<any>LifecycleEventsEnum.OnPreAuth.toString(), (request: Request, reply: ReplyWithContinue) => {
-            const route = this.findRoute(request, routes);
-            /* istanbul ignore else */
-            if (route && route.token) {
-                const reqInfo = new HttpRequestInfo(request.id);
-                route.providers = route.providers.concat({ provide: HttpRequestInfo, useValue: reqInfo });
-                request['_hapinessRoute'] = RouteBuilder.instantiateRouteAndDI(route);
-                this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply);
-            } else {
-                reply.continue();
-            }
-        });
+    static routeLifecycle(server: Server, routes: CoreRoute[]): void {
+
+        server.ext(<any>LifecycleEventsEnum.OnPreAuth.toString(),
+            (request: Request, reply: ReplyWithContinue) =>
+                this.instantiateRoute(routes, request, reply)
+                    .subscribe(
+                        _ => reply.continue(),
+                        _ => errorHandler(_)
+                    )
+        );
 
         server.ext(<any>LifecycleEventsEnum.OnPostAuth.toString(),
-            (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply));
+            (request: Request, reply: ReplyWithContinue) =>
+                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                    .subscribe(
+                        _ => reply.continue(),
+                        _ => errorHandler(_)
+                    )
+        );
 
         server.ext(<any>LifecycleEventsEnum.OnPreHandler.toString(),
-            (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPreHandler, routes, request, reply));
+            (request: Request, reply: ReplyWithContinue) =>
+                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                    .subscribe(
+                        _ => reply.continue(),
+                        _ => errorHandler(_)
+                    )
+        );
 
         server.ext(<any>LifecycleEventsEnum.OnPostHandler.toString(),
-            (request, reply) => this.eventHandler(LifecycleHooksEnum.OnPostHandler, routes, request, reply));
+            (request: Request, reply: ReplyWithContinue) =>
+                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                    .subscribe(
+                        _ => reply.continue(),
+                        _ => errorHandler(_)
+                    )
+        );
 
-        server.ext(<any>LifecycleEventsEnum.OnPreResponse.toString(),
-            (request, reply) => {
-                this.eventHandler(LifecycleHooksEnum.OnPreResponse, routes, request, reply);
-                request['_hapinessRoute'] = undefined;
-            });
+        server.ext(<any>LifecycleEventsEnum.OnPostHandler.toString(),
+            (request: Request, reply: ReplyWithContinue) =>
+                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                    .subscribe(
+                        _ => reply.continue(),
+                        _ => errorHandler(_),
+                        () => request['_hapinessRoute'] = undefined
+                    )
+        );
     }
 
+    /**
+     * Instantiate the route matching the request
+     * And trigger OnPreAuth hook
+     *
+     * @param  {CoreRoute[]} routes
+     * @param  {Request} request
+     * @param  {ReplyWithContinue} reply
+     * @returns Observable
+     */
+    private static instantiateRoute(routes: CoreRoute[], request: Request, reply: ReplyWithContinue): Observable<any> {
+        return Observable
+            .of(routes)
+            .map(_ => this.findRoute(request, _))
+            .filter(_ => !!(_ && _.token))
+            .flatMap(_ => RouteBuilder.instantiateRouteAndDI(_, request))
+            .do(_ => request['_hapinessRoute'] = _)
+            .flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply))
+    }
+
+    /**
+     * Find the matching route with
+     * path and method
+     *
+     * @param  {Request} request
+     * @param  {CoreRoute[]} routes
+     * @returns CoreRoute
+     */
     private static findRoute(request: Request, routes: CoreRoute[]): CoreRoute {
-        return routes.find(r => ((r.method === request.route.method || r.method.indexOf(request.route.method) > -1) &&
+        return routes
+            .find(r => ((r.method === request.route.method || r.method.indexOf(request.route.method) > -1) &&
                 r.path === request.route.path));
     }
 
@@ -64,19 +108,19 @@ export class LifecycleManager {
      * @param  {} request
      * @param  {} reply
      */
-    private static eventHandler(hook: LifecycleHooksEnum, routes: CoreRoute[], request, reply) {
-        const route = this.findRoute(request, routes);
-        if (request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), route.token)) {
-            HookManager.triggerHook(hook.toString(), route.token, request['_hapinessRoute'], [request, reply]);
-        } else {
-            reply.continue();
-        }
-    }
-}
+    private static eventHandler(hook: LifecycleHooksEnum, routes: CoreRoute[],
+            request: Request, reply: ReplyWithContinue): Observable<any> {
 
-/**
- * Request lifecycle component Hook
- *
- * @returns void
- */
-export interface OnEvent { onEvent(request: Request, reply: ReplyWithContinue): void; }
+        return Observable
+            .of(routes)
+            .map(_ => this.findRoute(request, _))
+            .filter(_ => request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), _.token))
+            .flatMap(_ =>
+                HookManager
+                    .triggerHook(hook.toString(), _.token, request['_hapinessRoute'], [request, reply])
+            )
+            .defaultIfEmpty(reply.continue())
+            .filter(_ => !!_ && !_.statusCode && !_.headers && !_.source);
+    }
+
+}

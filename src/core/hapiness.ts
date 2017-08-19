@@ -27,9 +27,11 @@ export class Hapiness {
                 .checkArg(module)
                 .flatMap(_ => ModuleManager.resolve(_))
                 .flatMap(_ => this.loadExtensions(extensions, _))
+                .ignoreElements()
                 .subscribe(
-                    _ => resolve(),
-                    _ => reject(_)
+                    _ => {},
+                    _ => reject(_),
+                    () => resolve()
                 )
         });
     }
@@ -167,7 +169,7 @@ export class Hapiness {
                 ExtentionHooksEnum.OnModuleInstantiated.toString(),
                 extension.token,
                 extension.instance,
-                [ this.module ]
+                [ this.module, extension.value ]
             )
             .do(_ => this.logger.debug(`moduleInstantiated ${extension.token.name}`));
     }

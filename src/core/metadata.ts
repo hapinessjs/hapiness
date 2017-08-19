@@ -42,5 +42,5 @@ export function extractMetadatas(decorator: any): any[] {
         .filter(x => x === 'annotations')
         .map(x => <any[]>Reflect.getOwnMetadata(x, decorator))
         .map(x => [].concat(x))
-        .pop();
+        .pop() || [];
 };

@@ -28,4 +28,4 @@ export interface OnExtensionLoad { onExtensionLoad(module: CoreModule, config: a
  * @param  {CoreModule} module
  * @returns Observable
  */
-export interface OnModuleInstantiated { onModuleInstantiated(module: CoreModule): Observable<any> }
+export interface OnModuleInstantiated { onModuleInstantiated(module: CoreModule, server: any): Observable<void> }

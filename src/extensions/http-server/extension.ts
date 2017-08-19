@@ -1,24 +1,18 @@
-import { ExtensionWithConfig } from '../../core';
-import { Extension, OnExtensionLoad, OnModuleInstantiated } from '../../core/bootstrap';
+import { ModuleLevel } from '../../core/enums';
 import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
 import { extractMetadataByDecorator } from '../../core/metadata';
-import { CoreModule, ModuleManager } from '../../core/module';
+import { ModuleManager } from '../../core/module';
+import { errorHandler } from '../../core/hapiness';
+import { CoreModule, OnExtensionLoad, OnModuleInstantiated, ExtensionWithConfig, Extension } from '../../core/interfaces';
 import { Lifecycle } from './decorators';
+import { Type } from '../../core/decorators';
 import { enumByMethod, LifecycleComponentEnum } from './enums';
 import { LifecycleManager } from './lifecycle';
-import { CoreRoute, RouteBuilder } from './route';
-import { Observable } from 'rxjs/Observable';
-import { RouteConfiguration, Server } from 'hapi';
-import * as Boom from 'boom';
-import * as Hoek from 'hoek';
-import * as Debug from 'debug';
-const debug = Debug('hapiness:extension:httpserver');
-
-export interface HapiConfig {
-    host: string;
-    port: number;
-}
+import { RouteBuilder } from './route';
+import { CoreRoute, HapiConfig } from './interfaces';
+import { Observable } from 'rxjs';
+import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
 
 export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
 
@@ -31,161 +25,154 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
         };
     }
 
-    onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
-        this.server = new Server();
-        const connection = this.server.connection(config);
-        debug('server instantiation');
-        return Observable.create(observer => {
-            Observable.forkJoin(
-                this.registrationObservables(module, this.server, this.flattenModules(module)).concat(this.addRoutes(module, this.server))
-            ).subscribe(routes => {
-                debug('routes and plugins registered');
-                LifecycleManager.routeLifecycle(this.server, routes.reduce((a, c) => a.concat(c), []));
-                observer.next({
-                    instance: this,
-                    token: HttpServerExt,
-                    value: this.server
-                });
-                observer.complete();
-            }, err => {
-                observer.error(err);
-                observer.complete();
-            });
-        });
-    }
-
-    onModuleInstantiated(module: CoreModule) {
-        return Observable.create(observer => {
-            this.instantiateLifecycle(this.server, module);
-            this.server.start()
-                .then(() => {
-                    debug('http server started', this.server.info.uri);
-                    observer.next();
-                    observer.complete();
-                })
-                .catch(err => {
-                    observer.error(err);
-                    observer.complete();
-                });
-        });
-    }
-
     /**
-     * Lookup into the tree of imports
-     * and flat the tree into a string array of names
+     * Initialize HapiJS Server
+     * Add routes by modules
+     * Add Lifecycle handlers
      *
-     * @returns string[]
-     */
-    private flattenModules(module: CoreModule): string[] {
-        const recursive = (_module: CoreModule) => {
-            if (_module.modules && _module.modules.length > 0) {
-                return _module.modules.reduce((acc, cur) => acc.concat(recursive(cur)), [].concat(_module.modules));
-            }
-            return [];
-        };
-        debug('flatten modules');
-        return recursive(module).map(a => a.name).filter((a, p, arr) => arr.indexOf(a) === p);
-    }
-
-    /**
-     * Register each module imported
-     * as HapiJS plugin
-     *
-     * @param  {string[]} names
+     * @param  {CoreModule} module
+     * @param  {HapiConfig} config
      * @returns Observable
      */
-    private registrationObservables(module: CoreModule, server: Server, names: string[]): Observable<CoreRoute[]>[] {
-        return names
-            .map(n => ModuleManager.findNestedModule(n, module))
-            .filter(m => !!m)
-            .map(m => this.registerPlugin(m, server));
+    onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
+        return Observable
+            .of(new Server(config.options))
+            .do(_ => _.connection({ host: config.host, port: config.port }))
+            .flatMap(server =>
+                Observable
+                    .from(ModuleManager.getModules(module))
+                    .flatMap(_ => this.registerPlugin(_, server))
+                    .reduce((a, c) => a.concat(c), [])
+                    .do(_ => LifecycleManager.routeLifecycle(server, _))
+                    .map(_ => ({
+                        instance: this,
+                        token: HttpServerExt,
+                        value: server
+                    }))
+            )
+    }
+
+    /**
+     * Build Lifecycle components
+     * Start HapiJS Server
+     *
+     * @param  {CoreModule} module
+     * @param  {Server} server
+     * @returns Observable
+     */
+    onModuleInstantiated(module: CoreModule, server: Server): Observable<any> {
+        return this
+            .instantiateLifecycle(module, server)
+            .flatMap(_ =>
+                Observable
+                    .fromPromise(server.start())
+            );
     }
 
     /**
      * Register a HapiJS Plugin
      *
      * @param  {CoreModule} module
+     * @param  {Server} server
      * @returns Observable
      */
     private registerPlugin(module: CoreModule, server: Server): Observable<CoreRoute[]> {
-        Hoek.assert(!!module, 'Module argument is missing');
-        const pluginName = `${module.name}.hapinessplugin`;
-        debug('registering plugin', pluginName);
-        return Observable.create((observer) => {
-            const register: any = (_server, options, next) => {
-                return next();
-            };
-            register.attributes = {
-                name: pluginName,
+        return Observable
+            .of(_ => (s, o, n) => n())
+            .do(_ => _['attributes'] = {
+                name: `${module.name}.hapinessplugin`,
                 version: module.version
-            };
-            server.register(register)
-                .then(() => {
-                    this.addRoutes(module, server)
-                        .subscribe(routes => {
-                            debug('plugin registered', pluginName);
-                            observer.next(routes);
-                            observer.complete();
-                        });
-                })
-                .catch((error) => {
-                    observer.error(error);
-                });
-        });
+            })
+            .flatMap(_ => Observable.fromPromise(server.register(_)))
+            .flatMap(_ => this.addRoutes(module, server));
     }
 
     /**
-     * Add route from CoreModule
+     * Add routes from CoreModule
      *
      * @param  {CoreModule} module
      * @param  {Server} server
      * @returns Observable
      */
     private addRoutes(module: CoreModule, server: Server): Observable<CoreRoute[]> {
-        Hoek.assert((!!module && !!server), Boom.create(500, 'Please provide module and HapiJS server instance'));
-        return Observable.create(observer => {
-            const routes = RouteBuilder.buildRoutes(module) || [];
-            debug('add routes', module.name, routes.length);
-            routes.forEach(route => {
-                const config = Object.assign({
-                    handler: (req, reply) => {
-                        debug('route handler', req.method, req.path);
-                        HookManager.triggerHook(
-                            enumByMethod(req.method).toString(),
-                            route.token,
-                            req['_hapinessRoute'],
-                            [ req, reply ]
-                        );
-                    }
-                }, route.config);
-                server.route(<RouteConfiguration>{
-                    method: route.method,
-                    path: route.path,
-                    config
-                });
-            });
-            observer.next(routes);
-            observer.complete();
-        });
+        return Observable
+            .from(RouteBuilder.buildRoutes(module))
+            .do(_ =>
+                server
+                    .route(<RouteConfiguration>{
+                        method: _.method,
+                        path: _.path,
+                        config: Object.assign({
+                            handler: (request, reply) => this.httpHandler(request, reply, _)
+                        }, _.config)
+                    })
+            )
+            .toArray();
     }
 
     /**
+     * Trigger the http handler hook
+     * Reply automatically
+     *
+     * @param  {Request} request
+     * @param  {ReplyNoContinue} reply
+     * @param  {CoreRoute} route
+     * @returns void
+     */
+    private httpHandler(request: Request, reply: ReplyNoContinue, route: CoreRoute): void {
+        HookManager
+            .triggerHook(
+                enumByMethod(request.method).toString(),
+                route.token,
+                request['_hapinessRoute'],
+                [ request, reply ]
+            )
+            .map(_ => !!_.statusCode ? _ : { statusCode: 200, response: _ })
+            .subscribe(
+                _ =>
+                    reply(_.response)
+                        .code(!!_.response ? _.statusCode : 204),
+                _ => {
+                    errorHandler(_);
+                    reply(_);
+                }
+            );
+    }
+
+     /**
      * Initialize and instantiate lifecycle components
      *
-     * @param  {Server} server
      * @param  {CoreModule} module
+     * @param  {Server} server
      */
-    private instantiateLifecycle(server: Server, module: CoreModule) {
-        ModuleManager.getModules(module).forEach(_module => {
-            [].concat(_module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lifecycle'))
-            .map(lc => {
-                debug('add lifecycle', lc.name, _module.token.name);
-                const metadata = <Lifecycle>extractMetadataByDecorator(lc, 'Lifecycle');
-                server.ext(<any>metadata.event, (request, reply) => {
-                    const instance = DependencyInjection.instantiateComponent(lc, _module.di);
-                    HookManager.triggerHook(LifecycleComponentEnum.OnEvent.toString(), lc, instance, [ request, reply ]);
-                });
-            });
-        });
+    private instantiateLifecycle(module: CoreModule, server: Server): Observable<any> {
+        return Observable
+            .from([].concat(module.declarations))
+            .filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lifecycle'))
+            .map(_ => ({ metadata: <Lifecycle>extractMetadataByDecorator(_, 'Lifecycle'), token: _ }))
+            .do(_ =>
+                server.ext(<any>_.metadata.event, (request: Request, reply: ReplyWithContinue) => {
+                    this
+                        .eventHandler(_.token, module, request, reply)
+                        .subscribe(
+                            () => {},
+                            err => errorHandler(err)
+                        )
+                })
+            )
+            .ignoreElements();
+    }
+
+    private eventHandler(lifecycle: Type<any>, module: CoreModule, request: Request, reply: ReplyWithContinue): Observable<any> {
+        return Observable
+            .of(lifecycle)
+            .flatMap(lc =>
+                DependencyInjection
+                    .instantiateComponent(lc, module.di)
+                    .flatMap(_ =>
+                        HookManager
+                            .triggerHook(LifecycleComponentEnum.OnEvent.toString(), lc, _, [request, reply])
+                    )
+            );
     }
 }

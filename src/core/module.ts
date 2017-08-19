@@ -1,141 +1,31 @@
+import { Observable } from 'rxjs';
+import { InternalLogger } from './logger';
 import { extractMetadataByDecorator } from './metadata';
-import { ReflectiveInjector } from '../externals/injection-js';
 import { HapinessModule, Type, InjectionToken } from './decorators';
+import { CoreModule, CoreProvide, CoreModuleWithProviders } from './interfaces';
 import { DependencyInjection } from './di';
-import * as Hoek from 'hoek';
-import { Observable } from 'rxjs/Rx';
-const debug = require('debug')('hapiness:module');
+import { ModuleLevel } from './enums';
 
-/**
- * CoreProvide Type
- * Used by CoreModule Type
- */
-export interface CoreProvide {
-    provide: any;
-    useClass?: any;
-    useValue?: any;
-    useExisting?: any;
-    useFactory?: any;
-    deps?: any[];
-}
-
-/**
- * CoreModule Type
- * Represents a Module
- */
-export class CoreModule {
-    token: Type<any> | any;
-    name: string;
-    version: string;
-    instance?: any;
-    level: ModuleLevel;
-    di?: ReflectiveInjector;
-    providers?: CoreProvide[];
-    modules?: CoreModule[];
-    parent?: CoreModule;
-    exports?: Type<any>[] | any[];
-    declarations?: Type<any>[] | any[];
-}
-
-/**
- * CoreModuleWithProviders Type
- * Used to pass data while module importation
- */
-export interface CoreModuleWithProviders {
-    module: Type<any>;
-    providers: CoreProvide[];
-}
-
-/**
- * Represents the position where
- * the module is instantiate
- */
-export enum ModuleLevel {
-    ROOT,
-    PRIMARY,
-    SECONDARY
-}
-
-/**
- * ModuleManage
- * Class used to manage modules
- */
 export class ModuleManager {
 
-    /**
-     * Helper to extract metadata
-     * @property {string} decoratorName
-     */
     private static decoratorName = 'HapinessModule';
 
-    /**
-     * Entrypoint to resolve a CoreModule
-     * Get the metadata.
-     *
-     * @param  {Type<any>} module
-     * @param  {CoreProvide[]} providers
-     * @returns CoreModule
-     */
-     public static resolveModule(module: any): CoreModule {
-        debug('building module', module.name);
-        const moduleResolved = this.recursiveResolution(module, null);
-        debug('module resolved', module.name);
-        return moduleResolved;
-    }
-
-    public static instantiateModule(module: CoreModule, providers?: CoreProvide[]): Observable<CoreModule> {
-        debug('instantiate module', module.name, 'extra providers:', providers ? providers.length : 0);
-        return Observable.create(observer => {
-            try {
-                observer.next(this.recursiveInstantiation(module, null, providers));
-                observer.complete();
-            } catch (err) {
-                /* istanbul ignore next */
-                observer.error(err);
-                /* istanbul ignore next */
-                observer.complete();
-            }
-        });
-    }
+    private static logger = new InternalLogger('module');
 
     /**
-     * Lookup for module in the
-     * importation tree by its name
+     * Resolve into a tree of CoreModule
      *
-     * @param name
-     * @param module
-     * @returns CoreModule | null
+     * @param  {any} module
+     * @returns Observable
      */
-    public static findNestedModule(name: string, module: CoreModule): CoreModule {
-        debug(`looking for nested module ${name} in ${module.name}`);
-        if (module.modules && module.modules.length > 0 &&
-            module.modules.find(m => m.name === name)) {
-                debug(`found nested module ${name} in ${module.name}`);
-                return module.modules.find(m => m.name === name);
-        } else if (module.modules && module.modules.length > 0) {
-            debug(`looking in sub-modules`);
-            return module.modules
-                .map(m => this.findNestedModule(name, m))
-                .filter(m => !!m)
-                .shift();
-        }
-        debug(`didn't find module ${name}`);
+    static resolve(module: any): Observable<CoreModule> {
+        this.logger.debug(`Resolving module '${module.name}'`);
+        return this.resolution(module);
     }
 
-    /**
-     * Get elements of a module
-     *
-     * @param  {CoreModule} module
-     * @param  {string} element
-     * @returns Type
-     */
-    public static getElements(module: CoreModule, element: string): Type<any>[] {
-        Hoek.assert(!!element, 'You need to provide the element you want to get');
-        const lookup = (_module: CoreModule) => {
-            const els = [].concat((_module[element] && Array.isArray(_module[element])) ? _module[element] : []);
-            return (_module.modules || []).map(m => lookup(m)).reduce((acc, cur) => acc.concat(cur), []).concat(els).filter(_ => !!_);
-        };
-        return lookup(module);
+    static instantiate(module: CoreModule, providers?: CoreProvide[]): Observable<CoreModule> {
+        this.logger.debug(`Instantiation of module '${module.name}'`);
+        return this.instantiation(module, providers);
     }
 
     /**
@@ -144,125 +34,197 @@ export class ModuleManager {
      * @param  {CoreModule} module
      * @returns CoreModule
      */
-    public static getModules(module: CoreModule): CoreModule[] {
+    static getModules(module: CoreModule): CoreModule[] {
         const lookup = (_module: CoreModule) => {
-            return [].concat(_module).concat((_module.modules || []).map(m => lookup(m)).reduce((a, c) => a.concat(c), []));
+            return []
+                .concat(_module)
+                .concat([]
+                    .concat(_module.modules)
+                    .filter(_ => !!_)
+                    .map(m => lookup(m))
+                    .reduce((a, c) => a.concat(c), [])
+                );
         };
         return lookup(module);
     }
 
     /**
-    * Transform metadata to instance CoreModule
-    *
-    * @param  {HapinessModule} data
-    * @param  {Type<any>} module
-    * @param  {CoreModule} parent
-    * @returns CoreModule
-    */
-    private static coreModuleFromMetadata(data: HapinessModule, module: CoreModuleWithProviders, parent?: CoreModule): CoreModule {
-        const providers = data.providers || [];
-        debug('converting module to CoreModule', module.module.name);
-        return {
-            parent,
-            token: module.module,
-            name: module.module.name,
-            version: data.version,
-            exports: data.exports,
-            declarations: data.declarations || [],
-            providers: providers.concat(module.providers).map((p: any) => !!p.provide ?
-                /* istanbul ignore next */ p : {provide: p, useClass: p}),
-            level: parent ? parent.level === ModuleLevel.ROOT ?
-                ModuleLevel.PRIMARY : ModuleLevel.SECONDARY : ModuleLevel.ROOT
-        };
-    }
-
-    /**
-     * Extract metadata from
-     * the module provided
+     * Helper to convert provider
+     * to a CoreProvide type
      *
-     * @todo Metadata interface matching...
-     * @param  {Type<any>} module
-     * @returns HapinessModule
+     * @param  {any} provider
+     * @returns CoreProvide
      */
-    public static metadataFromModule(module: Type<any>): HapinessModule {
-        debug('metadata for', module.name);
-        const metadata = extractMetadataByDecorator<HapinessModule>(module, this.decoratorName);
-        Hoek.assert(!!metadata, new Error('Please define a Module with the right annotation'));
-        return metadata;
+    static toCoreProvider(provider: any): CoreProvide {
+        return <CoreProvide>(!!provider.provide ?
+            provider :
+            { provide: provider, useClass: provider }
+        );
     }
 
     /**
-     * Resolve recursively
-     * each module imported
+     * ===========================================================================
      *
-     * @todo Fix circular importation !!!
-     * @param  {Type<any>|CoreModuleWithProviders} module
-     * @param  {CoreModule} parent
-     * @param  {CoreProvide[]} providers
+     *  MODULE RESOLUTION
+     *
+     * ===========================================================================
+     */
+
+    /**
+     * Process module to CoreModule type
+     * from metadata and the children
+     *
+     * @param  {any} module
+     * @param  {CoreModule} parent?
+     * @returns Observable
+     */
+    private static resolution(module: any, parent?: CoreModule): Observable<CoreModule> {
+        return Observable
+            .of(module)
+            .map(_ => this.toCoreModuleWithProviders(_))
+            .flatMap(cmwp =>
+                this
+                    .extractMetadata(cmwp.module)
+                    .map(_ => ({ metadata: _, moduleWithProviders: cmwp }))
+            )
+            .flatMap(mcmwp =>
+                this
+                    .metadataToCoreModule(mcmwp.metadata, mcmwp.moduleWithProviders, parent)
+                    .map(_ => this.coreModuleParentConfigProviders(_))
+                    .map(_ => Object.assign({ module: _ }, mcmwp))
+            )
+            .flatMap(data =>
+                Observable
+                    .from(data.metadata.imports || [])
+                    .flatMap(_ => this.resolution(_, data.module))
+                    .toArray()
+                    .do(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`))
+                    .map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
+            )
+    }
+
+    /**
+     * FIX for exported providers
+     * that need internal config
+     *
+     * @todo find a better solution
+     * @param  {CoreModule} module
      * @returns CoreModule
      */
-    private static recursiveResolution(module: CoreModuleWithProviders, parent?: CoreModule): CoreModule {
-        if (!module['module']) {
-            module = <any>{
-                module,
-                providers: []
-            }
-        }
-        debug('recursive resolution', module.module.name);
-        const metadata = this.metadataFromModule(module.module);
-        const coreModule = this.coreModuleFromMetadata(metadata, module, parent);
-        coreModule.providers = coreModule.providers.concat(
-            (parent && parent.providers) ?
-                parent.providers.filter(_ => (_.provide instanceof InjectionToken)) :
+    private static coreModuleParentConfigProviders(module: CoreModule): CoreModule {
+        module.providers = []
+            .concat(module.providers)
+            .concat((module.parent && module.parent.providers) ?
+                module.parent.providers.filter(_ => (_.provide instanceof InjectionToken)) :
                 []
-            );
-        coreModule.modules = (metadata.imports && metadata.imports.length > 0) ?
-            metadata.imports.map(m => this.recursiveResolution(m, coreModule)) : [];
-        return coreModule;
-    }
-
-    private static recursiveInstantiation(module: CoreModule, parent?: CoreModule, providers?: CoreProvide[]): CoreModule {
-        debug('recursive instantiation', module.name);
-        if (module.modules && module.modules.length > 0) {
-            module.modules.forEach(m => this.recursiveInstantiation(m, module, providers));
-        }
-        module.di = DependencyInjection.createAndResolve(this.collectProviders(module, providers));
-        module.instance = DependencyInjection.instantiateComponent(module.token, module.di);
-        this.instantiateLibs(module);
+            )
+            .filter(_ => !!_);
         return module;
     }
 
     /**
-     * Collect all providers to
-     * inject into the DI
+     * Convert metadata to CoreModule type
      *
-     * @param  {HapinessModule} module
+     * @param  {HapinessModule} metadata
+     * @param  {CoreModuleWithProviders} moduleWithProviders
+     * @param  {CoreModule} parent?
+     * @returns Observable
      */
-    private static collectProviders(module: CoreModule, providers?: CoreProvide[]): any[] {
-        debug('collect providers');
-        return <any>[].concat(module.providers || [])
-            .concat(providers)
-            .filter(x => !!x)
-            .concat(this.extractExportedProviders(module));
+    private static metadataToCoreModule(
+            metadata: HapinessModule,
+            moduleWithProviders: CoreModuleWithProviders,
+            parent?: CoreModule): Observable<CoreModule> {
+
+        return Observable
+            .of({
+                parent,
+                token: moduleWithProviders.module,
+                name: moduleWithProviders.module.name,
+                version: metadata.version,
+                exports: metadata.exports || [],
+                declarations: metadata.declarations || [],
+                providers: (metadata.providers || [])
+                    .concat(moduleWithProviders.providers)
+                    .map(_ => this.toCoreProvider(_)),
+                level: !!parent ?
+                    parent.level === ModuleLevel.ROOT ?
+                    ModuleLevel.PRIMARY :
+                    ModuleLevel.SECONDARY :
+                    ModuleLevel.ROOT
+            })
+            .do(_ => this.logger.debug(`Build CoreModule for '${_.name}'`));
     }
 
     /**
-     * Extract exported providers
+     * Get HapinessModule metadata type
+     * if does not exist, throw an error
+     *
+     * @param  {Type<any>} module
+     * @returns Observable
+     */
+    private static extractMetadata(module: Type<any>): Observable<HapinessModule> {
+        return Observable
+            .of(extractMetadataByDecorator<HapinessModule>(module, this.decoratorName))
+            .flatMap(_ => !!_ ?
+                Observable.of(_) :
+                Observable.throw(new Error(`Module '${module ? module.name : null}' resolution failed: No metadata`))
+            )
+    }
+
+    /**
+     * Make sure to convert module into
+     * a CoreModuleWithProviders type
+     *
+     * @param  {CoreModuleWithProviders|Type<any>} module
+     * @returns CoreModuleWithProviders
+     */
+    private static toCoreModuleWithProviders(module: CoreModuleWithProviders | Type<any>): CoreModuleWithProviders {
+        return <CoreModuleWithProviders>((module && module['module']) ?
+            module :
+            {
+                module,
+                providers: []
+            });
+    }
+
+    /**
+     * ===========================================================================
+     *
+     *  MODULE INSTANTIATION
+     *
+     * ===========================================================================
+     */
+
+    /**
+     * Create the module's DI
+     * and instantiate the module
      *
      * @param  {CoreModule} module
-     * @returns CoreProvide
+     * @param  {CoreProvide[]} providers?
+     * @param  {CoreModule} parent?
+     * @returns Observable
      */
-    private static extractExportedProviders(module: CoreModule): CoreProvide[] {
-        Hoek.assert(!!module, 'Provide a module');
-        debug('exported providers extraction', module.name);
-        return (module.modules || [])
-            .filter(_ => (!!_.exports && _.exports.length > 0))
-            .map(_ => {
-                const exp = <any[]>_.exports;
-                return exp.concat((_.providers || []).filter(__ => (__.provide instanceof InjectionToken)));
-            })
-            .reduce((a, c) => a.concat(c), [])
-            .filter(_ => !!_);
+    private static instantiation(module: CoreModule, providers?: CoreProvide[], parent?: CoreModule): Observable<CoreModule> {
+        return Observable
+            .of(module)
+            .flatMap(_ =>
+                Observable
+                    .from(_.modules)
+                    .flatMap(child => this.instantiation(child, providers, parent))
+                    .toArray()
+                    .map(children => <CoreModule>Object.assign({}, _, { modules: children }))
+            )
+            .flatMap(_ =>
+                DependencyInjection
+                    .createAndResolve(this.collectProviders(_, providers))
+                    .map(di => <CoreModule>Object.assign({ di }, _))
+            )
+            .flatMap(_ =>
+                DependencyInjection
+                    .instantiateComponent(_.token, _.di)
+                    .map(instance => <CoreModule>Object.assign({ instance }, _))
+            )
+            .flatMap(_ => this.instantiateLibs(_));
     }
 
     /**
@@ -271,27 +233,49 @@ export class ModuleManager {
      * @param  {CoreModule} module
      * @returns Type
      */
-    private static instantiateLibs(module: CoreModule): Type<any>[] {
-        return [].concat(module.declarations).filter(decl => !!extractMetadataByDecorator(decl, 'Lib'))
-            .map(lib => <Type<any>>DependencyInjection.instantiateComponent(lib, module.di));
+    private static instantiateLibs(module: CoreModule): Observable<CoreModule> {
+        return Observable
+            .from(module.declarations)
+            .filter(_ => !!extractMetadataByDecorator(_, 'Lib'))
+            .flatMap(_ => DependencyInjection.instantiateComponent(_, module.di))
+            .toArray()
+            .map(_ => module);
+    }
+
+    /**
+     * Collect all providers to
+     * inject into the DI
+     *
+     * @param  {HapinessModule} module
+     */
+    private static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
+        this.logger.debug(`Collect providers for '${module.name}'`);
+        return []
+            .concat(module.providers)
+            .concat(providers)
+            .filter(_ => !!_)
+            .concat(this.extractExportedProviders(module));
+    }
+
+    /**
+     * Extract exported children providers
+     *
+     * @param  {CoreModule} module
+     * @returns CoreProvide[]
+     */
+    private static extractExportedProviders(module: CoreModule): CoreProvide[] {
+        this.logger.debug(`Extract exported children providers for '${module.name}'`);
+        return []
+            .concat(module.modules)
+            .filter(_ => (!!_.exports && _.exports.length > 0))
+            .map(_ => []
+                .concat(_.exports)
+                .concat(
+                    _.providers
+                        .filter(__ => (__.provide instanceof InjectionToken)))
+                )
+            .reduce((a, c) => a.concat(c), [])
+            .filter(_ => !!_)
+            .map(_ => this.toCoreProvider(_));
     }
 }
-
-/**
- * Module Lifecycle Hook
- * called once the module has been
- * registered into the server
- *
- * @returns void
- */
-export interface OnRegister { onRegister(): void; }
-
-/**
- * Module Lifecycle Hook
- * called once the server has started
- * only for the MainModule
- *
- * @returns void
- */
-export interface OnStart { onStart(): void; }
-
