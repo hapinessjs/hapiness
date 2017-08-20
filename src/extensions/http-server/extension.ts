@@ -37,7 +37,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
         return Observable
             .of(new Server(config.options))
-            .do(_ => _.connection({ host: config.host, port: config.port }))
+            .do(_ => _.connection(Object.assign(config, { options: undefined })))
             .flatMap(server =>
                 Observable
                     .from(ModuleManager.getModules(module))
@@ -83,7 +83,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
                 name: `${module.name}.hapinessplugin`,
                 version: module.version
             })
-            .flatMap(_ => Observable.fromPromise(server.register(_)))
+            .flatMap(_ => Observable.fromPromise(server.register({ register: _ })))
             .flatMap(_ => this.addRoutes(module, server));
     }
 

@@ -21,7 +21,7 @@ export class Hapiness {
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions?
      * @returns Promise
      */
-    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<{}> {
+    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<void> {
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
@@ -29,7 +29,7 @@ export class Hapiness {
                 .flatMap(_ => this.loadExtensions(extensions, _))
                 .ignoreElements()
                 .subscribe(
-                    _ => {},
+                    null,
                     _ => reject(_),
                     () => resolve()
                 )

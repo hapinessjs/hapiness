@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
 export interface HapiConfig {
     host: string;
     port: number;
-    options: ServerOptions
+    options?: ServerOptions
 }
 
 export interface ValidateConfig {
