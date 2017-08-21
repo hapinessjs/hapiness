@@ -54,9 +54,9 @@ export class LifecycleManager {
                     )
         );
 
-        server.ext(<any>LifecycleEventsEnum.OnPostHandler.toString(),
+        server.ext(<any>LifecycleEventsEnum.OnPreResponse.toString(),
             (request: Request, reply: ReplyWithContinue) =>
-                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                this.eventHandler(LifecycleHooksEnum.OnPreResponse, routes, request, reply)
                     .subscribe(
                         _ => reply.continue(),
                         _ => errorHandler(_),
@@ -115,11 +115,11 @@ export class LifecycleManager {
             .of(routes)
             .map(_ => this.findRoute(request, _))
             .filter(_ => request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), _.token))
+            .do(_ => console.log('((__v__))', _))
             .flatMap(_ =>
                 HookManager
                     .triggerHook(hook.toString(), _.token, request['_hapinessRoute'], [request, reply])
             )
-            .defaultIfEmpty(reply.continue())
             .filter(_ => !!_ && !_.statusCode && !_.headers && !_.source);
     }
 

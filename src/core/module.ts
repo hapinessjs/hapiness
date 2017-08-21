@@ -236,7 +236,7 @@ export class ModuleManager {
     private static instantiateLibs(module: CoreModule): Observable<CoreModule> {
         return Observable
             .from(module.declarations)
-            .filter(_ => !!extractMetadataByDecorator(_, 'Lib'))
+            .filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lib'))
             .flatMap(_ => DependencyInjection.instantiateComponent(_, module.di))
             .toArray()
             .map(_ => module);

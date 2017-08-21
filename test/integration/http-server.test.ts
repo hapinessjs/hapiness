@@ -1,4 +1,4 @@
-import { suite, test} from 'mocha-typescript';
+import { suite, test, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, Inject, OnRegister, OnStart } from '../../src/core';
 import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse } from '../../src/extensions/http-server';
@@ -36,9 +36,11 @@ class HttpServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ]);
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ])
+        .catch(_ => console.log(_));
     }
 
+    @only
     @test('lifecycle')
     test2(done) {
 

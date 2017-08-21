@@ -70,6 +70,7 @@ export class RouteBuilder {
     private static coreRouteFromMetadata(data: Route, token: Type<any>, module: CoreModule): Observable<CoreRoute> {
         return Observable
             .of(data)
+            .do(_ => console.log('0000000', _))
             .flatMap(_ =>
                 Observable
                     .from([].concat(_.method))
@@ -97,7 +98,7 @@ export class RouteBuilder {
     private static metadataFromDeclarations(declarations: Type<any>[]): Observable<InternalType> {
         return Observable
             .from([].concat(declarations))
-            .filter(_ => !!_)
+            .filter(_ => !!_ && !!extractMetadataByDecorator(_, this.decoratorName))
             .map(_ => ({ token: _, route: extractMetadataByDecorator<Route>(_, this.decoratorName) }))
     }
 }

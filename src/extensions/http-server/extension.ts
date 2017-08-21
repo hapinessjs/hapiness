@@ -40,15 +40,15 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .do(_ => _.connection(Object.assign(config, { options: undefined })))
             .flatMap(server =>
                 Observable
-                    .from(ModuleManager.getModules(module))
-                    .flatMap(_ => this.registerPlugin(_, server))
-                    .reduce((a, c) => a.concat(c), [])
-                    .do(_ => LifecycleManager.routeLifecycle(server, _))
-                    .map(_ => ({
+                    // .from(ModuleManager.getModules(module))
+                    // .flatMap(_ => this.registerPlugin(_, server))
+                    // .reduce((a, c) => a.concat(c), [])
+                    // .do(_ => LifecycleManager.routeLifecycle(server, _))
+                    .of({
                         instance: this,
                         token: HttpServerExt,
                         value: server
-                    }))
+                    })
             )
     }
 
@@ -61,12 +61,21 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
      * @returns Observable
      */
     onModuleInstantiated(module: CoreModule, server: Server): Observable<any> {
-        return this
-            .instantiateLifecycle(module, server)
-            .flatMap(_ =>
-                Observable
-                    .fromPromise(server.start())
-            );
+        return Observable
+            .from(ModuleManager.getModules(module))
+            .flatMap(_ => this.registerPlugin(_, server))
+            .reduce((a, c) => a.concat(c), [])
+            .do(_ => console.log('========', _))
+            .do(_ => LifecycleManager.routeLifecycle(server, _))
+            .flatMap(_ => this.instantiateLifecycle(module, server))
+            .flatMap(_ => Observable.fromPromise(server.start()));
+
+        // return this
+        //     .instantiateLifecycle(module, server)
+        //     .flatMap(_ =>
+        //         Observable
+        //             .fromPromise(server.start())
+        //     );
     }
 
     /**
@@ -77,13 +86,13 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
      * @returns Observable
      */
     private registerPlugin(module: CoreModule, server: Server): Observable<CoreRoute[]> {
+        const register: any = (s, o, n) => n();
+        register.attributes = {
+            name: module.name,
+            version: module.version
+        };
         return Observable
-            .of(_ => (s, o, n) => n())
-            .do(_ => _['attributes'] = {
-                name: `${module.name}.hapinessplugin`,
-                version: module.version
-            })
-            .flatMap(_ => Observable.fromPromise(server.register({ register: _ })))
+            .fromPromise(server.register(register))
             .flatMap(_ => this.addRoutes(module, server));
     }
 
