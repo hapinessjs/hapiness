@@ -30,7 +30,6 @@ export class HookManager {
      * @returns Observable
      */
     public static triggerHook<T>(hook: string, token: Type<any>, instance: T, args?: any[], throwErr?: boolean): Observable<any> {
-        this.logger.debug(`Triggering hook '${hook}' on '${token ? token.name : null}'`);
         return Observable
             .merge(
                 Observable
@@ -47,7 +46,8 @@ export class HookManager {
                 Observable
                     .of(this.hasLifecycleHook(hook, token))
                     .filter(_ => !_ && throwErr)
-                    .flatMap(_ => Observable.throw(new Error(`Hook missing ${hook} on ${token ? token.name : null}`)))
+                    .flatMap(_ => Observable.throw(new Error(`Hook missing ${hook} on ${token.name}`)))
             )
+            .do(_ => this.logger.debug(`Triggering hook '${hook}' on '${token.name}'`));
     }
 }

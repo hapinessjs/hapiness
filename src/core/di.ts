@@ -32,7 +32,7 @@ export class DependencyInjection {
     }
 
     /**
-     * Instanciate a component
+     * Instantiate a component
      * resolving its dependencies
      * without inject the component
      * into the DI

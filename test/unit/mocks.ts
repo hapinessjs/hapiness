@@ -2,7 +2,7 @@ import 'reflect-metadata';
 
 import { CoreModule } from '../../src/core/interfaces'
 import { ModuleLevel } from '../../src/core/enums';
-import { InjectionToken, HapinessModule } from '../../src/core/decorators';
+import { InjectionToken, HapinessModule, Lib } from '../../src/core/decorators';
 
 export class EmptyModule {}
 export class EmptyProvider {}
@@ -38,3 +38,6 @@ export class ModuleWithMetadataExportProvider {}
     imports: [ ModuleWithMetadataExportProvider ]
 })
 export class ModuleWithMetadataWithChildThatExportProvider {}
+
+@Lib()
+export class EmptyLib {}

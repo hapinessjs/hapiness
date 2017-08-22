@@ -1,7 +1,8 @@
 import { suite, test } from 'mocha-typescript';
 import { ModuleManager } from '../../src/core/module';
 import { ModuleLevel } from '../../src/core/enums';
-import { HapinessModule } from '../../src/core/decorators';
+import { HapinessModule, Lib } from '../../src/core/decorators';
+import { DependencyInjection } from '../../src/core/di';
 import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
@@ -14,7 +15,8 @@ import {
     InjToken,
     ModuleWithMetadata,
     ModuleWithMetadataWithChild,
-    ModuleWithMetadataWithChildThatExportProvider
+    ModuleWithMetadataWithChildThatExportProvider,
+    EmptyLib
 } from './mocks';
 
 @suite('Unit - Module')
@@ -291,6 +293,66 @@ class ModuleTestSuite {
                         .isInstanceOf(ModuleWithMetadataWithChild);
                 }
             );
+
+    }
+
+    @test('getModules - provide a CoreModule and must return array of module')
+    testGetModules1() {
+
+        const module = Object.assign({}, coreModule, { modules: {} });
+
+        unit
+            .array(ModuleManager.getModules(module))
+            .is([ module, {} ]);
+
+    }
+
+    @test('instantiateLibs - provide a CoreModule and must return an Observable of CoreModule')
+    testInstantiateLibs1() {
+
+        const module = Object.assign({}, coreModule, { declarations: [ EmptyLib ], di: { stub: true } });
+        const stub = unit
+            .stub(DependencyInjection, 'instantiateComponent')
+            .withArgs(EmptyLib, { stub: true })
+            .returns(Observable.of(null))
+
+        ModuleManager['instantiateLibs'](module)
+            .subscribe(_ =>
+                unit
+                    .object(_)
+                    .is(module)
+            );
+
+        stub.parent.restore();
+
+    }
+
+    @test('instantiateLibs - provide a CoreModule and must thrown an error')
+    testInstantiateLibs2() {
+
+        @Lib()
+        class LibWithError {
+            constructor() {
+                throw new Error('Oops');
+            }
+        }
+
+        const module = Object.assign({}, coreModule, { declarations: [ EmptyLib ], di: { stub: true } });
+        const stub = unit
+            .stub(DependencyInjection, 'instantiateComponent')
+            .withArgs(EmptyLib, { stub: true })
+            .returns(Observable.of(null))
+
+        ModuleManager['instantiateLibs'](module)
+            .subscribe(
+                null,
+                _ => unit
+                    .object(_)
+                    .isInstanceOf(Error)
+                    .hasProperty('message', 'Oops')
+            );
+
+        stub.parent.restore();
 
     }
 }
