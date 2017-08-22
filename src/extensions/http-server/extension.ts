@@ -65,7 +65,6 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .from(ModuleManager.getModules(module))
             .flatMap(_ => this.registerPlugin(_, server))
             .reduce((a, c) => a.concat(c), [])
-            .do(_ => console.log('========', _))
             .do(_ => LifecycleManager.routeLifecycle(server, _))
             .flatMap(_ => this.instantiateLifecycle(module, server))
             .flatMap(_ => Observable.fromPromise(server.start()));

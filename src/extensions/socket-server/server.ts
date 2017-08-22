@@ -10,17 +10,18 @@ export class WebSocketServer {
     private server: server;
     private subscribers: Array<(socket: Socket) => void>;
     private sockets: Socket[];
+    private httpServer: http.Server;
 
     constructor(config: SocketConfig) {
-        const httpServer = http.createServer((_request, _response) => {
+        this.httpServer = http.createServer((_request, _response) => {
             /* istanbul ignore next */
             _response.writeHead(404);
             /* istanbul ignore next */
             _response.end();
         });
-        httpServer.listen(config.port);
+        this.httpServer.listen(config.port);
         delete config.port;
-        const _config = Object.assign({ httpServer }, config);
+        const _config = Object.assign({ httpServer: this.httpServer }, config);
         this.server = new server(_config);
         this.sockets = [];
         this.subscribers = [];
@@ -78,5 +79,9 @@ export class WebSocketServer {
 
     public getServer() {
         return this.server;
+    }
+
+    public getHttpServer() {
+        return this.httpServer;
     }
 }

@@ -61,3 +61,12 @@ export interface OnRegister { onRegister(): void | Observable<any>; }
  */
 export interface OnStart { onStart(): void | Observable<any>; }
 
+/**
+ * Module Lifecycle Hook
+ * called when an error
+ * occured in components
+ *
+ * @returns void | Observable
+ */
+export interface OnError { onError(error: Error): void | Observable<any>; }
+

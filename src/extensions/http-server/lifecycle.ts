@@ -79,8 +79,13 @@ export class LifecycleManager {
             .of(routes)
             .map(_ => this.findRoute(request, _))
             .filter(_ => !!(_ && _.token))
-            .flatMap(_ => RouteBuilder.instantiateRouteAndDI(_, request))
-            .do(_ => request['_hapinessRoute'] = _)
+            .flatMap(route =>
+                RouteBuilder
+                    .instantiateRouteAndDI(route, request)
+                    .map(_ => ({ route, instance: _ }))
+            )
+            .do(_ => request['_hapinessRoute'] = _.instance)
+            .defaultIfEmpty(null)
             .flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply))
     }
 
@@ -115,12 +120,13 @@ export class LifecycleManager {
             .of(routes)
             .map(_ => this.findRoute(request, _))
             .filter(_ => request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), _.token))
-            .do(_ => console.log('((__v__))', _))
             .flatMap(_ =>
                 HookManager
                     .triggerHook(hook.toString(), _.token, request['_hapinessRoute'], [request, reply])
+                    .defaultIfEmpty(null)
             )
-            .filter(_ => !!_ && !_.statusCode && !_.headers && !_.source);
+            .isEmpty()
+            .filter(_ => !!_);
     }
 
 }

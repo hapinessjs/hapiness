@@ -70,7 +70,6 @@ export class RouteBuilder {
     private static coreRouteFromMetadata(data: Route, token: Type<any>, module: CoreModule): Observable<CoreRoute> {
         return Observable
             .of(data)
-            .do(_ => console.log('0000000', _))
             .flatMap(_ =>
                 Observable
                     .from([].concat(_.method))
