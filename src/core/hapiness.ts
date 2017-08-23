@@ -119,11 +119,11 @@ export class Hapiness {
             .do(_ => this.extensions = null)
             .flatMap(_ => !!_ ?
                 Observable.of(_) :
-                Observable.throw('Bootstrap failed: no module provided')
+                Observable.throw(new Error('Bootstrap failed: no module provided'))
             )
             .flatMap(_ => typeof _ === 'function' ?
                 Observable.of(_) :
-                Observable.throw('Bootstrap failed: module must be a function/class')
+                Observable.throw(new Error('Bootstrap failed: module must be a function/class'))
             );
     }
 
