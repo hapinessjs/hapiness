@@ -72,7 +72,12 @@ class ModuleTestSuite {
             .stub(LifecycleManager, 'routeLifecycle');
         const stub4 = unit
             .stub(extInstance, 'instantiateLifecycle')
-            .returns(Observable.of(null));
+        stub4
+            .withArgs(getModulesRes[0], server)
+            .returns(Observable.of(getModulesRes[0]));
+        stub4
+            .withArgs(getModulesRes[1], server)
+            .returns(Observable.of(getModulesRes[1]));
 
         extInstance
             .onModuleInstantiated(coreModule, <any>server)
