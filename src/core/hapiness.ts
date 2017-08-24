@@ -65,6 +65,7 @@ export class Hapiness {
             .map(_ => ({ provide: _.token, useValue: _.value }))
             .toArray()
             .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
+            .do(_ => this.extensions = extensionsLoaded)
             .flatMap(moduleInstantiated =>
                 Observable
                     .from(extensionsLoaded)
@@ -73,7 +74,6 @@ export class Hapiness {
                     .map(_ => moduleInstantiated)
             )
             .do(_ => this.module = _)
-            .do(_ => this.extensions = extensionsLoaded)
             .flatMap(_ => this.callHooks(_));
     }
 

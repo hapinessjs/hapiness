@@ -141,6 +141,22 @@ class HttpServerIntegration {
         Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ]);
     }
 
+    @test('port already used')
+    test4(done) {
+
+        @HapinessModule({
+            version: '1.0.0'
+        })
+        class ModuleTest {}
+
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ]).catch(_ => {
+            unit.object(_)
+                    .isInstanceOf(Error)
+                    .hasProperty('message', 'listen EADDRINUSE 0.0.0.0:4444');
+            Hapiness['extensions'][0].value.stop().then(__ => done());
+        });
+    }
+
     @test('make sure register are done before start hook')
     test5(done) {
 
@@ -275,6 +291,6 @@ class HttpServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4444 }) ]);
+        Hapiness.bootstrap(ModuleTest, [ HttpServerExt.setConfig({ host: '0.0.0.0', port: 4445 }) ]);
     }
 }

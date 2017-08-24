@@ -59,10 +59,10 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     onModuleInstantiated(module: CoreModule, server: Server): Observable<any> {
         return Observable
             .from(ModuleManager.getModules(module))
+            .flatMap(_ => this.instantiateLifecycle(_, server))
             .flatMap(_ => this.registerPlugin(_, server))
             .reduce((a, c) => a.concat(c), [])
             .do(_ => LifecycleManager.routeLifecycle(server, _))
-            .flatMap(_ => this.instantiateLifecycle(module, server))
             .flatMap(_ => server.start());
     }
 
@@ -142,7 +142,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
      * @param  {CoreModule} module
      * @param  {Server} server
      */
-    private instantiateLifecycle(module: CoreModule, server: Server): Observable<any> {
+    private instantiateLifecycle(module: CoreModule, server: Server): Observable<CoreModule> {
         return Observable
             .from([].concat(module.declarations))
             .filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lifecycle'))
@@ -157,7 +157,8 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
                         )
                 })
             )
-            .ignoreElements();
+            .toArray()
+            .map(_ => module);
     }
 
     private eventHandler(lifecycle: Type<any>, module: CoreModule, request: Request, reply: ReplyWithContinue): Observable<any> {
