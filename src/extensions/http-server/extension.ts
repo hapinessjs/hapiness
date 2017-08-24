@@ -124,7 +124,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
                 request['_hapinessRoute'],
                 [ request, reply ]
             )
-            .map(_ => !!_.statusCode ? _ : { statusCode: 200, response: _ })
+            .map(_ => !!_ && _.statusCode ? _ : { statusCode: 200, response: _ })
             .subscribe(
                 _ =>
                     reply(_.response)

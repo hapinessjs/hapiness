@@ -1,7 +1,7 @@
 import { suite, test, only } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, Inject, OnRegister, OnStart, OnError } from '../../src/core';
-import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse } from '../../src/extensions/http-server';
+import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse, HttpServerService } from '../../src/extensions/http-server';
 import { Server } from 'hapi';
 import { Observable } from 'rxjs';
 
@@ -23,16 +23,17 @@ class HttpServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            declarations: [ RouteTest ]
+            declarations: [ RouteTest ],
+            providers: [ HttpServerService ]
         })
         class ModuleTest implements OnStart {
 
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(private server: HttpServerService) {}
 
             onStart() {
-                this.server.inject('/', res => {
+                this.server.instance().inject('/', res => {
                     unit.must(res.result).equal('test');
-                    this.server.stop().then(_ => done());
+                    this.server.stop().subscribe(_ => done());
                 });
             }
         }

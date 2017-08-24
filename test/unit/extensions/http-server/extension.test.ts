@@ -1,6 +1,6 @@
 import { suite, test } from 'mocha-typescript';
 import { HttpServerExt, LifecycleManager } from '../../../../src/extensions/http-server';
-import { ModuleManager } from '../../../../src/core';
+import { HookManager, ModuleManager } from '../../../../src/core';
 import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
@@ -81,6 +81,90 @@ class ModuleTestSuite {
         stub1.parent.restore();
         stub2.restore();
         stub3.restore();
+        stub4.restore();
+    }
+
+    @test('httpHandler - provide request, reply and route and must reply 200')
+    testHttpHandler1() {
+
+        const request = {
+            method: 'get'
+        };
+        const reply = res => {
+            unit
+                .value(res)
+                .is('toto')
+            return {
+                code: c => {
+                    unit
+                        .value(c)
+                        .is(200);
+                }
+            };
+        };
+        const stub4 = unit
+            .stub(HookManager, 'triggerHook')
+            .returns(Observable.of('toto'));
+
+        const extInstance = new HttpServerExt();
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+
+        stub4.restore();
+    }
+
+    @test('httpHandler - provide request, reply and route and must reply 201')
+    testHttpHandler2() {
+
+        const request = {
+            method: 'get'
+        };
+        const reply = res => {
+            unit
+                .value(res)
+                .is('abc')
+            return {
+                code: c => {
+                    unit
+                        .value(c)
+                        .is(201);
+                }
+            };
+        };
+        const stub4 = unit
+            .stub(HookManager, 'triggerHook')
+            .returns(Observable.of({ response: 'abc', statusCode: 201 }));
+
+        const extInstance = new HttpServerExt();
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+
+        stub4.restore();
+    }
+
+    @test('httpHandler - provide request, reply and route and must reply 204')
+    testHttpHandler3() {
+
+        const request = {
+            method: 'get'
+        };
+        const reply = res => {
+            unit
+                .value(res)
+                .is(null)
+            return {
+                code: c => {
+                    unit
+                        .value(c)
+                        .is(204);
+                }
+            };
+        };
+        const stub4 = unit
+            .stub(HookManager, 'triggerHook')
+            .returns(Observable.of(null));
+
+        const extInstance = new HttpServerExt();
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+
         stub4.restore();
     }
 }
