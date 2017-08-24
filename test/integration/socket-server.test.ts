@@ -1,7 +1,7 @@
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, Inject, OnStart } from '../../src/core';
-import { SocketServerExt, WebSocketServer } from '../../src/extensions/socket-server';
+import { SocketServerExt, WebSocketServer, SocketServerService } from '../../src/extensions/socket-server';
 
 @suite('Integration - Socket Server')
 class SocketServerIntegration {
@@ -10,22 +10,23 @@ class SocketServerIntegration {
     test1(done) {
 
         @HapinessModule({
-            version: '1.0.0'
+            version: '1.0.0',
+            providers: [ SocketServerService ]
         })
         class ModuleTest implements OnStart {
 
-            constructor(@Inject(SocketServerExt) private server: WebSocketServer) {}
+            constructor(private server: SocketServerService) {}
 
             onStart() {
-                this.server.onRequest(socket => {
-                    unit.array(this.server.getSockets())
+                this.server.instance().onRequest(socket => {
+                    unit.array(this.server.instance().getSockets())
                         .hasLength(1);
                     socket.emit('toto', 'test');
                     socket.on('close', data => {});
                     socket.on('error', data => {});
                     socket.on('tata', data => {});
                     socket.on('ev', data => {
-                        this.server.broadcast('test', 'test');
+                        this.server.instance().broadcast('test', 'test');
                     });
                     socket.on('*', data => {
                         if (data.utf8Data === '123') {
@@ -38,8 +39,8 @@ class SocketServerIntegration {
                         unit.string(data.toString())
                             .is('test');
                         socket.close();
-                        this.server.getServer().closeAllConnections();
-                        done();
+                        this.server.stop()
+                            .subscribe(_ => done());
                     });
                 });
 
@@ -57,6 +58,22 @@ class SocketServerIntegration {
             }
         }
 
+        Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
+    }
+
+    @test('did well stop')
+    test2(done) {
+
+        @HapinessModule({
+            version: '1.0.0',
+            providers: [ SocketServerService ]
+        })
+        class ModuleTest implements OnStart {
+
+            onStart() {
+                done();
+            }
+        }
         Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
     }
 }

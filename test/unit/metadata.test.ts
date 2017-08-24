@@ -1,6 +1,7 @@
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { HapinessModule, extractMetadataByDecorator, extractMetadata } from '../../src/core';
+import { extractMetadataByDecorator, extractMetadata, extractMetadatas } from '../../src/core/metadata';
+import { HapinessModule } from '../../src/core/decorators';
 
 @suite('Unit - Metadata')
 class Metadata {
@@ -14,6 +15,16 @@ class Metadata {
 
         unit.object(extractMetadata(TestToken))
             .contains({ version: 'test' });
+
+    }
+
+    @test('extractMetadatas')
+    test3() {
+
+        class TestToken {}
+
+        unit.array(extractMetadatas(TestToken))
+            .is([]);
 
     }
 

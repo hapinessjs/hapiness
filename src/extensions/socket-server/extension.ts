@@ -1,9 +1,7 @@
-import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad } from '../../core';
+import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad } from '../../core/interfaces';
 import { Observable } from 'rxjs/Observable';
 import { server } from 'websocket';
 import { WebSocketServer } from './server';
-import * as Debug from 'debug';
-const debug = Debug('hapiness:extension:socketserver');
 
 export interface SocketConfig {
     port: number;
@@ -11,11 +9,13 @@ export interface SocketConfig {
     keepaliveInterval?: number;
     keepaliveGracePeriod?: number;
     closeTimeout?: number;
+    tls?: {
+        key: Buffer;
+        cert: Buffer;
+    }
 }
 
 export class SocketServerExt implements OnExtensionLoad {
-
-    private server: server;
 
     public static setConfig(config: SocketConfig): ExtensionWithConfig {
         return {
@@ -33,15 +33,12 @@ export class SocketServerExt implements OnExtensionLoad {
      * @returns Observable
      */
     onExtensionLoad(module: CoreModule, config: SocketConfig): Observable<Extension> {
-        debug('server instantiation');
-        const instance = new WebSocketServer(config);
-        return Observable.create(observer => {
-            observer.next({
+        return Observable
+            .of(new WebSocketServer(config))
+            .map(_ => ({
                 instance: this,
                 token: SocketServerExt,
-                value: instance
-            });
-            observer.complete();
-        })
+                value: _
+            }));
     }
 }
