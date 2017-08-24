@@ -2,6 +2,7 @@ import { server, request } from 'websocket';
 import { Socket } from './socket';
 import { SocketConfig } from './extension';
 import * as http from 'http';
+import * as https from 'https';
 import * as Debug from 'debug';
 const debug = Debug('hapiness:extension:socketserver');
 
@@ -10,18 +11,22 @@ export class WebSocketServer {
     private server: server;
     private subscribers: Array<(socket: Socket) => void>;
     private sockets: Socket[];
-    private httpServer: http.Server;
+    private httpServer: http.Server | https.Server;
 
     constructor(config: SocketConfig) {
-        this.httpServer = http.createServer((_request, _response) => {
-            /* istanbul ignore next */
+        /* istanbul ignore next */
+        const httpHandler = (_request, _response) => {
             _response.writeHead(404);
-            /* istanbul ignore next */
             _response.end();
-        });
+        };
+        if (!!config.tls) {
+            this.httpServer = https.createServer(config.tls, httpHandler);
+        } else {
+            this.httpServer = http.createServer(httpHandler);
+        }
         this.httpServer.listen(config.port);
         delete config.port;
-        const _config = Object.assign({ httpServer: this.httpServer }, config);
+        const _config = Object.assign({ httpServer: <any>this.httpServer }, config);
         this.server = new server(_config);
         this.sockets = [];
         this.subscribers = [];

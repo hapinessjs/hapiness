@@ -5,13 +5,13 @@ export interface Route {
     path: string;
     method: string | string[];
     config?: RouteConfig;
-    // providers?: Array<Type<any>|any>;
+    providers?: Array<Type<any>|any>;
 }
 export const Route = createDecorator<Route>('Route', {
     path: undefined,
     method: undefined,
-    config: undefined
-    // providers: undefined
+    config: undefined,
+    providers: undefined
 });
 
 export interface Lifecycle {

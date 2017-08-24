@@ -27,8 +27,6 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
 
     /**
      * Initialize HapiJS Server
-     * Add routes by modules
-     * Add Lifecycle handlers
      *
      * @param  {CoreModule} module
      * @param  {HapiConfig} config
@@ -40,10 +38,6 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .do(_ => _.connection(Object.assign(config, { options: undefined })))
             .flatMap(server =>
                 Observable
-                    // .from(ModuleManager.getModules(module))
-                    // .flatMap(_ => this.registerPlugin(_, server))
-                    // .reduce((a, c) => a.concat(c), [])
-                    // .do(_ => LifecycleManager.routeLifecycle(server, _))
                     .of({
                         instance: this,
                         token: HttpServerExt,
@@ -54,6 +48,8 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
 
     /**
      * Build Lifecycle components
+     * Add routes by modules
+     * Add Lifecycle handlers
      * Start HapiJS Server
      *
      * @param  {CoreModule} module
@@ -67,14 +63,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .reduce((a, c) => a.concat(c), [])
             .do(_ => LifecycleManager.routeLifecycle(server, _))
             .flatMap(_ => this.instantiateLifecycle(module, server))
-            .flatMap(_ => Observable.fromPromise(server.start()));
-
-        // return this
-        //     .instantiateLifecycle(module, server)
-        //     .flatMap(_ =>
-        //         Observable
-        //             .fromPromise(server.start())
-        //     );
+            .flatMap(_ => server.start());
     }
 
     /**

@@ -9,6 +9,10 @@ export interface SocketConfig {
     keepaliveInterval?: number;
     keepaliveGracePeriod?: number;
     closeTimeout?: number;
+    tls?: {
+        key: Buffer;
+        cert: Buffer;
+    }
 }
 
 export class SocketServerExt implements OnExtensionLoad {

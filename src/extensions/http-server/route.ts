@@ -53,7 +53,8 @@ export class RouteBuilder {
                 query: Object.assign({}, request.query),
                 params: Object.assign({}, request.params),
                 headers: Object.assign({}, request.headers),
-                payload: Object.assign({}, request.payload)
+                payload: Object.assign({}, request.payload),
+                id: request.id
             }))
             .map(_ => ({ provide: HttpRequestInfo, useValue: _ }))
             .map(_ => [].concat(route.providers).concat(_))
@@ -84,6 +85,9 @@ export class RouteBuilder {
                 path: _.data.path,
                 method: _.methods,
                 providers: []
+                    .concat(_.data.providers)
+                    .filter(p => !!p)
+                    .map(p => p.provide ? p : { provide: p, useClass: p })
             }));
     }
 
