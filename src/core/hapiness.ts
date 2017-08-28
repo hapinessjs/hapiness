@@ -79,7 +79,7 @@ export class Hapiness {
     }
 
     /**
-     * Call Register and Start Hooks
+     * Call Register Hooks
      *
      * @param  {CoreModule} moduleInstantiated
      * @returns Observable
@@ -99,7 +99,7 @@ export class Hapiness {
     }
 
     /**
-     * Call Register and Start Hooks
+     * Call Start Hooks
      *
      * @param  {CoreModule} moduleInstantiated
      * @returns Observable
