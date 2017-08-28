@@ -87,7 +87,7 @@ $ yarn add @hapiness/core
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-rc.6",
+    "@hapiness/core": "^1.0.0-rc.7",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-rc.6**
+Actually, we're in **development** mode: **v1.0.0-rc.7**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
