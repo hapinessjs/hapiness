@@ -32,6 +32,7 @@ export interface RouteConfig {
     json?: any;
     jsonp?: any;
     log?: any;
+    payload?: any;
     plugins?: any;
     pre?: any;
     response?: any;

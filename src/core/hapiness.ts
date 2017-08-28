@@ -65,6 +65,7 @@ export class Hapiness {
             .map(_ => ({ provide: _.token, useValue: _.value }))
             .toArray()
             .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
+            .flatMap(_ => this.callRegister(_))
             .do(_ => this.extensions = extensionsLoaded)
             .flatMap(moduleInstantiated =>
                 Observable
@@ -74,7 +75,7 @@ export class Hapiness {
                     .map(_ => moduleInstantiated)
             )
             .do(_ => this.module = _)
-            .flatMap(_ => this.callHooks(_));
+            .flatMap(_ => this.callStart(_));
     }
 
     /**
@@ -83,7 +84,7 @@ export class Hapiness {
      * @param  {CoreModule} moduleInstantiated
      * @returns Observable
      */
-    private static callHooks(moduleInstantiated: CoreModule): Observable<void> {
+    private static callRegister(moduleInstantiated: CoreModule): Observable<CoreModule> {
         return Observable
             .from(ModuleManager.getModules(moduleInstantiated))
             .filter(_ => _.level !== ModuleLevel.ROOT)
@@ -94,6 +95,18 @@ export class Hapiness {
                 .triggerHook(ModuleEnum.OnRegister.toString(), _.token, _.instance)
             )
             .toArray()
+            .map(_ => moduleInstantiated)
+    }
+
+    /**
+     * Call Register and Start Hooks
+     *
+     * @param  {CoreModule} moduleInstantiated
+     * @returns Observable
+     */
+    private static callStart(moduleInstantiated: CoreModule): Observable<void> {
+        return Observable
+            .of(moduleInstantiated)
             .flatMap(_ => HookManager
                 .triggerHook(
                     ModuleEnum.OnStart.toString(),
