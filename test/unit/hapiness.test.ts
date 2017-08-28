@@ -101,7 +101,11 @@ class TestSuite {
             .withArgs(ext, coreModule)
             .returns(Observable.of(null));
         const stub3 = unit
-            .stub(Hapiness, 'callHooks')
+            .stub(Hapiness, 'callRegister')
+            .withArgs(coreModule)
+            .returns(Observable.of(coreModule));
+        const stub4 = unit
+            .stub(Hapiness, 'callStart')
             .withArgs(coreModule)
             .returns(Observable.of(null));
 
@@ -114,7 +118,7 @@ class TestSuite {
 
     }
 
-    @test('callHooks - provide module and must call hooks')
+    @test('callRegister - provide module and must call hooks')
     testCallHooks1() {
 
         class EmptyModule2 {
@@ -137,14 +141,14 @@ class TestSuite {
             .returns(true);
         const stub3 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of(null))
+            .returns(Observable.of(module))
             .withArgs('onRegister', EmptyModule2, getModulesRes[1].instance)
-            .returns(Observable.of(null));
-        stub3
-            .withArgs('onStart', EmptyModule, getModulesRes[0].instance, null, false)
-            .returns(Observable.of(null));
+            .returns(Observable.of(module));
+        // stub3
+        //     .withArgs('onStart', EmptyModule, getModulesRes[0].instance, null, false)
+        //     .returns(Observable.of(null));
 
-        Hapiness['callHooks'](module)
+        Hapiness['callRegister'](module)
             .subscribe();
 
         stub1.parent.restore();
