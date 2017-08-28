@@ -1,6 +1,5 @@
 import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad } from '../../core/interfaces';
 import { Observable } from 'rxjs/Observable';
-import { server } from 'websocket';
 import { WebSocketServer } from './server';
 
 export interface SocketConfig {
