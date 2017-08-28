@@ -8,3 +8,13 @@ export enum ModuleEnum {
     OnError = <any>'onError',
     OnRegister = <any>'onRegister'
 }
+
+/**
+ * Represents the position where
+ * the module is instantiate
+ */
+export enum ModuleLevel {
+    ROOT,
+    PRIMARY,
+    SECONDARY
+}

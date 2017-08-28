@@ -1,226 +1,177 @@
 import { suite, test } from 'mocha-typescript';
-import { Observable } from 'rxjs/Observable';
+import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable } from '../../src/core';
+import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
-import {
-    Hapiness,
-    HapinessModule,
-    Injectable,
-    OnStart,
-    OnRegister,
-    Lib,
-    InjectionToken,
-    Inject
-} from '../../src/core';
 
 @suite('Integration - Core')
-class CoreIntegration {
+class ModuleTestSuite {
 
-    @test('HapinessModule')
-    test1(done) {
-
-        @HapinessModule({
-            version: '1.0.0'
-        })
-        class ModuleTest implements OnStart {
-            onStart() {
-                unit.string(Hapiness['module'].name)
-                    .is('ModuleTest');
-                done();
-            }
-        }
-
-        Hapiness.bootstrap(ModuleTest);
-    }
-
-    @test('HapinessModule - DI')
-    test2(done) {
-
-        @Injectable()
-        class Service1 {
-            getData() {
-                return 'test';
-            }
-        }
+    @test('Bootstrap - Simple module')
+    testBootstrap1(done) {
 
         @HapinessModule({
-            version: '1.0.0',
-            providers: [ Service1 ]
+            version: ''
         })
-        class ModuleTest implements OnStart {
-
-            constructor(private service: Service1) {}
+        class Module1 implements OnStart {
 
             onStart() {
-                unit.string(this.service.getData())
-                    .is('test');
                 done();
             }
+
         }
 
-        Hapiness.bootstrap(ModuleTest);
+        Hapiness
+            .bootstrap(Module1);
+
     }
 
-    @test('HapinessModule - SubModule')
-    test3(done) {
-
-        @Injectable()
-        class Service1 {
-            getData() {
-                return 'test';
-            }
-        }
-
-        @Injectable()
-        class Service2 {
-            getData() {
-                return '123';
-            }
-        }
+    @test('Bootstrap - Module with embedded module')
+    testBootstrap2(done) {
+        let state = 0;
 
         @HapinessModule({
-            version: '1.0.0',
-            providers: [ Service2 ]
+            version: ''
         })
-        class SubSubModule implements OnRegister {
-
-            constructor(private service: Service2) {}
+        class Module1 implements OnRegister {
 
             onRegister() {
-                unit.string(this.service.getData()).is('123');
+                state = 1;
             }
+
         }
 
         @HapinessModule({
-            version: '1.0.0',
-            providers: [ Service2 ],
-            exports: [ Service2 ],
-            imports: [{ module: SubSubModule, providers: [] }]
+            version: '',
+            imports: [ Module1 ]
         })
-        class SubModule implements OnRegister {
-
-            constructor(private service: Service2) {}
-
-            onRegister() {
-                unit.string(this.service.getData()).is('123');
-            }
-        }
-
-        @HapinessModule({
-            version: '1.0.0',
-            providers: [ Service1 ],
-            imports: [ SubModule ]
-        })
-        class ModuleTest implements OnStart {
-
-            constructor(
-                private service1: Service1,
-                private service2: Service2
-            ) {}
+        class Module2 implements OnStart {
 
             onStart() {
-                unit.string(this.service1.getData() + this.service2.getData())
-                    .is('test123');
+                unit
+                    .value(state)
+                    .is(1);
+                done();
+            }
+
+        }
+
+        Hapiness
+            .bootstrap(Module2);
+
+    }
+
+    @test('Bootstrap - Module with Lib')
+    testBootstrap3(done) {
+
+        @Lib()
+        class Lib1 {
+            constructor() {
                 done();
             }
         }
 
-        Hapiness.bootstrap(ModuleTest);
+        @HapinessModule({
+            version: '',
+            declarations: [ Lib1 ]
+        })
+        class Module1 {}
+
+        Hapiness
+            .bootstrap(Module1);
+
     }
 
-    @test('HapinessModule - Libs')
-    test4(done) {
+    @test('Bootstrap - Module with Provider')
+    testBootstrap4(done) {
 
         @Injectable()
-        class Service1 {
-            getData() {
-                return 'test';
+        class Provider1 {
+            value() {
+                return 123;
+            }
+        }
+
+        @HapinessModule({
+            version: '',
+            providers: [ Provider1 ]
+        })
+        class Module1 implements OnStart {
+            constructor(private provider1: Provider1) {}
+            onStart() {
+                unit
+                    .number(this.provider1.value())
+                    .is(123);
+                done();
+            }
+        }
+
+        Hapiness
+            .bootstrap(Module1);
+
+    }
+
+    @test('Bootstrap - Module with Lib and Provider')
+    testBootstrap5(done) {
+
+        @Injectable()
+        class Provider1 {
+            value() {
+                return 123;
             }
         }
 
         @Lib()
-        class LibTest {
-            constructor(private service: Service1) {
-                unit.string(this.service.getData())
-                    .is('test');
-                done();
+        class Lib1 {
+            constructor(provider1: Provider1) {
+                unit
+                    .number(provider1.value())
+                    .is(123);
             }
         }
 
         @HapinessModule({
-            version: '1.0.0',
-            providers: [ Service1 ],
-            declarations: [ LibTest ]
+            version: '',
+            declarations: [ Lib1 ],
+            providers: [ Provider1 ]
         })
-        class ModuleTest {}
+        class Module1 implements OnStart {
+            constructor(private provider1: Provider1) {}
+            onStart() {
+                unit
+                    .number(this.provider1.value())
+                    .is(123);
+                done();
+            }
+        }
 
-        Hapiness.bootstrap(ModuleTest);
+        Hapiness
+            .bootstrap(Module1);
+
     }
 
-    @test('HapinessModule - Error')
-    test5(done) {
+    @test('Bootstrap - Error thrown')
+    testBootstrap6(done) {
 
         @HapinessModule({
-            version: '1.0.0'
+            version: ''
         })
-        class ModuleTest {
+        class Module1 implements OnStart {
 
             onStart() {
-                return Observable.create(observer => {
-                    observer.error(new Error('error'));
-                    observer.complete();
-                });
+                throw new Error('Oops');
             }
+
         }
 
-        Hapiness.bootstrap(ModuleTest).catch(_ => {
-                unit.object(_)
+        Hapiness
+            .bootstrap(Module1)
+            .catch(_ => {
+                unit
+                    .object(_)
                     .isInstanceOf(Error)
-                    .hasProperty('message', 'error');
+                    .hasProperty('message', 'Oops');
                 done();
             });
-    }
 
-    @test('HapinessModule - Provide parent config to sub module')
-    test6(done) {
-
-        const TOKEN = new InjectionToken('token');
-
-        @HapinessModule({
-            version: '1.0.0'
-        })
-        class SubModuleTest {
-
-            constructor(@Inject(TOKEN) private config) {}
-
-            onRegister() {
-                unit.must(this.config.test)
-                    .is(true);
-                done();
-            }
-        }
-
-        @HapinessModule({
-            version: '1.0.0',
-            imports: [ SubModuleTest ]
-        })
-        class ModuleTest {
-
-            static setConfig(config) {
-                return {
-                    module: ModuleTest,
-                    providers: [
-                        { provide: TOKEN, useValue: config }
-                    ]
-                }
-            }
-        }
-
-        @HapinessModule({
-            version: '1.0.0',
-            imports: [ ModuleTest.setConfig({ test: true }) ]
-        })
-        class AppModuleTest {}
-
-        Hapiness.bootstrap(AppModuleTest);
     }
 }

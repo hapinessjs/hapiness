@@ -115,6 +115,13 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.0.0-rc.7 (2017-08-28)
+    * Code refactoring with only functional programming
+    * Improve errors management
+    * Allow HTTPS and WSS connections
+    * Add service for HTTP and WS extension to use it in DI
+    * Latest packages' versions
+    * Documentation
 * v1.0.0-rc.6 (2017-07-16)
     * DI/req performance issue temp. fix
 * v1.0.0-rc.5 (2017-07-11)
