@@ -49,6 +49,7 @@ export class Hapiness {
             .map(_ => this.toExtensionWithConfig(_))
             .flatMap(_ => this.loadExtention(_, moduleResolved))
             .toArray()
+            .do(_ => this.extensions = _)
             .flatMap(_ => this.instantiateModule(_, moduleResolved));
     }
 
@@ -66,7 +67,6 @@ export class Hapiness {
             .toArray()
             .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
             .flatMap(_ => this.callRegister(_))
-            .do(_ => this.extensions = extensionsLoaded)
             .flatMap(moduleInstantiated =>
                 Observable
                     .from(extensionsLoaded)

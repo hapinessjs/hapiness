@@ -260,7 +260,7 @@ class HttpServerIntegration {
 
         @Route({
             path: '/',
-            method: 'GET',
+            method: 'GET'
         })
         class RouteTest implements OnGet {
             onGet(request, reply) {
