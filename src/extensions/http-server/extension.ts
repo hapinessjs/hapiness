@@ -130,7 +130,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
                     reply(_.response)
                         .code(!!_.response ? _.statusCode : 204),
                 _ => {
-                    errorHandler(_);
+                    errorHandler(_, request);
                     reply(_);
                 }
             );

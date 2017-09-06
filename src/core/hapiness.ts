@@ -200,10 +200,15 @@ export class Hapiness {
 }
 
 /**
+ * Error handler
+ * Call onError of Root module
+ * Or log in console
+ *
  * @param  {Error} error
+ * @param  {any} data
  * @returns void
  */
-export function errorHandler(error: Error): void {
+export function errorHandler(error: Error, data?: any): void {
     Observable
         .of(Hapiness['module'])
         .filter(_ => !!(_ && _.instance))
@@ -215,7 +220,7 @@ export function errorHandler(error: Error): void {
                     ModuleEnum.OnError.toString(),
                     _.token,
                     _.instance,
-                    [ error ],
+                    [ error, data ],
                     false
                 ) :
                 Observable
