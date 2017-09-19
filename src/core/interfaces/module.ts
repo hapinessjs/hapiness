@@ -68,5 +68,5 @@ export interface OnStart { onStart(): void | Observable<any>; }
  *
  * @returns void | Observable
  */
-export interface OnError { onError(error: Error): void | Observable<any>; }
+export interface OnError { onError(error: Error, data?: any): void | Observable<any>; }
 
