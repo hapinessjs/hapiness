@@ -4,14 +4,15 @@ import { SocketConfig } from './extension';
 import * as http from 'http';
 import * as https from 'https';
 import * as Debug from 'debug';
+import { WebSocketRooms } from './rooms';
 const debug = Debug('hapiness:extension:socketserver');
 
 export class WebSocketServer {
-
     private server: server;
     private subscribers: Array<(socket: Socket) => void>;
     private sockets: Socket[];
     private httpServer: http.Server | https.Server;
+    private rooms: WebSocketRooms;
 
     constructor(config: SocketConfig) {
         /* istanbul ignore next */
@@ -33,6 +34,7 @@ export class WebSocketServer {
         this.server.on('request', _request => {
             this.onRequestHandler(_request);
         });
+        this.rooms = new WebSocketRooms();
     }
 
     /**
@@ -43,9 +45,9 @@ export class WebSocketServer {
      */
     private onRequestHandler(_request: request) {
         const connection = _request.accept(null, _request.origin);
-        const socket = new Socket(_request, connection);
+        const socket = new Socket(_request, connection, this.rooms);
         const index = this.sockets.push(socket) - 1;
-        this.subscribers.forEach(sub => sub.apply(this, [ socket ]));
+        this.subscribers.forEach(sub => sub.apply(this, [socket]));
         connection.on('close', conn => {
             this.sockets.splice(index, 1);
         });
@@ -76,10 +78,25 @@ export class WebSocketServer {
      * @param  {any} data
      */
     public broadcast(event: string, data: any) {
-        this.server.broadcastUTF(JSON.stringify({
-            event,
-            data
-        }));
+        this.server.broadcastUTF(
+            JSON.stringify({
+                event,
+                data
+            })
+        );
+    }
+
+    /**
+     * Send a message to all sockets present in a room
+     *
+     * @param {string} room
+     * @param {string} event
+     * @param {any} data
+     * @returns WebSocketServer
+     */
+    public to(room: string, event: string, data: any) {
+        this.rooms.emit(room, event, data);
+        return this;
     }
 
     public getServer() {

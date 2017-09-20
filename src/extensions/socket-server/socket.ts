@@ -1,11 +1,8 @@
 import { connection, request } from 'websocket';
+import { WebSocketRooms } from './rooms';
 
 export class Socket {
-
-    constructor(
-        private _request: request,
-        private _connection: connection
-    ) {}
+    constructor(private _request: request, private _connection: connection, private _rooms: WebSocketRooms) {}
 
     /**
      * Listen events
@@ -28,7 +25,9 @@ export class Socket {
                 this._connection.on('message', message => {
                     if (message.type === 'utf8') {
                         const parsed = this.getJSON(message.utf8Data);
-                        if (parsed.event === event) { callback(parsed.data); }
+                        if (parsed.event === event) {
+                            callback(parsed.data);
+                        }
                     }
                 });
         }
@@ -54,10 +53,12 @@ export class Socket {
      * @param  {any} data
      */
     emit(event: string, data: any) {
-        this._connection.sendUTF(JSON.stringify({
-            event,
-            data
-        }));
+        this._connection.sendUTF(
+            JSON.stringify({
+                event,
+                data
+            })
+        );
     }
 
     /**
@@ -74,6 +75,22 @@ export class Socket {
      */
     close() {
         this._connection.close();
+    }
+
+    join(room: string): Socket {
+        this._rooms.join(room, this);
+
+        /* Leave room when socket connection is closed */
+        this.on('close', () => {
+            this._rooms.leave(room, this);
+        });
+
+        return this;
+    }
+
+    leave(room: string): Socket {
+        this._rooms.leave(room, this);
+        return this;
     }
 
     private getJSON(data: string) {
