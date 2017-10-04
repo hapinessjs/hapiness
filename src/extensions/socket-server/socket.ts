@@ -2,7 +2,7 @@ import { connection, request } from 'websocket';
 import { WebSocketRooms } from './rooms';
 
 export class Socket {
-    constructor(private _request: request, private _connection: connection, private _rooms: WebSocketRooms) {}
+    constructor(_request: request, private _connection: connection, private _rooms: WebSocketRooms) {}
 
     /**
      * Listen events

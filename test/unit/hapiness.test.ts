@@ -1,5 +1,3 @@
-import * as util from 'util';
-import { Injectable } from '../../src/core';
 import { suite, test } from 'mocha-typescript';
 import { Hapiness, ModuleManager, HookManager, errorHandler } from '../../src/core';
 import { Observable } from 'rxjs';
@@ -8,7 +6,7 @@ import * as unit from 'unit.js';
 import { EmptyModule, coreModule } from './mocks';
 
 @suite('Unit - Hapiness')
-class TestSuite {
+export class TestSuite {
 
     @test('bootstrap - provide module and must resolve')
     testBootstrap1(done) {
@@ -115,6 +113,7 @@ class TestSuite {
         stub1.parent.restore();
         stub2.parent.restore();
         stub3.parent.restore();
+        stub4.parent.restore();
 
     }
 
@@ -277,13 +276,12 @@ class TestSuite {
             .returns(true);
         const stub2 = unit
             .stub(HookManager, 'triggerHook')
-            .withArgs('onError', module.token, module.instance, [ error ])
             .returns(Observable.of(null));
 
         Hapiness['module'] = <any>module;
         errorHandler(error);
         stub1.restore();
-        stub2.parent.restore();
+        stub2.restore();
         Hapiness['module'] = undefined;
 
     }

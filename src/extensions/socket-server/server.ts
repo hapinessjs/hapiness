@@ -3,9 +3,7 @@ import { Socket } from './socket';
 import { SocketConfig } from './extension';
 import * as http from 'http';
 import * as https from 'https';
-import * as Debug from 'debug';
 import { WebSocketRooms } from './rooms';
-const debug = Debug('hapiness:extension:socketserver');
 
 export class WebSocketServer {
     private server: server;

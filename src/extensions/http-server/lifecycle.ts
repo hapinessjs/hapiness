@@ -8,8 +8,6 @@ import { Request, ReplyWithContinue, Server } from 'hapi';
 
 export class LifecycleManager {
 
-    private static eventName = 'onEvent';
-
     /**
      * Initialize the lifecycle hooks
      * for a route

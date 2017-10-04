@@ -5,8 +5,9 @@ import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse, HttpSer
 import { Server } from 'hapi';
 import { Observable } from 'rxjs';
 
+@only
 @suite('Integration - Http Server')
-class HttpServerIntegration {
+export class HttpServerIntegration {
 
     @test('route get')
     test1(done) {
