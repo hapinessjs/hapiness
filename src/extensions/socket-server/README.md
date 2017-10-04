@@ -39,6 +39,8 @@ Socket object provided when a new connection comes in the ServerSocket
     - `emit` - Send data into the socket
     - `emitBytes` - Send binary data
     - `close` - Close the socket
+    - `join` - Join room
+    - `leave` - Leave a room
 
 
 ## WebSocketServer
@@ -52,6 +54,7 @@ WebSocket server
     - `broadcast` - Broadcast data to all active sockets
         - arguments: (event: string, data: any)
     - `getServer` - Return websocket server instance
+    - `to` - Emit a message to a room
 
 ## Example
 
