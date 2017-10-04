@@ -1,5 +1,4 @@
 import { suite, test } from 'mocha-typescript';
-import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 import { WebSocketRooms } from '../../../../src/extensions/socket-server/rooms';
 import { Socket } from '../../../../src/extensions/socket-server/socket';
@@ -7,7 +6,7 @@ import { WebSocketServer } from '../../../../src/extensions/socket-server/server
 import { EventEmitter } from 'events';
 
 @suite('Unit - WebSocketRooms')
-class WebSocketRoomsTestSuite {
+export class WebSocketRoomsTestSuite {
     @test('Create new instance')
     testInstance() {
         const instance = new WebSocketRooms();
