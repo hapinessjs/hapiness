@@ -6,8 +6,6 @@ import { DependencyInjection } from '../../src/core/di';
 import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
-import { extractMetadataByDecorator } from '../../src/core/metadata';
-
 import {
     EmptyProvider,
     EmptyModule,
@@ -20,7 +18,7 @@ import {
 } from './mocks';
 
 @suite('Unit - Module')
-class ModuleTestSuite {
+export class ModuleTestSuite {
 
     @test('toCoreProvider - provide Class and must return CoreProvide')
     testToCoreProvider1() {
@@ -337,10 +335,10 @@ class ModuleTestSuite {
             }
         }
 
-        const module = Object.assign({}, coreModule, { declarations: [ EmptyLib ], di: { stub: true } });
+        const module = Object.assign({}, coreModule, { declarations: [ LibWithError ], di: { stub: true } });
         const stub = unit
             .stub(DependencyInjection, 'instantiateComponent')
-            .withArgs(EmptyLib, { stub: true })
+            .withArgs(LibWithError, { stub: true })
             .returns(Observable.of(null))
 
         ModuleManager['instantiateLibs'](module)

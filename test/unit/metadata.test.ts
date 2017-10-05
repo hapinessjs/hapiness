@@ -4,7 +4,7 @@ import { extractMetadataByDecorator, extractMetadata, extractMetadatas } from '.
 import { HapinessModule } from '../../src/core/decorators';
 
 @suite('Unit - Metadata')
-class Metadata {
+export class Metadata {
 
     @test('extractMetadatas')
     test1() {

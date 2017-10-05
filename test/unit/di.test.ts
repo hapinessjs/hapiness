@@ -1,13 +1,12 @@
 import { Injectable } from '../../src/core';
 import { suite, test } from 'mocha-typescript';
 import { DependencyInjection, Lib } from '../../src/core';
-import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
 import { EmptyProvider } from './mocks';
 
 @suite('Unit - DI')
-class ModuleTestSuite {
+export class ModuleTestSuite {
 
     @test('createAndResolve - provide providers without parent and must return DI')
     testCreateAndResolve1() {
@@ -50,7 +49,7 @@ class ModuleTestSuite {
         }
 
         DependencyInjection
-            .createAndResolve([ EmptyProvider ])
+            .createAndResolve([ ParentProvider ])
             .subscribe(
                 null,
                 _ =>
@@ -90,8 +89,6 @@ class ModuleTestSuite {
     @test('instantiateComponent - instantiate Lib component with provider dependency')
     testInstantiateComponent1() {
 
-        let count = 0;
-
         @Lib()
         class TestLib {
             constructor(public provider: EmptyProvider) {}
@@ -114,8 +111,6 @@ class ModuleTestSuite {
 
     @test('instantiateComponent - instantiate Lib and with no provider')
     testInstantiateComponent2() {
-
-        let count = 0;
 
         @Lib()
         class TestLib {

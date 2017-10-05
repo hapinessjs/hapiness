@@ -1,6 +1,6 @@
 import { CoreModule, CoreProvide } from '../../core/interfaces';
 import { Type } from '../../core/decorators';
-import { Request, ReplyWithContinue, ReplyNoContinue, ServerOptions } from 'hapi';
+import { Request, ReplyWithContinue, ReplyNoContinue, ServerOptions, RouteAdditionalConfigurationOptions } from 'hapi';
 import { Observable } from 'rxjs';
 
 export interface HapiConfig {
@@ -9,37 +9,7 @@ export interface HapiConfig {
     options?: ServerOptions
 }
 
-export interface ValidateConfig {
-    params?: any;
-    query?: any;
-    payload?: any;
-    response?: any;
-}
-
-export interface RouteConfig {
-    description?: string;
-    notes?: string;
-    tags?: string[];
-    validate?: ValidateConfig;
-    auth?: any;
-    bind?: any;
-    cache?: any;
-    compression?: any;
-    cors?: any;
-    ext?: any;
-    files?: any;
-    id?: any;
-    json?: any;
-    jsonp?: any;
-    log?: any;
-    payload?: any;
-    plugins?: any;
-    pre?: any;
-    response?: any;
-    security?: any;
-    state?: any;
-    timeout?: any;
-}
+export interface RouteConfig extends RouteAdditionalConfigurationOptions {}
 
 /**
  * CoreRoute Type

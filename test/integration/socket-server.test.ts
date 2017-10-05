@@ -1,10 +1,10 @@
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Inject, OnStart } from '../../src/core';
-import { SocketServerExt, WebSocketServer, SocketServerService } from '../../src/extensions/socket-server';
+import { Hapiness, HapinessModule, OnStart } from '../../src/core';
+import { SocketServerExt, SocketServerService } from '../../src/extensions/socket-server';
 
 @suite('Integration - Socket Server')
-class SocketServerIntegration {
+export class SocketServerIntegration {
 
     @test('socket message')
     test1(done) {

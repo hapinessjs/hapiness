@@ -5,6 +5,7 @@
         "moduleResolution": "node",
         "declaration": true,
         "noImplicitAny": false,
+        "noUnusedLocals": true,
         "sourceMap": true,
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
@@ -12,25 +13,10 @@
         "rootDir": ".",
         "skipLibCheck": true,
         "typeRoots": ["./node_modules/@types"],
-        "types": [
-            "node",
-            "hapi",
-            "boom",
-            "hoek",
-            "joi",
-            "websocket"
-        ],
-        "lib": [
-            "dom",
-            "es2015"
-        ]
+        "types": ["node", "hapi", "boom", "hoek", "joi", "websocket"],
+        "lib": ["dom", "es2015"]
     },
     "compileOnSave": false,
     "buildOnSave": false,
-    "exclude": [
-        "src/externals",
-        "node_modules",
-        "dist",
-        "tmp"
-    ]
+    "exclude": ["src/externals", "node_modules", "dist", "tmp"]
 }

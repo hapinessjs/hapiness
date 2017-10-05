@@ -1,10 +1,9 @@
 import { suite, test } from 'mocha-typescript';
 import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable } from '../../src/core';
-import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
 @suite('Integration - Core')
-class ModuleTestSuite {
+export class ModuleTestSuite {
 
     @test('Bootstrap - Simple module')
     testBootstrap1(done) {

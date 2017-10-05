@@ -1,7 +1,6 @@
 import { ReflectiveInjector } from '../externals/injection-js';
 import { Type } from '../externals/injection-js/facade/type';
 import {
-    ReflectiveDependency,
     ResolvedReflectiveProvider,
     ResolvedReflectiveFactory
 } from '../externals/injection-js/reflective_provider';

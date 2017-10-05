@@ -8,8 +8,6 @@ import { Request, ReplyWithContinue, Server } from 'hapi';
 
 export class LifecycleManager {
 
-    private static eventName = 'onEvent';
-
     /**
      * Initialize the lifecycle hooks
      * for a route
@@ -38,7 +36,7 @@ export class LifecycleManager {
 
         server.ext(<any>LifecycleEventsEnum.OnPreHandler.toString(),
             (request: Request, reply: ReplyWithContinue) =>
-                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                this.eventHandler(LifecycleHooksEnum.OnPreHandler, routes, request, reply)
                     .subscribe(
                         _ => reply.continue(),
                         _ => errorHandler(_)
@@ -47,7 +45,7 @@ export class LifecycleManager {
 
         server.ext(<any>LifecycleEventsEnum.OnPostHandler.toString(),
             (request: Request, reply: ReplyWithContinue) =>
-                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                this.eventHandler(LifecycleHooksEnum.OnPostHandler, routes, request, reply)
                     .subscribe(
                         _ => reply.continue(),
                         _ => errorHandler(_)

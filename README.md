@@ -78,16 +78,16 @@ All those technologies are `Typescript` ready. It will help to build web servers
 ### `yarn` or `npm` it in your `package.json`
 
 ```bash
-$ npm install --save @hapiness/core
+$ npm install --save @hapiness/core rxjs
 
 or
 
-$ yarn add @hapiness/core
+$ yarn add @hapiness/core rxjs
 ```
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0-rc.7",
+    "@hapiness/core": "^1.0.0",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core
 
 ### Use Hapiness API
 
-Actually, we're in **development** mode: **v1.0.0-rc.7**
+Actually, we're in : **v1.0.0**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,59 +115,9 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
-* v1.0.0-rc.7 (2017-08-28)
-    * Code refactoring with only functional programming
-    * Improve errors management
-    * Allow HTTPS and WSS connections
-    * Add service for HTTP and WS extension to use it in DI
-    * Latest packages' versions
-    * Documentation
-* v1.0.0-rc.6 (2017-07-16)
-    * DI/req performance issue temp. fix
-* v1.0.0-rc.5 (2017-07-11)
-    * Route with array of methods fix
-    * Move rxjs to peer deps
-* v1.0.0-rc.4 (2017-07-10)
-    * Bootstrap hooks call order fix
-    * Hooks and create component errors fix
-* v1.0.0-rc.3 (2017-07-03)
-    * Boostrap extension loader fix
-* v1.0.0-rc.2 (2017-06-29)
-    * Boostrap bug fixes
-* v1.0.0-rc.1 (2017-06-28)
-    * Socket Server more features
-    * API Documentation
-* v1.0.0-rc.0 (2017-06-28)
-    * Core refactoring with extensions
-    * Http Server Extension
-    * Socket Server Extension
-    * API Documentation
-* v1.0.0-beta.6 (2017-05-26)
-    * Implementation of Request's Lifecycle: Hook & Component
-    * Fix Component's instantiation
-    * API Documentation
-    * New HapiJS typings
-* v1.0.0-beta.5 (2017-05-15)
-    * Fix Websocket config
-* v1.0.0-beta.4 (2017-05-15)
-    * Fix Websocket server wrapper
-* v1.0.0-beta.3 (2017-05-11)
-    * Websocket server wrapper
-    * Route config
-    * Module config
-    * Latest `injection-js` version
-* v1.0.0-beta.2 (2017-04-06)
-    * Add typings to dependencies
-    * Limit `Hapiness core` exports
-    * Update tests according new exports
-    * Delete obsolete imports
-* v1.0.0-beta.1 (2017-04-05)
-    * HapinessModule
-    * Route
-    * Lib
-    * Providers
-    * Web server
-    * Websocket server
+* v1.0.0 (2017-10-05)
+    * Publish all features of API
+    * First stable version
 
 [Back to top](#table-of-contents)
 
@@ -175,7 +125,7 @@ To set up your development environment:
 
 <table>
     <tr>
-        <td colspan="5" align="center"><a href="https://www.tadaweb.com"><img src="https://tadaweb.com/images/tadaweb/logo.png" width="117" alt="tadaweb" /></a></td>
+        <td colspan="5" align="center"><a href="https://www.tadaweb.com"><img src="http://bit.ly/2xHQkTi" width="117" alt="tadaweb" /></a></td>
     </tr>
     <tr>
         <td align="center"><a href="https://github.com/Juneil"><img src="https://avatars3.githubusercontent.com/u/6546204?v=3&s=117" width="117"/></a></td>

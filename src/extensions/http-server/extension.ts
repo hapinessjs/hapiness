@@ -1,4 +1,3 @@
-import { ModuleLevel } from '../../core/enums';
 import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
 import { extractMetadataByDecorator } from '../../core/metadata';
@@ -15,8 +14,6 @@ import { Observable } from 'rxjs';
 import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
 
 export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
-
-    private server: Server;
 
     public static setConfig(config: HapiConfig): ExtensionWithConfig {
         return {
@@ -35,7 +32,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
         return Observable
             .of(new Server(config.options))
-            .do(_ => _.connection(Object.assign(config, { options: undefined })))
+            .do(_ => _.connection(Object.assign({}, config, { options: undefined })))
             .flatMap(server =>
                 Observable
                     .of({
@@ -128,12 +125,16 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .subscribe(
                 _ =>
                     reply(_.response)
-                        .code(!!_.response ? _.statusCode : 204),
+                        .code(this.isValid(_.response) ? _.statusCode : 204),
                 _ => {
-                    errorHandler(_);
+                    errorHandler(_, request);
                     reply(_);
                 }
             );
+    }
+
+    private isValid(response: any): boolean {
+        return typeof(response) !== 'undefined' && response !== null;
     }
 
      /**
