@@ -7,7 +7,7 @@ export interface Route {
     config?: RouteConfig;
     providers?: Array<Type<any>|any>;
 }
-export const Route = createDecorator<Route>('Route', {
+export const Route: CoreDecorator<Route> = createDecorator<Route>('Route', {
     path: undefined,
     method: undefined,
     config: undefined,
@@ -17,6 +17,6 @@ export const Route = createDecorator<Route>('Route', {
 export interface Lifecycle {
     event: string;
 }
-export const Lifecycle = createDecorator<Lifecycle>('Lifecycle', {
+export const Lifecycle: CoreDecorator<Lifecycle> = createDecorator<Lifecycle>('Lifecycle', {
     event: undefined
 });

@@ -1,4 +1,4 @@
-import { suite, test, only } from 'mocha-typescript';
+import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, Inject, OnRegister, OnStart, OnError } from '../../src/core';
 import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse, HttpServerService } from '../../src/extensions/http-server';
@@ -6,7 +6,7 @@ import { Server } from 'hapi';
 import { Observable } from 'rxjs';
 
 @suite('Integration - Http Server')
-class HttpServerIntegration {
+export class HttpServerIntegration {
 
     @test('route get')
     test1(done) {

@@ -1,6 +1,4 @@
 import 'reflect-metadata';
-import * as Debug from 'debug';
-const debug = Debug('hapiness:metadata');
 
 /**
  * Helper to extract Metadata

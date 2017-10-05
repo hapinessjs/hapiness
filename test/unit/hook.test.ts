@@ -1,14 +1,10 @@
-import * as util from 'util';
-import { Injectable } from '../../src/core';
 import { suite, test } from 'mocha-typescript';
 import { HookManager } from '../../src/core';
 import { Observable } from 'rxjs';
 import * as unit from 'unit.js';
 
-import { EmptyProvider } from './mocks';
-
 @suite('Unit - Hook')
-class ModuleTestSuite {
+export class ModuleTestSuite {
 
     @test('hasLifecycleHook - provide hook and token and must return true')
     testHasLifecycleHook1() {

@@ -3,7 +3,7 @@ import * as unit from 'unit.js';
 import { RouteMethodsEnum, enumByMethod } from '../../../../src/extensions/http-server/enums';
 
 @suite('Unit - HttpServer - Enums')
-class Module {
+export class Module {
     @test('Hook enum method')
     testHookEnumMethod() {
 

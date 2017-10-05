@@ -9,7 +9,7 @@ import * as Hapi from 'hapi';
 import { coreModule, EmptyModule } from '../../mocks';
 
 @suite('Unit - HttpServer - Extension')
-class ModuleTestSuite {
+export class ModuleTestSuite {
 
     @test('onExtensionLoad - provide module and config and must return Observable of Extension')
     testOnExtensionLoad1() {
