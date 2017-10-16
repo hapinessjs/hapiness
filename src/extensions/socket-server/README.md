@@ -30,10 +30,18 @@ Configuration:
 ```
 Allow to get the hapi server instance
 
+## Extension service
+```javascript
+    ...
+    constructor(private server: SocketServerService) {}
+    ...
+```
+
 ## Socket
 Socket object provided when a new connection comes in the ServerSocket
 
 - methods
+    - `on$` - Listen new event with an Observable
     - `on` - Add listener on a new event coming from the socket
     - `onBytes` - Add listener on a new binary data coming from the socket
     - `emit` - Send data into the socket
@@ -47,8 +55,11 @@ Socket object provided when a new connection comes in the ServerSocket
 WebSocket server
 
 - methods
-    - `onRequest` - Callback called at each new socket connection
-        - arguments: ((socket: Socket) => void)
+    - `configure` - Allow to configure a secure callback to accept new request
+        - arguments: request => Observable\<boolean\>
+        - return: connections()
+    - `connections` - Observable providing accepted requests
+        - return: Subject\<Socket\>
     - `getSockets` - Return all active sockets
         - return: Socket[]
     - `broadcast` - Broadcast data to all active sockets
@@ -60,17 +71,24 @@ WebSocket server
 
 ```javascript
     @HapinessModule({
-        version: 'x.x.x'
+        version: 'x.x.x',
+        providers: [ SocketServerService ]
     })
     class SocketServerModule implements OnStart {
 
-        constructor(@Inject(SocketServerExt) private server: WebSocketServer) {}
+        constructor(private server: SocketServerService) {}
 
         onStart() {
-            this.server.onRequest((socket: Socket) => {
-                socket.on('message', _ => console.log(_));
-                socket.emit('message', 'Hello World!');
-                this.server.broadcast('join', 'Hello World!');
+            this
+                .server
+                .connections()
+                .subscribe(
+                    socket => {
+                        socket.on('message', _ => console.log(_));
+                        socket.emit('message', 'Hello World!');
+                        this.server.broadcast('join', 'Hello World!')
+                    }
+                );
             });
         }
 
