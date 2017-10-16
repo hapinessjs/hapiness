@@ -1,3 +1,4 @@
+import { Observable } from 'rxjs/Rx';
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, OnStart } from '../../src/core';
@@ -18,31 +19,45 @@ export class SocketServerIntegration {
             constructor(private server: SocketServerService) {}
 
             onStart() {
-                this.server.instance().onRequest(socket => {
-                    unit.array(this.server.instance().getSockets())
-                        .hasLength(1);
-                    socket.emit('toto', 'test');
-                    socket.on('close', data => {});
-                    socket.on('error', data => {});
-                    socket.on('tata', data => {});
-                    socket.on('ev', data => {
-                        this.server.instance().broadcast('test', 'test');
-                    });
-                    socket.on('*', data => {
-                        if (data.utf8Data === '123') {
-                            unit.string(data.utf8Data)
-                                .is('123');
-                            socket.emitBytes(new Buffer('test'));
+                // this.server.instance().onRequest(socket => {
+                this
+                    .server
+                    .instance()
+                    .configure(_ => Observable.of(true))
+                    .subscribe(
+                        socket => {
+                            unit.array(this.server.instance().getSockets())
+                                .hasLength(1);
+                            socket.emit('toto', 'test');
+                            socket.on('close', data => {});
+                            socket.on('error', data => {});
+                            socket.on('tata', data => {});
+                            socket.on('ev', data => {
+                                this.server.instance().broadcast('test', 'test');
+                            });
+                            socket.on('*', data => {
+                                if (data.utf8Data === '123') {
+                                    unit.string(data.utf8Data)
+                                        .is('123');
+                                    socket.emitBytes(new Buffer('test'));
+                                }
+                            });
+                            socket.onBytes(data => {
+                                unit.string(data.toString())
+                                    .is('test');
+                                socket.emit('obs', 'obs');
+                            });
+                            socket
+                                .on$('FINAL')
+                                .subscribe(
+                                    _ => {
+                                        unit.string(_).is('final');
+                                        socket.close();
+                                        this.server.stop().subscribe(() => done());
+                                    }
+                                );
                         }
-                    });
-                    socket.onBytes(data => {
-                        unit.string(data.toString())
-                            .is('test');
-                        socket.close();
-                        this.server.stop()
-                            .subscribe(_ => done());
-                    });
-                });
+                    );
 
                 const W3CWebSocket = require('websocket').w3cwebsocket;
                 const client = new W3CWebSocket('ws://localhost:2222/');
@@ -51,8 +66,10 @@ export class SocketServerIntegration {
                         client.send('{"event":"ev","data":"abc"}');
                     } else if (e.data instanceof ArrayBuffer) {
                         client.send(e.data);
-                    } else {
+                    } else if (e.data === JSON.stringify({ event: 'test', data: 'test' })) {
                         client.send('123');
+                    } else {
+                        client.send('{"event":"FINAL","data":"final"}');
                     }
                 };
             }

@@ -1,3 +1,4 @@
+import { Observable, Subject } from 'rxjs/Rx';
 import { server, request } from 'websocket';
 import { Socket } from './socket';
 import { SocketConfig } from './extension';
@@ -7,10 +8,11 @@ import { WebSocketRooms } from './rooms';
 
 export class WebSocketServer {
     private server: server;
-    private subscribers: Array<(socket: Socket) => void>;
+    private connections$ = new Subject<Socket>();
     private sockets: Socket[];
     private httpServer: http.Server | https.Server;
     private rooms: WebSocketRooms;
+    private secure: ((request: request) => Observable<boolean>) = () => Observable.of(true);
 
     constructor(config: SocketConfig) {
         /* istanbul ignore next */
@@ -28,9 +30,14 @@ export class WebSocketServer {
         const _config = Object.assign({ httpServer: <any>this.httpServer }, config);
         this.server = new server(_config);
         this.sockets = [];
-        this.subscribers = [];
         this.server.on('request', _request => {
-            this.onRequestHandler(_request);
+            this
+                .secure(_request)
+                .subscribe(
+                    _ => !!_ ?
+                        this.onRequestHandler(_request) :
+                        _request.reject(403, 'Forbidden')
+                );
         });
         this.rooms = new WebSocketRooms();
     }
@@ -41,23 +48,35 @@ export class WebSocketServer {
      *
      * @param  {request} _request
      */
-    private onRequestHandler(_request: request) {
+    private onRequestHandler(_request: request): void {
         const connection = _request.accept(null, _request.origin);
         const socket = new Socket(_request, connection, this.rooms);
         const index = this.sockets.push(socket) - 1;
-        this.subscribers.forEach(sub => sub.apply(this, [socket]));
         connection.on('close', conn => {
             this.sockets.splice(index, 1);
         });
+        this.connections$.next(socket);
     }
 
     /**
-     * Subscribe to new socket connections
+     * Configure a secure callback
+     * to accept/reject requests
      *
-     * @param  {(socket:Socket)=>void} callback
+     * @param  {(request:request)=>Observable<boolean>} secure
+     * @returns Subject
      */
-    public onRequest(callback: (socket: Socket) => void) {
-        this.subscribers.push(callback);
+    public configure(secure: (request: request) => Observable<boolean>): Subject<Socket> {
+        this.secure = (!!secure ? secure : this.secure);
+        return this.connections$;
+    }
+
+    /**
+     * Get connections Subject
+     *
+     * @returns Subject
+     */
+    public connections(): Subject<Socket> {
+        return this.connections$;
     }
 
     /**

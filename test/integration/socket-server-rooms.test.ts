@@ -18,25 +18,31 @@ export class SocketServerIntegration {
             constructor(private server: SocketServerService) {}
 
             onStart() {
-                this.server.instance().onRequest(socket => {
-                    unit.array(this.server.instance().getSockets())
-                        .hasLength(1);
-                    socket
-                        .join('room1')
-                        .join('room2');
-                        socket.on('close', data => {});
-                        socket.on('error', data => {});
-                        socket.on('tata', data => {});
-                        socket.on('*', data => {
-                            unit.string(data.utf8Data).is('received');
-                            socket.close();
-                            this
-                                .server
-                                .stop()
-                                .subscribe(_ => done());
-                        });
-                        this.server.instance().to('room1', 'message', { foo: 'bar' });
-                });
+                this
+                    .server
+                    .instance()
+                    .connections()
+                    .subscribe(
+                        socket => {
+                            unit.array(this.server.instance().getSockets())
+                                .hasLength(1);
+                            socket
+                                .join('room1')
+                                .join('room2');
+                                socket.on('close', data => {});
+                                socket.on('error', data => {});
+                                socket.on('tata', data => {});
+                                socket.on('*', data => {
+                                    unit.string(data.utf8Data).is('received');
+                                    socket.close();
+                                    this
+                                        .server
+                                        .stop()
+                                        .subscribe(_ => done());
+                                });
+                                this.server.instance().to('room1', 'message', { foo: 'bar' });
+                        }
+                    );
 
                 const W3CWebSocket = require('websocket').w3cwebsocket;
                 const client = new W3CWebSocket('ws://localhost:2223/');
