@@ -81,7 +81,7 @@ WebSocket server
         onStart() {
             this
                 .server
-                .connections()
+                .configure(req => Observable.of(true)) // accept requests
                 .subscribe(
                     socket => {
                         socket.on('message', _ => console.log(_));
