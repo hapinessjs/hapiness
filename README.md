@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.0.0",
+    "@hapiness/core": "^1.1.0",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core rxjs
 
 ### Use Hapiness API
 
-Actually, we're in : **v1.0.0**
+Actually, we're in : **v1.1.0**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,9 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.1.0 (2017-10-16)
+    * `Websocket` Server: Secure configuration
+    * Documentation
 * v1.0.0 (2017-10-05)
     * Publish all features of API
     * First stable version

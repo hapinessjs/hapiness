@@ -1,8 +1,25 @@
 import { connection, request } from 'websocket';
 import { WebSocketRooms } from './rooms';
+import { Subject, Observable } from 'rxjs/Rx';
+
+interface Message {
+    event: string;
+    data: any;
+}
 
 export class Socket {
-    constructor(_request: request, private _connection: connection, private _rooms: WebSocketRooms) {}
+
+    private data$ = new Subject<Message>();
+
+    constructor(
+        _request: request,
+        private _connection: connection,
+        private _rooms: WebSocketRooms
+    ) {
+        this.on('close', data => this.data$.complete());
+        this.on('error', err => this.data$.error(err));
+        this.on('*', data => this.data$.next(this.getJSON(data.utf8Data)))
+    }
 
     /**
      * Listen events
@@ -24,13 +41,27 @@ export class Socket {
             default:
                 this._connection.on('message', message => {
                     if (message.type === 'utf8') {
-                        const parsed = this.getJSON(message.utf8Data);
+                        const parsed = <Message>this.getJSON(message.utf8Data);
                         if (parsed.event === event) {
                             callback(parsed.data);
                         }
                     }
                 });
         }
+    }
+
+    /**
+     * Listen data filtered by event
+     * in a Observable
+     *
+     * @param  {string} event
+     * @returns Observable
+     */
+    on$<T = any>(event: string): Observable<T> {
+        return this
+            .data$
+            .filter(_ => _ && _.event === event)
+            .map(_ => <T>_.data);
     }
 
     /**
@@ -98,7 +129,7 @@ export class Socket {
             return JSON.parse(data);
         } catch (e) {
             /* istanbul ignore next */
-            return {};
+            return data;
         }
     }
 }

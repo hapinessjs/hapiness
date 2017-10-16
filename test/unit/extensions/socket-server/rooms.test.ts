@@ -20,8 +20,8 @@ export class WebSocketRoomsTestSuite {
 
     @test('Should test all functions')
     testFunctions() {
-        const connection1 = { sendUTF() {} };
-        const connection2 = { sendUTF() {} };
+        const connection1 = { sendUTF() {}, on() {} };
+        const connection2 = { sendUTF() {}, on() {} };
         unit.stub(connection1, 'sendUTF');
         unit.stub(connection2, 'sendUTF');
         const instance = new WebSocketRooms();
