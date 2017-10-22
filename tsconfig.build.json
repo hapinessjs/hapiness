@@ -1,14 +1,15 @@
 {
-    "extends": "./tsconfig.json",
-    "compilerOptions": {
-        "outDir": ".",
-        "rootDir": "./src"
-    },
-    "exclude": [
-        "src/externals",
-        "node_modules",
-        "dist",
-        "test",
-        "tools"
-    ]
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "outDir": ".",
+    "rootDir": "./src"
+  },
+  "exclude": [
+    "src/externals",
+    "node_modules",
+    "dist",
+    "test",
+    "tools"
+  ]
 }
