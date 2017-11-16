@@ -221,7 +221,7 @@ export class HttpServerIntegration {
         class RouteTest3 implements OnGet {
             onGet(request, reply) {
                 return Observable
-                    .of({ response: 'test3', statusCode: 201 });
+                    .of({ response: 'test3', statusCode: 201, headers: { 'x-toto': 'toto' } });
             }
         }
 
@@ -244,7 +244,9 @@ export class HttpServerIntegration {
                             unit.string(res3.result)
                                 .is('test3');
                             unit.value(res3.statusCode)
-                                .is(201)
+                                .is(201);
+                            unit.string(res3.headers['x-toto'])
+                                .is('toto');
                             this.server.stop().then(_ => done());
                         });
                     });

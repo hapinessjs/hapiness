@@ -100,11 +100,13 @@ export class ModuleTestSuite {
                 .value(res)
                 .is('toto')
             return {
-                code: c => {
+                code: function(c) {
                     unit
                         .value(c)
                         .is(200);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit
@@ -128,11 +130,13 @@ export class ModuleTestSuite {
                 .value(res)
                 .is('abc')
             return {
-                code: c => {
+                code: function(c) {
                     unit
                         .value(c)
                         .is(201);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit
@@ -156,11 +160,13 @@ export class ModuleTestSuite {
                 .value(res)
                 .is(null)
             return {
-                code: c => {
+                code: function(c) {
                     unit
                         .value(c)
                         .is(204);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit

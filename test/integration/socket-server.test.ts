@@ -19,7 +19,6 @@ export class SocketServerIntegration {
             constructor(private server: SocketServerService) {}
 
             onStart() {
-                // this.server.instance().onRequest(socket => {
                 this
                     .server
                     .instance()
