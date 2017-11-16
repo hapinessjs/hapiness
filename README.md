@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.1.1",
+    "@hapiness/core": "^1.1.2",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core rxjs
 
 ### Use Hapiness API
 
-Actually, we're in : **v1.1.1**
+Actually, we're in : **v1.1.2**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.1.2 (2017-11-16)
+    * Http Handler, Observable can set headers
 * v1.1.1 (2017-10-22)
     * Build in `commonjs`
     * Latest packages' versions
