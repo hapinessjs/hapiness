@@ -9,7 +9,7 @@ import { Type } from '../../core/decorators';
 import { enumByMethod, LifecycleComponentEnum } from './enums';
 import { LifecycleManager } from './lifecycle';
 import { RouteBuilder } from './route';
-import { CoreRoute, HapiConfig } from './interfaces';
+import { CoreRoute, HapiConfig, HapinessHTTPHandlerResponse } from './interfaces';
 import { Observable } from 'rxjs';
 import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
 
@@ -121,16 +121,26 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
                 request['_hapinessRoute'],
                 [ request, reply ]
             )
-            .map(_ => !!_ && _.statusCode ? _ : { statusCode: 200, response: _ })
+            .map(_ => this.formatResponse(_))
             .subscribe(
-                _ =>
-                    reply(_.response)
-                        .code(this.isValid(_.response) ? _.statusCode : 204),
+                _ => {
+                    const repl = reply(_.response)
+                        .code(this.isValid(_.response) ? _.statusCode : 204);
+                    repl.headers = Object.assign(_.headers, repl.headers);
+                },
                 _ => {
                     errorHandler(_, request);
                     reply(_);
                 }
             );
+    }
+
+    private formatResponse(data: any): HapinessHTTPHandlerResponse {
+        return {
+            statusCode: !!data ? data.statusCode || 200 : 200,
+            headers: !!data ? data.headers || {} : {},
+            response: !!data ? data.response || data : data
+        };
     }
 
     private isValid(response: any): boolean {

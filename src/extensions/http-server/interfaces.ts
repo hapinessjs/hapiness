@@ -26,7 +26,8 @@ export interface CoreRoute {
 
 export interface HapinessHTTPHandlerResponse {
     response: any;
-    statusCode: number;
+    statusCode?: number;
+    headers?: { [key: string]: string }
 }
 
 /**
