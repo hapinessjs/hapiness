@@ -55,7 +55,7 @@ class Packaging {
         return <Observable<any>> Observable.create((observer) => {
             let fileDest = file;
             if (externals && file.indexOf('src/') !== -1) {
-                fileDest = file.split('src/').pop();
+                fileDest = `commonjs/${file.split('src/').pop()}`;
             }
             fs.stat(`${this._srcPath}${file}`, (error, stats) => {
                 if (error) {

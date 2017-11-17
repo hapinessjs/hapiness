@@ -1,9 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "module": "commonjs",
-    "outDir": ".",
-    "rootDir": "./src"
+    "outDir": "./dist/commonjs",
+    "rootDir": "./src",
+    "declarationDir": "./dist"
   },
   "exclude": [
     "src/externals",

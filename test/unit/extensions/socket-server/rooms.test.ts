@@ -84,5 +84,7 @@ export class WebSocketRoomsTestSuite {
                 data: { foo: 'baz' }
             })
         ]);
+        webSocketServer.getHttpServer().close();
+        webSocketServer.getServer().shutDown();
     }
 }
