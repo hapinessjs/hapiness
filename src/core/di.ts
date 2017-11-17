@@ -1,9 +1,4 @@
-import { ReflectiveInjector } from '../externals/injection-js';
-import { Type } from '../externals/injection-js/facade/type';
-import {
-    ResolvedReflectiveProvider,
-    ResolvedReflectiveFactory
-} from '../externals/injection-js/reflective_provider';
+import { Type, ReflectiveInjector, ResolvedReflectiveProvider, ResolvedReflectiveFactory } from 'injection-js';
 import { CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
 import { Observable } from 'rxjs';

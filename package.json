@@ -80,6 +80,7 @@
         "@types/websocket": "^0.0.34",
         "debug": "^3.1.0",
         "hapi": "^16.6.2",
+        "injection-js": "^2.2.0",
         "reflect-metadata": "^0.1.10",
         "websocket": "^1.0.25"
     },

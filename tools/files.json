@@ -2,6 +2,5 @@
     { "name":"README.md" },
     { "name":"LICENSE.md" },
     { "name":"API.md" },
-    { "name":"package.json" },
-    { "name":"src/externals", "externals": true }
+    { "name":"package.json" }
 ]

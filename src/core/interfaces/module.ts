@@ -1,5 +1,5 @@
 import { Type } from '../decorators';
-import { ReflectiveInjector } from '../../externals/injection-js';
+import { ReflectiveInjector } from 'injection-js';
 import { Observable } from 'rxjs';
 import { ModuleLevel } from '../enums';
 
