@@ -748,6 +748,10 @@ inherits@2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.1.tgz#b17d08d326b4423e568eff719f91b0b1cbdf69f1"
 
+injection-js@^2.2.0:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/injection-js/-/injection-js-2.2.0.tgz#25f3b81a94cf528c7a3679230b91e9d41e910ac4"
+
 invariant@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/invariant/-/invariant-2.2.2.tgz#9e1f56ac0acdb6bf303306f338be3b204ae60360"
