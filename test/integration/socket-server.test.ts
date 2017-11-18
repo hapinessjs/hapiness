@@ -12,14 +12,14 @@ export class SocketServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            providers: [ SocketServerService ]
+            providers: [SocketServerService]
         })
         class ModuleTest implements OnStart {
 
-            constructor(private server: SocketServerService) {}
+            constructor(private server: SocketServerService) {
+            }
 
             onStart() {
-                // this.server.instance().onRequest(socket => {
                 this
                     .server
                     .instance()
@@ -29,9 +29,12 @@ export class SocketServerIntegration {
                             unit.array(this.server.instance().getSockets())
                                 .hasLength(1);
                             socket.emit('toto', 'test');
-                            socket.on('close', data => {});
-                            socket.on('error', data => {});
-                            socket.on('tata', data => {});
+                            socket.on('close', data => {
+                            });
+                            socket.on('error', data => {
+                            });
+                            socket.on('tata', data => {
+                            });
                             socket.on('ev', data => {
                                 this.server.instance().broadcast('test', 'test');
                             });
@@ -75,7 +78,7 @@ export class SocketServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
+        Hapiness.bootstrap(ModuleTest, [SocketServerExt.setConfig({ port: 2222 })]);
     }
 
     @test('did well stop')
@@ -83,14 +86,17 @@ export class SocketServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            providers: [ SocketServerService ]
+            providers: [SocketServerService]
         })
         class ModuleTest implements OnStart {
+            constructor(private server: SocketServerService) {
+            }
 
             onStart() {
-                done();
+                this.server.stop().subscribe(() => done());
             }
         }
-        Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
+
+        Hapiness.bootstrap(ModuleTest, [SocketServerExt.setConfig({ port: 2222 })]);
     }
 }

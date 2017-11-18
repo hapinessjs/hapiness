@@ -1,6 +1,5 @@
-import { Injectable } from '../../src/core';
 import { suite, test } from 'mocha-typescript';
-import { DependencyInjection, Lib } from '../../src/core';
+import { DependencyInjection, Lib, Injectable } from '../../src/core';
 import * as unit from 'unit.js';
 
 import { EmptyProvider } from './mocks';

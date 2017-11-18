@@ -21,6 +21,7 @@ export class ModuleTestSuite {
                     .is({ options: undefined });
             }
         }
+
         const uglyHapi = <any>Hapi;
         const tmpServer = uglyHapi.Server;
         uglyHapi['Server'] = ServerMock;
@@ -42,13 +43,15 @@ export class ModuleTestSuite {
                 }
             );
 
-            uglyHapi['Server'] = tmpServer;
+        uglyHapi['Server'] = tmpServer;
     }
 
     @test('onModuleInstantiated - provide module and server and must return Observable')
     testOnModuleInstantiated1() {
 
-        class EmptyModule2 {}
+        class EmptyModule2 {
+        }
+
         const getModulesRes = [
             { token: EmptyModule },
             { token: EmptyModule2 }
@@ -71,7 +74,7 @@ export class ModuleTestSuite {
         const stub3 = unit
             .stub(LifecycleManager, 'routeLifecycle');
         const stub4 = unit
-            .stub(extInstance, 'instantiateLifecycle')
+            .stub(extInstance, 'instantiateLifecycle');
         stub4
             .withArgs(getModulesRes[0], server)
             .returns(Observable.of(getModulesRes[0]));
@@ -98,13 +101,15 @@ export class ModuleTestSuite {
         const reply = res => {
             unit
                 .value(res)
-                .is('toto')
+                .is('toto');
             return {
-                code: c => {
+                code: function (c) {
                     unit
                         .value(c)
                         .is(200);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit
@@ -112,7 +117,7 @@ export class ModuleTestSuite {
             .returns(Observable.of('toto'));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }
@@ -126,13 +131,15 @@ export class ModuleTestSuite {
         const reply = res => {
             unit
                 .value(res)
-                .is('abc')
+                .is('abc');
             return {
-                code: c => {
+                code: function (c) {
                     unit
                         .value(c)
                         .is(201);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit
@@ -140,7 +147,7 @@ export class ModuleTestSuite {
             .returns(Observable.of({ response: 'abc', statusCode: 201 }));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }
@@ -154,13 +161,15 @@ export class ModuleTestSuite {
         const reply = res => {
             unit
                 .value(res)
-                .is(null)
+                .is(null);
             return {
-                code: c => {
+                code: function (c) {
                     unit
                         .value(c)
                         .is(204);
-                }
+                    return this;
+                },
+                headers: {}
             };
         };
         const stub4 = unit
@@ -168,7 +177,7 @@ export class ModuleTestSuite {
             .returns(Observable.of(null));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{})
+        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }

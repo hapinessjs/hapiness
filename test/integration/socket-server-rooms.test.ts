@@ -3,10 +3,10 @@ import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, OnStart } from '../../src/core';
 import { SocketServerExt, SocketServerService } from '../../src/extensions/socket-server';
 
-@suite('Integration - Socket Server')
-export class SocketServerIntegration {
+@suite('Integration - Socket Server Room')
+export class SocketServerRoomIntegration {
 
-    @test('socket message')
+    @test('socket message room')
     test1(done) {
 
         @HapinessModule({

@@ -1,4 +1,3 @@
-import { reflector } from '../externals/injection-js/reflection/reflection';
 import { Observable } from 'rxjs';
 import { Type } from './decorators';
 import { InternalLogger } from './logger';
@@ -15,7 +14,7 @@ export class HookManager {
      * @returns boolean
      */
     public static hasLifecycleHook<T>(hook: string, token: Type<T>): boolean {
-        return reflector.hasLifecycleHook(token, hook);
+        return token instanceof Type && hook in token.prototype;
     }
 
     /**
