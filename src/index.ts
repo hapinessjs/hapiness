@@ -20,7 +20,10 @@ export {
     OnModuleInstantiated,
     OnExtensionLoad,
     createDecorator,
-    extractMetadata
+    extractMetadata,
+    extractMetadataByDecorator,
+    DependencyInjection,
+    errorHandler
 } from './core';
 
 export {
