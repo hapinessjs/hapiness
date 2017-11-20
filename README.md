@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.2.1",
+    "@hapiness/core": "^1.2.2",
     //...
 }
 //...
@@ -115,8 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
-* v1.2.1 (2017-11-20)
-    * Export `createDecorator()`, `extractMetadata()` methods
+* v1.2.2 (2017-11-20)
+    * Export `createDecorator()`, `extractMetadata()`, `extractMetadataByDecorator`, `errorHandler()` methods and `DependencyInjection` class
     * Documentation
 * v1.2.0 (2017-11-18)
     * Http Handler, Observable can set headers
