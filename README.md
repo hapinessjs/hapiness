@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.2.0",
+    "@hapiness/core": "^1.2.1",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core rxjs
 
 ### Use Hapiness API
 
-Actually, we're in : **v1.2.0**
+Actually, we're in : **v1.2.1**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,9 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.2.1 (2017-11-20)
+    * Export `createDecorator()`, `extractMetadata()` methods
+    * Documentation
 * v1.2.0 (2017-11-18)
     * Http Handler, Observable can set headers
     * Use `injection-js` from `npm`
