@@ -68,7 +68,8 @@ export class WebSocketRoomsTestSuite {
         connection2.sendUTF = () => {};
         unit.stub(connection1, 'sendUTF');
         unit.stub(connection2, 'sendUTF');
-        const webSocketServer = new WebSocketServer({ port: 0 });
+        const webSocketServer = new WebSocketServer({ port: 2000 });
+        webSocketServer.start();
         unit.function(webSocketServer.to);
         const instance = webSocketServer['rooms'];
         const socket1 = new Socket(<any>{}, <any>connection1, instance);
