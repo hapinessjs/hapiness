@@ -18,7 +18,7 @@ export class ModuleTestSuite {
             connection(config) {
                 unit
                     .object(config)
-                    .is({ host: undefined, port: undefined });
+                    .is({ options: undefined });
             }
         }
 

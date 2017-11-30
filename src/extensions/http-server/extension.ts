@@ -79,7 +79,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
         return []
             .concat(!!(<any>config).connections ?
                 (<any>config).connections :
-                { host: (<any>config).host, port: (<any>config).port }
+                config
             )
             .filter(_ => !!_)
             .map(_ => <ConnectionOptions>_);
