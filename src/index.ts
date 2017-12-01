@@ -29,7 +29,7 @@ export {
 export {
     HttpServerExt, HapiConfig, Route, Lifecycle, HttpRequestInfo, OnEvent, OnGet, OnDelete, OnOptions,
     OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth, OnPreHandler, OnPostHandler, OnPreResponse, Request,
-    ReplyWithContinue, ReplyNoContinue, Server, HttpServerService
+    ReplyWithContinue, ReplyNoContinue, Server, HttpServerService, HTTPHandlerResponse, ConnectionOptions
 } from './extensions/http-server';
 
 export {

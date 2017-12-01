@@ -84,6 +84,7 @@ export class RouteBuilder {
                 config: _.data.config,
                 path: _.data.path,
                 method: _.methods,
+                labels: _.data.labels,
                 providers: []
                     .concat(_.data.providers)
                     .filter(p => !!p)

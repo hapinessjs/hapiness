@@ -6,12 +6,14 @@ export interface Route {
     method: string | string[];
     config?: RouteConfig;
     providers?: Array<Type<any>|any>;
+    labels?: string | string[];
 }
 export const Route: CoreDecorator<Route> = createDecorator<Route>('Route', {
     path: undefined,
     method: undefined,
     config: undefined,
-    providers: undefined
+    providers: undefined,
+    labels: undefined
 });
 
 export interface Lifecycle {

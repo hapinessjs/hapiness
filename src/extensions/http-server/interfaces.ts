@@ -1,13 +1,27 @@
 import { CoreModule, CoreProvide } from '../../core/interfaces';
 import { Type } from '../../core/decorators';
-import { Request, ReplyWithContinue, ReplyNoContinue, ServerOptions, RouteAdditionalConfigurationOptions } from 'hapi';
 import { Observable } from 'rxjs';
+import {
+    Request,
+    ReplyWithContinue,
+    ReplyNoContinue,
+    ServerOptions,
+    RouteAdditionalConfigurationOptions,
+    ServerConnectionOptions
+} from 'hapi';
 
-export interface HapiConfig {
-    host: string;
+export interface BaseHapiConfig {
+    host?: string;
     port: number;
     options?: ServerOptions
 }
+export interface ExtendedHapiConfig {
+    connections: ConnectionOptions[]
+    options?: ServerOptions
+}
+export type HapiConfig = BaseHapiConfig | ExtendedHapiConfig;
+
+export interface ConnectionOptions extends ServerConnectionOptions {}
 
 export interface RouteConfig extends RouteAdditionalConfigurationOptions {}
 
@@ -22,9 +36,10 @@ export interface CoreRoute {
     module: CoreModule;
     providers?: CoreProvide[];
     config?: RouteConfig;
+    labels?: string | string[];
 }
 
-export interface HapinessHTTPHandlerResponse {
+export interface HTTPHandlerResponse {
     response: any;
     statusCode?: number;
     headers?: { [key: string]: string }
@@ -37,7 +52,7 @@ export interface HapinessHTTPHandlerResponse {
  * @returns void | Observable
  */
 export interface OnGet {
-    onGet(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onGet(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**
@@ -47,7 +62,7 @@ export interface OnGet {
  * @returns void | Observable
  */
 export interface OnPost {
-    onPost(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onPost(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**
@@ -58,7 +73,7 @@ export interface OnPost {
  * @returns void | Observable
  */
 export interface OnPut {
-    onPut(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onPut(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**
@@ -69,7 +84,7 @@ export interface OnPut {
  * @returns void | Observable
  */
 export interface OnPatch {
-    onPatch(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onPatch(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**
@@ -80,7 +95,7 @@ export interface OnPatch {
  * @returns void | Observable
  */
 export interface OnOptions {
-    onOptions(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onOptions(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**
@@ -91,7 +106,7 @@ export interface OnOptions {
  * @returns void | Observable
  */
 export interface OnDelete {
-    onDelete(request: Request, reply?: ReplyNoContinue): void | Observable<any | HapinessHTTPHandlerResponse>;
+    onDelete(request: Request, reply?: ReplyNoContinue): void | Observable<any | HTTPHandlerResponse>;
 }
 
 /**

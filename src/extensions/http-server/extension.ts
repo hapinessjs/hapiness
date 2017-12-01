@@ -9,7 +9,7 @@ import { Type } from '../../core/decorators';
 import { enumByMethod, LifecycleComponentEnum } from './enums';
 import { LifecycleManager } from './lifecycle';
 import { RouteBuilder } from './route';
-import { CoreRoute, HapiConfig, HapinessHTTPHandlerResponse } from './interfaces';
+import { ConnectionOptions, CoreRoute, HapiConfig, HTTPHandlerResponse } from './interfaces';
 import { Observable } from 'rxjs';
 import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
 
@@ -32,7 +32,12 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
         return Observable
             .of(new Server(config.options))
-            .do(_ => _.connection(Object.assign({}, config, { options: undefined })))
+            .flatMap(server => Observable
+                .of(Object.assign({}, config, { options: undefined }))
+                .map(_ => this.formatConnections(_))
+                .do(_ => _.forEach(connection => server.connection(connection)))
+                .map(_ => server)
+            )
             .flatMap(server =>
                 Observable
                     .of({
@@ -64,6 +69,23 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
     }
 
     /**
+     * Format the config provided
+     * to a list of ConnectionOptions
+     *
+     * @param  {HapiConfig} config
+     * @returns ConnectionOptions
+     */
+    private formatConnections(config: HapiConfig): ConnectionOptions[] {
+        return []
+            .concat(!!(<any>config).connections ?
+                (<any>config).connections :
+                config
+            )
+            .filter(_ => !!_)
+            .map(_ => <ConnectionOptions>_);
+    }
+
+    /**
      * Register a HapiJS Plugin
      *
      * @param  {CoreModule} module
@@ -71,36 +93,50 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
      * @returns Observable
      */
     private registerPlugin(module: CoreModule, server: Server): Observable<CoreRoute[]> {
-        const register: any = (s, o, n) => n();
-        register.attributes = {
-            name: module.name,
-            version: module.version
-        };
-        return Observable
-            .fromPromise(server.register(register))
-            .flatMap(_ => this.addRoutes(module, server));
+        return this
+            .buildRoutes(module)
+            .flatMap(routes => Observable
+                .of(<any>this.registerHandler(routes))
+                .do(_ => _.attributes = { name: module.name, version: module.version })
+                .flatMap(_ => Observable
+                    .fromPromise(server.register(_))
+                    .map(__ => routes)
+                )
+            );
     }
 
     /**
      * Add routes from CoreModule
      *
-     * @param  {CoreModule} module
-     * @param  {Server} server
+     * @param  {CoreRoute[]} module
      * @returns Observable
      */
-    private addRoutes(module: CoreModule, server: Server): Observable<CoreRoute[]> {
-        return Observable
-            .from(RouteBuilder.buildRoutes(module))
-            .do(_ =>
-                server
-                    .route(<RouteConfiguration>{
+    private registerHandler(routes: CoreRoute[] = []): (s, o, n) => void {
+        return (server: Server, options, next) => {
+            routes
+                .forEach(_ => {
+                    const _server = !!_.labels ? server.select(_.labels) : server;
+                    _server.route(<RouteConfiguration>{
                         method: _.method,
                         path: _.path,
                         config: Object.assign({
                             handler: (request, reply) => this.httpHandler(request, reply, _)
                         }, _.config)
-                    })
-            )
+                    });
+                });
+            next();
+        }
+    }
+
+    /**
+     * Build CoreRoute based on a module
+     *
+     * @param  {CoreModule} module
+     * @returns Observable
+     */
+    private buildRoutes(module: CoreModule): Observable<CoreRoute[]> {
+        return Observable
+            .from(RouteBuilder.buildRoutes(module))
             .toArray();
     }
 
@@ -135,7 +171,13 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             );
     }
 
-    private formatResponse(data: any): HapinessHTTPHandlerResponse {
+    /**
+     * Format response to HTTPHandlerResponse object
+     *
+     * @param  {any} data
+     * @returns HTTPHandlerResponse
+     */
+    private formatResponse(data: any): HTTPHandlerResponse {
         return {
             statusCode: !!data ? data.statusCode || 200 : 200,
             headers: !!data ? data.headers || {} : {},
@@ -143,6 +185,12 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
         };
     }
 
+    /**
+     * Check of response is not empty
+     *
+     * @param  {any} response
+     * @returns boolean
+     */
     private isValid(response: any): boolean {
         return typeof(response) !== 'undefined' && response !== null;
     }
@@ -172,6 +220,17 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .map(_ => module);
     }
 
+    /**
+     * Lifecycle Event Handler
+     * Instantiate the Lifecycle component
+     * And trigger the hook
+     *
+     * @param  {Type<any>} lifecycle
+     * @param  {CoreModule} module
+     * @param  {Request} request
+     * @param  {ReplyWithContinue} reply
+     * @returns Observable
+     */
     private eventHandler(lifecycle: Type<any>, module: CoreModule, request: Request, reply: ReplyWithContinue): Observable<any> {
         return Observable
             .of(lifecycle)
