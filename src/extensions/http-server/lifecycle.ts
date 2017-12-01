@@ -96,9 +96,31 @@ export class LifecycleManager {
      * @returns CoreRoute
      */
     private static findRoute(request: Request, routes: CoreRoute[]): CoreRoute {
+        const labels = this.arrayify(request.connection.settings.labels);
         return routes
             .find(r => ((r.method === request.route.method || r.method.indexOf(request.route.method) > -1) &&
+                (this.isRightLabels(labels, this.arrayify(r.labels))) &&
                 r.path === request.route.path));
+    }
+
+    /**
+     * Make sure to match the right route
+     * with the labels
+     *
+     * @param  {string[]=[]} labels
+     * @param  {string[]=[]} routeLabels
+     * @returns boolean
+     */
+    private static isRightLabels(labels: string[] = [], routeLabels: string[] = []): boolean {
+        if (labels.length === 0 || routeLabels.length === 0) {
+            return true;
+        } else {
+            return routeLabels.some(_ => labels.indexOf(_) > -1);
+        }
+    }
+
+    private static arrayify(data: any): any[] {
+        return [].concat(data).filter(_ => !!_);
     }
 
     /**

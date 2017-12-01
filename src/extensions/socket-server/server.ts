@@ -1,3 +1,4 @@
+import { Hapiness, HttpServerExt } from '../../';
 import { Observable, Subject } from 'rxjs/Rx';
 import { server, request } from 'websocket';
 import { Socket } from './socket';
@@ -14,20 +15,11 @@ export class WebSocketServer {
     private rooms: WebSocketRooms;
     private secure: ((request: request) => Observable<boolean>) = () => Observable.of(true);
 
-    constructor(config: SocketConfig) {
-        /* istanbul ignore next */
-        const httpHandler = (_request, _response) => {
-            _response.writeHead(404);
-            _response.end();
-        };
-        if (!!config.tls) {
-            this.httpServer = https.createServer(config.tls, httpHandler);
-        } else {
-            this.httpServer = http.createServer(httpHandler);
-        }
-        this.httpServer.listen(config.port);
-        delete config.port;
-        const _config = Object.assign({ httpServer: <any>this.httpServer }, config);
+    constructor(private config: SocketConfig) {}
+
+    public start() {
+        this.httpServer = !!this.config.useHttpExtension ? this.getHttpServerExt() : this.createHttpServer();
+        const _config = Object.assign({ httpServer: <any>this.httpServer }, this.config, { port: undefined });
         this.server = new server(_config);
         this.sockets = [];
         this.server.on('request', _request => {
@@ -40,6 +32,38 @@ export class WebSocketServer {
                 );
         });
         this.rooms = new WebSocketRooms();
+    }
+
+    /**
+     * Get Http Server Extension instance
+     * @FIXME Just take the first HapiJS connection for now
+     */
+    private getHttpServerExt() {
+        const ext = Hapiness['extensions'].find(_ => _.token === HttpServerExt);
+        if (!!ext) {
+            return ext.value.connections[0].listener;
+        } else {
+            throw new Error('Cound not find Http Server Extension');
+        }
+    }
+
+    /**
+     * Create Http Server for websocket
+     *
+     * @returns http
+     */
+    private createHttpServer(): http.Server | https.Server {
+        if (!this.config.port) {
+            throw new Error('WS port not provided');
+        }
+        /* istanbul ignore next */
+        const httpHandler = (_request, _response) => {
+            _response.writeHead(404);
+            _response.end();
+        };
+        const httpServer = !!this.config.tls ? https.createServer(this.config.tls, httpHandler) : http.createServer(httpHandler);
+        httpServer.listen(this.config.port);
+        return httpServer;
     }
 
     /**
