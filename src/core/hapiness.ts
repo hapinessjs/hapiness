@@ -21,7 +21,7 @@ export class Hapiness {
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions?
      * @returns Promise
      */
-    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<void> {
+    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<Hapiness> {
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
@@ -31,7 +31,7 @@ export class Hapiness {
                 .subscribe(
                     null,
                     _ => reject(_),
-                    () => resolve()
+                    () => resolve(this)
                 )
         });
     }
