@@ -1,6 +1,7 @@
 import { connection, request } from 'websocket';
 import { WebSocketRooms } from './rooms';
 import { Subject, Observable } from 'rxjs/Rx';
+import { InternalLogger } from '../../core/logger';
 
 interface Message {
     event: string;
@@ -9,16 +10,19 @@ interface Message {
 
 export class Socket {
 
+    private static logger = new InternalLogger('module');
+
     private data$ = new Subject<Message>();
 
     constructor(
-        _request: request,
+        private _request: request,
         private _connection: connection,
         private _rooms: WebSocketRooms
     ) {
         this.on('close', data => this.data$.complete());
         this.on('error', err => this.data$.error(err));
-        this.on('*', data => this.data$.next(this.getJSON(data.utf8Data)))
+        this.on('*', data => this.data$.next(this.getJSON(data.utf8Data)));
+        Socket.logger.debug(`New socket... ${this._request.host}`);
     }
 
     /**

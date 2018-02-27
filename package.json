@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/core",
-    "version": "1.3.0",
+    "version": "1.3.1",
     "description": "Project to have a HapiJS (https://hapijs.com/) based framework to create easier NodeJS back-end with some awesome features",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -73,19 +73,19 @@
     },
     "homepage": "https://github.com/hapinessjs/hapiness#readme",
     "dependencies": {
-        "@types/hapi": "^16.1.11",
+        "@types/hapi": "^16.1.14",
         "@types/hoek": "^4.1.3",
-        "@types/joi": "^13.0.1",
-        "@types/node": "^8.0.53",
-        "@types/websocket": "^0.0.35",
+        "@types/joi": "^13.0.5",
+        "@types/node": "^9.4.6",
+        "@types/websocket": "^0.0.37",
         "debug": "^3.1.0",
         "hapi": "^16.6.2",
         "injection-js": "^2.2.1",
-        "reflect-metadata": "^0.1.10",
+        "reflect-metadata": "^0.1.12",
         "websocket": "^1.0.25"
     },
     "devDependencies": {
-        "@types/fs-extra": "^4.0.5",
+        "@types/fs-extra": "^5.0.1",
         "coveralls": "^3.0.0",
         "fs-extra": "^4.0.2",
         "istanbul": "^1.1.0-alpha.1",
@@ -94,14 +94,14 @@
         "rimraf": "^2.6.2",
         "rxjs": "^5.5.2",
         "ts-node": "^3.3.0",
-        "tslint": "^5.8.0",
-        "typescript": "^2.6.2",
+        "tslint": "^5.9.1",
+        "typescript": "^2.7.2",
         "unit.js": "^2.0.0"
     },
     "engines": {
         "node": ">=7.0.0"
     },
     "peerDependencies": {
-        "rxjs": "^5.5.2"
+        "rxjs": "^5.5.6"
     }
 }
