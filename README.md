@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.3.0",
+    "@hapiness/core": "^1.3.1",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core rxjs
 
 ### Use Hapiness API
 
-Actually, we're in : **v1.3.0**
+Actually, we're in : **v1.3.1**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,9 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.3.1 (2018-02-27)
+    * Keep request in the Socket instance
+    * Update dependencies
 * v1.3.0 (2017-11-30)
     * Option that allow WS Server Ext to share Http Server Ext port
     * Handle HapiJS connections system to listen multiple ports
