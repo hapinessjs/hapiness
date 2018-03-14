@@ -1,4 +1,4 @@
-import { connection, request } from 'websocket';
+import { connection, request as WSRequest } from 'websocket';
 import { WebSocketRooms } from './rooms';
 import { Subject, Observable } from 'rxjs/Rx';
 import { InternalLogger } from '../../core/logger';
@@ -14,15 +14,17 @@ export class Socket {
 
     private data$ = new Subject<Message>();
 
+    private store: { [key: string]: any } = {};
+
     constructor(
-        private _request: request,
+        public request: WSRequest,
         private _connection: connection,
         private _rooms: WebSocketRooms
     ) {
         this.on('close', data => this.data$.complete());
         this.on('error', err => this.data$.error(err));
         this.on('*', data => this.data$.next(this.getJSON(data.utf8Data)));
-        Socket.logger.debug(`New socket... ${this._request.host}`);
+        Socket.logger.debug(`New socket... ${this.request.host}`);
     }
 
     /**
@@ -126,6 +128,15 @@ export class Socket {
     leave(room: string): Socket {
         this._rooms.leave(room, this);
         return this;
+    }
+
+    setData(key: string, value: any): Socket {
+        this.store[key] = value;
+        return this;
+    }
+
+    getData(key: string): any {
+        return this.store[key];
     }
 
     private getJSON(data: string) {
