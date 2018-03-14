@@ -26,6 +26,7 @@ export class SocketServerRoomIntegration {
                         socket => {
                             unit.array(this.server.instance().getSockets())
                                 .hasLength(1);
+                            socket.set('test', 123);
                             socket
                                 .join('room1')
                                 .join('room2');
@@ -34,6 +35,7 @@ export class SocketServerRoomIntegration {
                                 socket.on('tata', data => {});
                                 socket.on('*', data => {
                                     unit.string(data.utf8Data).is('received');
+                                    unit.value(socket.get('test').is(123));
                                     socket.close();
                                     this
                                         .server

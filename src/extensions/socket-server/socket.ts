@@ -14,6 +14,8 @@ export class Socket {
 
     private data$ = new Subject<Message>();
 
+    private store: { [key: string]: any } = {};
+
     constructor(
         private _request: request,
         private _connection: connection,
@@ -126,6 +128,15 @@ export class Socket {
     leave(room: string): Socket {
         this._rooms.leave(room, this);
         return this;
+    }
+
+    set(key: string, value: any): Socket {
+        this.store[key] = value;
+        return this;
+    }
+
+    get(key: string): any {
+        return this.store[key];
     }
 
     private getJSON(data: string) {
