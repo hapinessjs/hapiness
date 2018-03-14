@@ -130,12 +130,12 @@ export class Socket {
         return this;
     }
 
-    set(key: string, value: any): Socket {
+    setData(key: string, value: any): Socket {
         this.store[key] = value;
         return this;
     }
 
-    get(key: string): any {
+    getData(key: string): any {
         return this.store[key];
     }
 
