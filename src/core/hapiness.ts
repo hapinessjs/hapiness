@@ -6,6 +6,11 @@ import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
 import { ModuleManager } from './module';
 import { HookManager } from './hook';
 
+function extensionError(error: Error, name: string): Error {
+    error.message = `[${name}] ${error.message}`;
+    return error;
+}
+
 export class Hapiness {
 
     private static module: CoreModule;
@@ -51,8 +56,11 @@ export class Hapiness {
         return Observable
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
-            .flatMap(_ => this.loadExtention(_, moduleResolved))
-            .timeout(options.extensionTimeout || 3000)
+            .flatMap(_ => this
+                .loadExtention(_, moduleResolved)
+                .timeout(options.extensionTimeout || 3000)
+                .catch(err => Observable.throw(extensionError(err, _.token.name)))
+            )
             .toArray()
             .do(_ => this.extensions = _)
             .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
@@ -76,8 +84,11 @@ export class Hapiness {
             .flatMap(moduleInstantiated =>
                 Observable
                     .from(extensionsLoaded)
-                    .flatMap(_ => this.moduleInstantiated(_, moduleInstantiated))
-                    .timeout(options.extensionTimeout || 3000)
+                    .flatMap(_ => this
+                        .moduleInstantiated(_, moduleInstantiated)
+                        .timeout(options.extensionTimeout || 3000)
+                        .catch(err => Observable.throw(extensionError(err, _.token.name)))
+                    )
                     .toArray()
                     .map(_ => moduleInstantiated)
             )

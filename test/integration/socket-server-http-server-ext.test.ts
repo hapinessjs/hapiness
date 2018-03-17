@@ -99,7 +99,7 @@ export class SocketServerIntegration {
             unit
                 .object(_)
                 .isInstanceOf(Error)
-                .hasProperty('message', 'Cound not find Http Server Extension');
+                .hasProperty('message', '[SocketServerExt] Cound not find Http Server Extension');
             done();
         });
     }

@@ -203,7 +203,7 @@ export class ModuleTestSuite {
                 unit
                     .object(_)
                     .isInstanceOf(Error)
-                    .hasProperty('message', 'Timeout has occurred');
+                    .hasProperty('message', '[TestExtension] Timeout has occurred');
                 done();
             });
 
