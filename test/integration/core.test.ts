@@ -1,6 +1,7 @@
 import { suite, test } from 'mocha-typescript';
 import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable } from '../../src/core';
 import * as unit from 'unit.js';
+import { Observable } from 'rxjs';
 
 @suite('Integration - Core')
 export class ModuleTestSuite {
@@ -169,6 +170,40 @@ export class ModuleTestSuite {
                     .object(_)
                     .isInstanceOf(Error)
                     .hasProperty('message', 'Oops');
+                done();
+            });
+
+    }
+
+    @test('Bootstrap - Extension timeout')
+    testBootstrap7(done) {
+
+        class TestExtension {
+            onExtensionLoad() {
+                return Observable
+                    .of('')
+                    .delay(500);
+            }
+        }
+
+        @HapinessModule({
+            version: ''
+        })
+        class Module1 implements OnStart {
+
+            onStart() {
+                throw new Error('Oops');
+            }
+
+        }
+
+        Hapiness
+            .bootstrap(Module1, [ TestExtension ], { extensionTimeout: 100 })
+            .catch(_ => {
+                unit
+                    .object(_)
+                    .isInstanceOf(Error)
+                    .hasProperty('message', 'Timeout has occurred');
                 done();
             });
 

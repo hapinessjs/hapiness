@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs';
-import { CoreModule, Extension, ExtensionWithConfig } from './interfaces';
+import { CoreModule, Extension, ExtensionWithConfig, BootstrapOptions } from './interfaces';
 import { InternalLogger } from './logger';
 import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
@@ -19,14 +19,16 @@ export class Hapiness {
      *
      * @param  {Type<any>} module
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions?
+     * @param  {BootstrapOptions} options?
      * @returns Promise
      */
-    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<void> {
+    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>,
+            options: BootstrapOptions = {}): Promise<void> {
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
                 .flatMap(_ => ModuleManager.resolve(_))
-                .flatMap(_ => this.loadExtensions(extensions, _))
+                .flatMap(_ => this.loadExtensions(extensions, _, options))
                 .ignoreElements()
                 .subscribe(
                     null,
@@ -41,16 +43,19 @@ export class Hapiness {
      *
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions
      * @param  {CoreModule} moduleResolved
+     * @param  {BootstrapOptions} options?
      * @returns Observable
      */
-    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule): Observable<void> {
+    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule,
+            options: BootstrapOptions): Observable<void> {
         return Observable
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
             .flatMap(_ => this.loadExtention(_, moduleResolved))
+            .timeout(options.extensionTimeout || 3000)
             .toArray()
             .do(_ => this.extensions = _)
-            .flatMap(_ => this.instantiateModule(_, moduleResolved));
+            .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
     }
 
     /**
@@ -60,7 +65,8 @@ export class Hapiness {
      * @param  {CoreModule} moduleResolved
      * @returns Observable
      */
-    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule): Observable<void> {
+    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule,
+            options: BootstrapOptions): Observable<void> {
         return Observable
             .from(extensionsLoaded)
             .map(_ => ({ provide: _.token, useValue: _.value }))
@@ -71,6 +77,7 @@ export class Hapiness {
                 Observable
                     .from(extensionsLoaded)
                     .flatMap(_ => this.moduleInstantiated(_, moduleInstantiated))
+                    .timeout(options.extensionTimeout || 3000)
                     .toArray()
                     .map(_ => moduleInstantiated)
             )
