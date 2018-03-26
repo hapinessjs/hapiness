@@ -51,6 +51,7 @@ export class WebSocketServer {
                     } else {
                         obs.next();
                     }
+                    obs.complete();
                 })
             )
             .map(_ => true);
