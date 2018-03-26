@@ -1,10 +1,11 @@
 import { Observable } from 'rxjs';
-import { CoreModule, Extension, ExtensionWithConfig, BootstrapOptions } from './interfaces';
+import { CoreModule, Extension, ExtensionWithConfig, BootstrapOptions, ExtensionShutdown } from './interfaces';
 import { InternalLogger } from './logger';
 import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
 import { ModuleManager } from './module';
 import { HookManager } from './hook';
+import { ShutdownUtils } from './shutdown';
 
 function extensionError(error: Error, name: string): Error {
     error.message = `[${name}] ${error.message}`;
@@ -16,6 +17,8 @@ export class Hapiness {
     private static module: CoreModule;
     private static extensions: Extension[];
     private static logger = new InternalLogger('bootstrap');
+    private static shutdownUtils = new ShutdownUtils();
+    private static defaultTimeout = 5000;
 
     /**
      * Entrypoint to bootstrap a module
@@ -29,6 +32,10 @@ export class Hapiness {
      */
     public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>,
             options: BootstrapOptions = {}): Promise<void> {
+
+        if (options.shutdown !== false) {
+            this.handleShutdownSignals();
+        }
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
@@ -41,6 +48,62 @@ export class Hapiness {
                     () => resolve()
                 )
         });
+    }
+
+    /**
+     * Force a shutdown
+     *
+     * @returns Observable
+     */
+    public static shutdown(): Observable<boolean> {
+        return this
+            .getShutdownHooks()
+            .flatMap(_ => this
+                .shutdownUtils
+                .shutdown(_)
+            );
+    }
+
+    private static handleShutdownSignals(): void {
+        this
+            .shutdownUtils
+            .events$
+            .flatMap(_ => this.shutdown())
+            .subscribe(
+                _ => {
+                    this.logger.debug('process shutdown triggered');
+                    process.exit(0);
+                 } ,
+                _ => {
+                    errorHandler(_);
+                    process.exit(1);
+                }
+            );
+    }
+
+    /**
+     * Retrieve all shutdown hooks
+     *
+     * @returns ExtensionShutdown[]
+     */
+    private static getShutdownHooks(): Observable<ExtensionShutdown[]> {
+        return Observable
+            .from(this.extensions)
+            .filter(_ => !!_ && HookManager
+                .hasLifecycleHook(
+                    ExtentionHooksEnum.OnShutdown.toString(),
+                    _.token
+                )
+            )
+            .flatMap(_ => HookManager
+                .triggerHook(
+                    ExtentionHooksEnum.OnShutdown.toString(),
+                    _.token,
+                    _.instance,
+                    [module, _.value]
+                )
+            )
+            .toArray();
     }
 
     /**
@@ -58,7 +121,7 @@ export class Hapiness {
             .map(_ => this.toExtensionWithConfig(_))
             .flatMap(_ => this
                 .loadExtention(_, moduleResolved)
-                .timeout(options.extensionTimeout || 3000)
+                .timeout(options.extensionTimeout || this.defaultTimeout)
                 .catch(err => Observable.throw(extensionError(err, _.token.name)))
             )
             .toArray()
@@ -86,7 +149,7 @@ export class Hapiness {
                     .from(extensionsLoaded)
                     .flatMap(_ => this
                         .moduleInstantiated(_, moduleInstantiated)
-                        .timeout(options.extensionTimeout || 3000)
+                        .timeout(options.extensionTimeout || this.defaultTimeout)
                         .catch(err => Observable.throw(extensionError(err, _.token.name)))
                     )
                     .toArray()

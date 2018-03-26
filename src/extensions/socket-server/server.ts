@@ -35,6 +35,28 @@ export class WebSocketServer {
     }
 
     /**
+     * Close all sockets and close http server
+     *
+     * @returns Observable
+     */
+    public stop(): Observable<boolean> {
+        return Observable
+            .from(this.getSockets())
+            .do(_ => _.close())
+            .toArray()
+            .flatMap(_ => Observable
+                .create(obs => {
+                    if (!this.config.useHttpExtension) {
+                        this.httpServer.close(() => obs.next())
+                    } else {
+                        obs.next();
+                    }
+                })
+            )
+            .map(_ => true);
+    }
+
+    /**
      * Get Http Server Extension instance
      * @FIXME Just take the first HapiJS connection for now
      */
