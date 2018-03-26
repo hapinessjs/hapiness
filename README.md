@@ -117,7 +117,9 @@ To set up your development environment:
 ## Change History
 * v1.4.0 (2018-03-26)
     * Extensions: add timeout
-    *
+    * Extensions: shutdown
+    * Latest packages' versions
+    * Documentation
 * v1.3.1 (2018-02-27)
     * Keep request in the Socket instance
     * Update dependencies
