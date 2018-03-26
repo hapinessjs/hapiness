@@ -47,11 +47,14 @@ export class WebSocketServer {
             .flatMap(_ => Observable
                 .create(obs => {
                     if (!this.config.useHttpExtension) {
-                        this.httpServer.close(() => obs.next())
+                        this.httpServer.close(() => {
+                            obs.next();
+                            obs.complete();
+                        })
                     } else {
                         obs.next();
+                        obs.complete();
                     }
-                    obs.complete();
                 })
             )
             .map(_ => true);
