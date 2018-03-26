@@ -66,7 +66,7 @@ export class WebSocketServer {
         if (!!ext) {
             return ext.value.connections[0].listener;
         } else {
-            throw new Error('Cound not find Http Server Extension');
+            throw new Error('Could not find Http Server Extension');
         }
     }
 
