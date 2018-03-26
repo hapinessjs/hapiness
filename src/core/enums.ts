@@ -1,6 +1,7 @@
 export enum ExtentionHooksEnum {
     OnExtensionLoad = <any>'onExtensionLoad',
-    OnModuleInstantiated = <any>'onModuleInstantiated'
+    OnModuleInstantiated = <any>'onModuleInstantiated',
+    OnShutdown = <any>'onShutdown'
 }
 
 export enum ModuleEnum {
@@ -17,4 +18,9 @@ export enum ModuleLevel {
     ROOT,
     PRIMARY,
     SECONDARY
+}
+
+export enum ExtensionShutdownPriority {
+    IMPORTANT,
+    NORMAL
 }

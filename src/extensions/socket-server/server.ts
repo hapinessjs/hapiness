@@ -35,6 +35,32 @@ export class WebSocketServer {
     }
 
     /**
+     * Close all sockets and close http server
+     *
+     * @returns Observable
+     */
+    public stop(): Observable<boolean> {
+        return Observable
+            .from(this.getSockets())
+            .do(_ => _.close())
+            .toArray()
+            .flatMap(_ => Observable
+                .create(obs => {
+                    if (!this.config.useHttpExtension) {
+                        this.httpServer.close(() => {
+                            obs.next();
+                            obs.complete();
+                        })
+                    } else {
+                        obs.next();
+                        obs.complete();
+                    }
+                })
+            )
+            .map(_ => true);
+    }
+
+    /**
      * Get Http Server Extension instance
      * @FIXME Just take the first HapiJS connection for now
      */
@@ -43,7 +69,7 @@ export class WebSocketServer {
         if (!!ext) {
             return ext.value.connections[0].listener;
         } else {
-            throw new Error('Cound not find Http Server Extension');
+            throw new Error('Could not find Http Server Extension');
         }
     }
 

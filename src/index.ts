@@ -23,7 +23,9 @@ export {
     extractMetadata,
     extractMetadataByDecorator,
     DependencyInjection,
-    errorHandler
+    errorHandler,
+    ExtensionShutdown,
+    ExtensionShutdownPriority
 } from './core';
 
 export {

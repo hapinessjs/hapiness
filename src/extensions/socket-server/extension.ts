@@ -1,6 +1,7 @@
 import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad, OnModuleInstantiated } from '../../core/interfaces';
 import { Observable } from 'rxjs/Observable';
 import { WebSocketServer } from './server';
+import { ExtensionShutdown, ExtensionShutdownPriority } from '../../core';
 
 export interface SocketConfig {
     port?: number;
@@ -53,5 +54,19 @@ export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated {
         return Observable
             .of(server)
             .map(_ => _.start());
+    }
+
+    /**
+     * Shutdown HapiJS server extension
+     *
+     * @param  {CoreModule} module
+     * @param  {Server} server
+     * @returns ExtensionShutdown
+     */
+    onShutdown(module: CoreModule, server: WebSocketServer): ExtensionShutdown {
+        return {
+            priority: ExtensionShutdownPriority.IMPORTANT,
+            resolver: server.stop()
+        }
     }
 }

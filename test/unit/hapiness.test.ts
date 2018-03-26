@@ -75,7 +75,7 @@ export class TestSuite {
             .withArgs([ ext ], coreModule)
             .returns(Observable.of(null));
 
-        Hapiness['loadExtensions']([ MyExt, null ], coreModule)
+        Hapiness['loadExtensions']([ MyExt, null ], coreModule, {})
             .subscribe();
 
         stub1.parent.restore();
@@ -107,7 +107,7 @@ export class TestSuite {
             .withArgs(coreModule)
             .returns(Observable.of(null));
 
-        Hapiness['instantiateModule']([ ext ], coreModule)
+        Hapiness['instantiateModule']([ ext ], coreModule, {})
             .subscribe();
 
         stub1.parent.restore();

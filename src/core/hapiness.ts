@@ -1,16 +1,24 @@
 import { Observable } from 'rxjs';
-import { CoreModule, Extension, ExtensionWithConfig } from './interfaces';
+import { CoreModule, Extension, ExtensionWithConfig, BootstrapOptions, ExtensionShutdown } from './interfaces';
 import { InternalLogger } from './logger';
 import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
 import { ModuleManager } from './module';
 import { HookManager } from './hook';
+import { ShutdownUtils } from './shutdown';
+
+function extensionError(error: Error, name: string): Error {
+    error.message = `[${name}] ${error.message}`;
+    return error;
+}
 
 export class Hapiness {
 
     private static module: CoreModule;
     private static extensions: Extension[];
     private static logger = new InternalLogger('bootstrap');
+    private static shutdownUtils = new ShutdownUtils();
+    private static defaultTimeout = 5000;
 
     /**
      * Entrypoint to bootstrap a module
@@ -19,14 +27,20 @@ export class Hapiness {
      *
      * @param  {Type<any>} module
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions?
+     * @param  {BootstrapOptions} options?
      * @returns Promise
      */
-    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>): Promise<void> {
+    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>,
+            options: BootstrapOptions = {}): Promise<void> {
+
+        if (options.shutdown !== false) {
+            this.handleShutdownSignals();
+        }
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
                 .flatMap(_ => ModuleManager.resolve(_))
-                .flatMap(_ => this.loadExtensions(extensions, _))
+                .flatMap(_ => this.loadExtensions(extensions, _, options))
                 .ignoreElements()
                 .subscribe(
                     null,
@@ -37,20 +51,82 @@ export class Hapiness {
     }
 
     /**
+     * Force a shutdown
+     *
+     * @returns Observable
+     */
+    public static shutdown(): Observable<boolean> {
+        return this
+            .getShutdownHooks()
+            .flatMap(_ => this
+                .shutdownUtils
+                .shutdown(_)
+            );
+    }
+
+    private static handleShutdownSignals(): void {
+        this
+            .shutdownUtils
+            .events$
+            .flatMap(_ => this.shutdown())
+            .subscribe(
+                _ => {
+                    this.logger.debug('process shutdown triggered');
+                    process.exit(0);
+                 } ,
+                _ => {
+                    errorHandler(_);
+                    process.exit(1);
+                }
+            );
+    }
+
+    /**
+     * Retrieve all shutdown hooks
+     *
+     * @returns ExtensionShutdown[]
+     */
+    private static getShutdownHooks(): Observable<ExtensionShutdown[]> {
+        return Observable
+            .from(this.extensions)
+            .filter(_ => !!_ && HookManager
+                .hasLifecycleHook(
+                    ExtentionHooksEnum.OnShutdown.toString(),
+                    _.token
+                )
+            )
+            .flatMap(_ => HookManager
+                .triggerHook(
+                    ExtentionHooksEnum.OnShutdown.toString(),
+                    _.token,
+                    _.instance,
+                    [module, _.value]
+                )
+            )
+            .toArray();
+    }
+
+    /**
      * Load extensions
      *
      * @param  {Array<Type<any>|ExtensionWithConfig>} extensions
      * @param  {CoreModule} moduleResolved
+     * @param  {BootstrapOptions} options?
      * @returns Observable
      */
-    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule): Observable<void> {
+    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule,
+            options: BootstrapOptions): Observable<void> {
         return Observable
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
-            .flatMap(_ => this.loadExtention(_, moduleResolved))
+            .flatMap(_ => this
+                .loadExtention(_, moduleResolved)
+                .timeout(options.extensionTimeout || this.defaultTimeout)
+                .catch(err => Observable.throw(extensionError(err, _.token.name)))
+            )
             .toArray()
             .do(_ => this.extensions = _)
-            .flatMap(_ => this.instantiateModule(_, moduleResolved));
+            .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
     }
 
     /**
@@ -60,7 +136,8 @@ export class Hapiness {
      * @param  {CoreModule} moduleResolved
      * @returns Observable
      */
-    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule): Observable<void> {
+    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule,
+            options: BootstrapOptions): Observable<void> {
         return Observable
             .from(extensionsLoaded)
             .map(_ => ({ provide: _.token, useValue: _.value }))
@@ -70,7 +147,11 @@ export class Hapiness {
             .flatMap(moduleInstantiated =>
                 Observable
                     .from(extensionsLoaded)
-                    .flatMap(_ => this.moduleInstantiated(_, moduleInstantiated))
+                    .flatMap(_ => this
+                        .moduleInstantiated(_, moduleInstantiated)
+                        .timeout(options.extensionTimeout || this.defaultTimeout)
+                        .catch(err => Observable.throw(extensionError(err, _.token.name)))
+                    )
                     .toArray()
                     .map(_ => moduleInstantiated)
             )
