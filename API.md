@@ -141,7 +141,7 @@ An extension is a class provided to the boostrap.
 
 ```javascript
     class ExampleExt implements OnExtensionLoad {
-        
+
         public static setConfig(config: any): ExtensionWithConfig {
             return {
                 token: HttpServerExt,
@@ -161,8 +161,18 @@ Methods to implement:
     - arguments: (module: CoreModule, config: any)
     - returns: Observable<Extension>
 - `OnModuleInstantiated` - (Optional) Called once the bootstrapped module is instanciated
-    - arguments: (module: CoreModule)
+    - arguments: (module: CoreModule, extension value)
     - returns: void
+- `OnShutdown` - (Optional) Called once the process catch a `SIGTERM` or a `SIGINT` event
+    - arguments: (module: CoreModule, extension value)
+    - returns: ExtensionShutdown {
+        priority: ExtensionShutdownPriority.IMPORTANT | ExtensionShutdownPriority.NORMAL,
+        resolver: Observable<boolean>
+    }
+
+The shutdown feature allow to stop gracefully the service.
+the `IMPORTANT` priority is for the extensions that needs to process ongoing requests.
+The `NORMAL` priority is for extensions that can be stopped directly.
 
 Extension:
 ```javascript

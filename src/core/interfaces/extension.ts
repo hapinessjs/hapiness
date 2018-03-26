@@ -1,6 +1,7 @@
 import { Type } from '../decorators';
 import { Observable } from 'rxjs';
 import { CoreModule } from './module';
+import { ExtensionShutdownPriority } from '../enums';
 
 export interface ExtensionWithConfig {
     token: Type<any>;
@@ -11,6 +12,11 @@ export interface Extension {
     value: any;
     instance: any;
     token: Type<any>;
+}
+
+export interface ExtensionShutdown {
+    priority: ExtensionShutdownPriority;
+    resolver: Observable<any>;
 }
 
 /**
@@ -26,6 +32,16 @@ export interface OnExtensionLoad { onExtensionLoad(module: CoreModule, config: a
  * OnModuleInstantiated Hook
  *
  * @param  {CoreModule} module
+ * @param  {any} server
  * @returns Observable
  */
 export interface OnModuleInstantiated { onModuleInstantiated(module: CoreModule, server: any): Observable<void> }
+
+/**
+ * OnShutdown Hook
+ *
+ * @param  {CoreModule} module
+ * @param  {any} server
+ * @returns Observable
+ */
+export interface OnShutdown { onShutdown(module: CoreModule, server: any): ExtensionShutdown }

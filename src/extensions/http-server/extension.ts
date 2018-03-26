@@ -1,9 +1,17 @@
+import {
+    CoreModule,
+    OnExtensionLoad,
+    OnModuleInstantiated,
+    ExtensionWithConfig,
+    Extension,
+    OnShutdown,
+    ExtensionShutdown
+} from '../../core/interfaces';
 import { DependencyInjection } from '../../core/di';
 import { HookManager } from '../../core/hook';
 import { extractMetadataByDecorator } from '../../core/metadata';
 import { ModuleManager } from '../../core/module';
 import { errorHandler } from '../../core/hapiness';
-import { CoreModule, OnExtensionLoad, OnModuleInstantiated, ExtensionWithConfig, Extension } from '../../core/interfaces';
 import { Lifecycle } from './decorators';
 import { Type } from '../../core/decorators';
 import { enumByMethod, LifecycleComponentEnum } from './enums';
@@ -12,8 +20,9 @@ import { RouteBuilder } from './route';
 import { ConnectionOptions, CoreRoute, HapiConfig, HTTPHandlerResponse } from './interfaces';
 import { Observable } from 'rxjs';
 import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
+import { ExtensionShutdownPriority } from '../../core';
 
-export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
+export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnShutdown {
 
     public static setConfig(config: HapiConfig): ExtensionWithConfig {
         return {
@@ -66,6 +75,20 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated {
             .reduce((a, c) => a.concat(c), [])
             .do(_ => LifecycleManager.routeLifecycle(server, _))
             .flatMap(_ => server.start());
+    }
+
+    /**
+     * Shutdown HapiJS server extension
+     *
+     * @param  {CoreModule} module
+     * @param  {Server} server
+     * @returns ExtensionShutdown
+     */
+    onShutdown(module: CoreModule, server: Server): ExtensionShutdown {
+        return {
+            priority: ExtensionShutdownPriority.IMPORTANT,
+            resolver: Observable.fromPromise(server.stop())
+        }
     }
 
     /**
