@@ -1,4 +1,4 @@
-import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad, OnModuleInstantiated } from '../../core/interfaces';
+import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad, OnModuleInstantiated, OnShutdown } from '../../core/interfaces';
 import { Observable } from 'rxjs/Observable';
 import { WebSocketServer } from './server';
 import { ExtensionShutdown, ExtensionShutdownPriority } from '../../core';
@@ -16,7 +16,7 @@ export interface SocketConfig {
     }
 }
 
-export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated {
+export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated, OnShutdown {
 
     public static setConfig(config: SocketConfig): ExtensionWithConfig {
         return {
