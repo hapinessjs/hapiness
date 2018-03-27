@@ -87,7 +87,7 @@ $ yarn add @hapiness/core rxjs
 
 ```javascript
 "dependencies": {
-    "@hapiness/core": "^1.4.0",
+    "@hapiness/core": "^1.5.0",
     //...
 }
 //...
@@ -95,7 +95,7 @@ $ yarn add @hapiness/core rxjs
 
 ### Use Hapiness API
 
-Actually, we're in : **v1.4.0**
+Actually, we're in : **v1.5.0**
 
 See [API](https://github.com/hapinessjs/hapiness/blob/master/API.md) Reference to know what's already implemented.
 
@@ -115,6 +115,9 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.5.0 (2018-03-27)
+    * EventManager Extension
+    * Documentation
 * v1.4.0 (2018-03-26)
     * Extensions: add timeout
     * Extensions: shutdown

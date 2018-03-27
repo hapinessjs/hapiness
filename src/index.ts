@@ -41,3 +41,10 @@ export {
     WebSocketServer,
     SocketServerService
 } from './extensions/socket-server';
+
+export {
+    EventManagerExt,
+    EventManager,
+    EventService,
+    EventData
+} from './extensions/event-manager';
