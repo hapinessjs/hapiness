@@ -25,7 +25,8 @@ export {
     DependencyInjection,
     errorHandler,
     ExtensionShutdown,
-    ExtensionShutdownPriority
+    ExtensionShutdownPriority,
+    OnShutdown
 } from './core';
 
 export {
