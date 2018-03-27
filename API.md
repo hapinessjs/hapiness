@@ -194,3 +194,7 @@ See the documentation: [here](src/extensions/http-server/README.md)
 # Socket Server Extension
 
 See the documentation: [here](src/extensions/socket-server/README.md)
+
+# EventManager Extension
+
+See the documentation: [here](src/extensions/event-manager/README.md)
