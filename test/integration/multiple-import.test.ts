@@ -96,7 +96,7 @@ export class SocketServerIntegration {
             .catch(err => done(err));
     }
 
-    @test.only('module with InjectionToken with HttpServerExt')
+    @test('module with InjectionToken with HttpServerExt')
     test4(done) {
 
         const it = new InjectionToken('test');
