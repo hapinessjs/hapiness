@@ -118,6 +118,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
     private registerPlugin(module: CoreModule, server: Server): Observable<CoreRoute[]> {
         return this
             .buildRoutes(module)
+            .filter(_ => !!_ && _.length > 0)
             .flatMap(routes => Observable
                 .of(<any>this.registerHandler(routes))
                 .do(_ => _.attributes = { name: module.name, version: module.version })
@@ -125,7 +126,8 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
                     .fromPromise(server.register(_))
                     .map(__ => routes)
                 )
-            );
+            )
+            .defaultIfEmpty([]);
     }
 
     /**
