@@ -34,13 +34,17 @@ export class TestSuite {
             });
     }
 
-    @test('bootstrap - provide module and must reject')
+    @test.only('bootstrap - provide module and must reject')
     testBootstrap2(done) {
 
         const stub1 = unit
             .stub(Hapiness, 'checkArg')
             .withArgs(EmptyModule)
             .returns(Observable.throw(new Error('Oops')));
+
+        const stub2 = unit
+            .stub(Hapiness, 'shutdown')
+            .returns(Observable.of(false));
 
         Hapiness
             .bootstrap(EmptyModule)
@@ -50,7 +54,11 @@ export class TestSuite {
                     .isInstanceOf(Error)
                     .hasProperty('message', 'Oops');
 
+                unit.number(stub2.callCount).is(1);
+
                 stub1.parent.restore();
+                stub2.restore();
+
                 done();
             });
     }
@@ -143,9 +151,6 @@ export class TestSuite {
             .returns(Observable.of(module))
             .withArgs('onRegister', EmptyModule2, getModulesRes[1].instance)
             .returns(Observable.of(module));
-        // stub3
-        //     .withArgs('onStart', EmptyModule, getModulesRes[0].instance, null, false)
-        //     .returns(Observable.of(null));
 
         Hapiness['callRegister'](module)
             .subscribe();

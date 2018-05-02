@@ -44,9 +44,18 @@ export class Hapiness {
                 .ignoreElements()
                 .subscribe(
                     null,
-                    _ => reject(_),
+                    _ => {
+                        this.logger.debug(`bootstrap error catched [${_.message}], shutting down extension ...`);
+                        this.shutdown()
+                            .subscribe(
+                                () => {},
+                                err => this.logger.debug(`(2) bootstrap error catched [${err.message}], shutting down extension ...`)
+                            );
+
+                        reject(_);
+                    },
                     () => resolve()
-                )
+                );
         });
     }
 
