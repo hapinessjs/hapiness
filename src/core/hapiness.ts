@@ -46,6 +46,7 @@ export class Hapiness {
                     null,
                     _ => {
                         this.logger.debug(`bootstrap error catched [${_.message}], shutting down extension ...`);
+
                         this.shutdown()
                             .subscribe(
                                 () => {},
@@ -97,7 +98,7 @@ export class Hapiness {
      */
     private static getShutdownHooks(): Observable<ExtensionShutdown[]> {
         return Observable
-            .from(this.extensions)
+            .from([].concat(this.extensions).filter(e => !!e))
             .filter(_ => !!_ && HookManager
                 .hasLifecycleHook(
                     ExtentionHooksEnum.OnShutdown.toString(),
@@ -134,7 +135,6 @@ export class Hapiness {
                 .catch(err => Observable.throw(extensionError(err, _.token.name)))
             )
             .toArray()
-            .do(_ => this.extensions = _)
             .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
     }
 
@@ -265,6 +265,10 @@ export class Hapiness {
                         instance,
                         [ module, extension.config ]
                     )
+            )
+            .do(_ => this.extensions = []
+                .concat(this.extensions, _)
+                .filter(__ => !!__)
             );
     }
 
