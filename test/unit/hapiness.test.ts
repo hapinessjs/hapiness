@@ -34,7 +34,7 @@ export class TestSuite {
             });
     }
 
-    @test.only('bootstrap - provide module and must reject')
+    @test('bootstrap - provide module and must reject')
     testBootstrap2(done) {
 
         const stub1 = unit
