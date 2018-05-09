@@ -46,14 +46,16 @@ export class Hapiness {
                     null,
                     _ => {
                         this.logger.debug(`bootstrap error catched [${_.message}], shutting down extension ...`);
-
-                        this.shutdown()
+                        this
+                            .shutdown()
                             .subscribe(
-                                () => {},
-                                err => this.logger.debug(`(2) bootstrap error catched [${err.message}], shutting down extension ...`)
+                                () => reject(_),
+                                err => {
+                                    this.logger.debug(`bootstrap error catched [${err.message}], shutting down extension ...`);
+                                    reject(err);
+                                    process.exit(1);
+                                }
                             );
-
-                        reject(_);
                     },
                     () => resolve()
                 );
@@ -129,7 +131,7 @@ export class Hapiness {
         return Observable
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
-            .flatMap(_ => this
+            .concatMap(_ => this
                 .loadExtention(_, moduleResolved)
                 .timeout(options.extensionTimeout || this.defaultTimeout)
                 .catch(err => Observable.throw(extensionError(err, _.token.name)))
@@ -265,6 +267,12 @@ export class Hapiness {
                         instance,
                         [ module, extension.config ]
                     )
+                    .catch(_ => {
+                        this.extensions = [].concat(this.extensions, instance);
+                        return this
+                            .shutdown()
+                            .flatMap(() => Observable.throw(_));
+                    })
             )
             .do(_ => this.extensions = []
                 .concat(this.extensions, _)
