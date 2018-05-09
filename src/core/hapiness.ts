@@ -45,13 +45,13 @@ export class Hapiness {
                 .subscribe(
                     null,
                     _ => {
-                        this.logger.debug(`bootstrap error catched [${_.message}], shutting down extension ...`);
+                        this.logger.debug(`bootstrap error catched [${_.message}]`);
                         this
                             .shutdown()
                             .subscribe(
                                 () => reject(_),
                                 err => {
-                                    this.logger.debug(`bootstrap error catched [${err.message}], shutting down extension ...`);
+                                    this.logger.debug(`bootstrap error catched [${err.message}], shutting down extensions...`);
                                     reject(err);
                                     process.exit(1);
                                 }
