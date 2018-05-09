@@ -1,5 +1,5 @@
 import { suite, test } from 'mocha-typescript';
-import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable } from '../../src/core';
+import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable, ExtensionShutdownPriority } from '../../src/core';
 import * as unit from 'unit.js';
 import { Observable } from 'rxjs';
 
@@ -204,6 +204,64 @@ export class ModuleTestSuite {
                     .object(_)
                     .isInstanceOf(Error)
                     .hasProperty('message', '[TestExtension] Timeout has occurred');
+
+                done();
+            });
+
+    }
+
+    @test('Bootstrap - Extension timeout call onShutdown on first extension')
+    testBootstrap8(done) {
+
+        let enterred = false;
+
+        class TestExtension1 {
+            onExtensionLoad() {
+                return Observable.of({
+                    value: 'test',
+                    instance: this,
+                    token: TestExtension1
+                });
+            }
+
+            onShutdown() {
+                enterred = true;
+                return {
+                    priority: ExtensionShutdownPriority.NORMAL,
+                    resolver: Observable.of(true)
+                };
+            }
+        }
+
+        class TestExtension2 {
+            onExtensionLoad() {
+                return Observable
+                    .of('')
+                    .delay(500);
+            }
+        }
+
+        @HapinessModule({
+            version: ''
+        })
+        class Module1 implements OnStart {
+
+            onStart() {
+                throw new Error('Oops');
+            }
+
+        }
+
+        Hapiness
+            .bootstrap(Module1, [ TestExtension1, TestExtension2 ], { extensionTimeout: 100 })
+            .catch(_ => {
+                unit
+                    .object(_)
+                    .isInstanceOf(Error)
+                    .hasProperty('message', '[TestExtension2] Timeout has occurred');
+
+                unit.bool(enterred).isTrue();
+
                 done();
             });
 
