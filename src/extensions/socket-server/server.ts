@@ -41,7 +41,7 @@ export class WebSocketServer {
      */
     public stop(): Observable<boolean> {
         return Observable
-            .from(this.getSockets())
+            .from([].concat(this.getSockets()).filter(_ => !!_))
             .do(_ => _.close())
             .toArray()
             .flatMap(_ => Observable

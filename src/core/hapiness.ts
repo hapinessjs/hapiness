@@ -44,9 +44,21 @@ export class Hapiness {
                 .ignoreElements()
                 .subscribe(
                     null,
-                    _ => reject(_),
+                    _ => {
+                        this.logger.debug(`bootstrap error catched [${_.message}]`);
+                        this
+                            .shutdown()
+                            .subscribe(
+                                () => reject(_),
+                                err => {
+                                    this.logger.debug(`bootstrap error catched [${err.message}], shutting down extensions...`);
+                                    reject(err);
+                                    process.exit(1);
+                                }
+                            );
+                    },
                     () => resolve()
-                )
+                );
         });
     }
 
@@ -88,7 +100,7 @@ export class Hapiness {
      */
     private static getShutdownHooks(): Observable<ExtensionShutdown[]> {
         return Observable
-            .from(this.extensions)
+            .from([].concat(this.extensions).filter(e => !!e))
             .filter(_ => !!_ && HookManager
                 .hasLifecycleHook(
                     ExtentionHooksEnum.OnShutdown.toString(),
@@ -119,13 +131,12 @@ export class Hapiness {
         return Observable
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
-            .flatMap(_ => this
+            .concatMap(_ => this
                 .loadExtention(_, moduleResolved)
                 .timeout(options.extensionTimeout || this.defaultTimeout)
                 .catch(err => Observable.throw(extensionError(err, _.token.name)))
             )
             .toArray()
-            .do(_ => this.extensions = _)
             .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
     }
 
@@ -256,6 +267,16 @@ export class Hapiness {
                         instance,
                         [ module, extension.config ]
                     )
+                    .catch(_ => {
+                        this.extensions = [].concat(this.extensions, instance);
+                        return this
+                            .shutdown()
+                            .flatMap(() => Observable.throw(_));
+                    })
+            )
+            .do(_ => this.extensions = []
+                .concat(this.extensions, _)
+                .filter(__ => !!__)
             );
     }
 
