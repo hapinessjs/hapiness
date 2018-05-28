@@ -13,11 +13,11 @@ interface InternalType {
 }
 
 export class HttpRequestInfo {
-    query: {[key: string]: string};
+    query: {[key: string]: any};
     params: {[key: string]: string};
     headers: {[key: string]: string};
-    payload: {[key: string]: string};
-    credentials: {[key: string]: string};
+    payload: any;
+    credentials: {[key: string]: any};
     id: string;
 }
 
