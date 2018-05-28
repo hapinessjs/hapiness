@@ -1,7 +1,7 @@
 import { suite, test } from 'mocha-typescript';
 import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable, ExtensionShutdownPriority } from '../../src/core';
 import * as unit from 'unit.js';
-import { Observable } from 'rxjs';
+import { Observable } from 'rxjs/Observable';
 
 @suite('Integration - Core')
 export class ModuleTestSuite {
