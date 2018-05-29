@@ -17,17 +17,17 @@ export class LifecycleManager {
     static routeLifecycle(server: Server, routes: CoreRoute[]): void {
 
         server.ext(<any>LifecycleEventsEnum.OnPreAuth.toString(),
-            (request: Request, reply: ReplyWithContinue) =>
-                this.instantiateRoute(routes, request, reply)
-                    .subscribe(
-                        _ => reply.continue(),
-                        _ => errorHandler(_)
-                    )
+        (request: Request, reply: ReplyWithContinue) =>
+            this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply)
+                .subscribe(
+                    _ => reply.continue(),
+                    _ => errorHandler(_)
+                )
         );
 
         server.ext(<any>LifecycleEventsEnum.OnPostAuth.toString(),
             (request: Request, reply: ReplyWithContinue) =>
-                this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply)
+                this.instantiateRoute(routes, request, reply)
                     .subscribe(
                         _ => reply.continue(),
                         _ => errorHandler(_)
@@ -84,7 +84,7 @@ export class LifecycleManager {
             )
             .do(_ => request['_hapinessRoute'] = _.instance)
             .defaultIfEmpty(null)
-            .flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply))
+            .flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPostAuth, routes, request, reply))
     }
 
     /**

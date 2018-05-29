@@ -12,7 +12,14 @@ interface InternalType {
     token: Type<any>;
 }
 
-export class HttpRequestInfo {}
+export class HttpRequestInfo {
+    query: {[key: string]: any};
+    params: {[key: string]: string};
+    headers: {[key: string]: string};
+    payload: any;
+    credentials: {[key: string]: any};
+    id: string;
+}
 
 export class RouteBuilder {
 
@@ -54,6 +61,7 @@ export class RouteBuilder {
                 params: Object.assign({}, request.params),
                 headers: Object.assign({}, request.headers),
                 payload: Object.assign({}, request.payload),
+                credentials: Object.assign({}, request.auth.credentials),
                 id: request.id
             }))
             .map(_ => ({ provide: HttpRequestInfo, useValue: _ }))
