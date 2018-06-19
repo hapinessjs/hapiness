@@ -99,7 +99,7 @@ export class WebSocketServer {
      * @param  {request} _request
      */
     private onRequestHandler(_request: request): void {
-        const connection = _request.accept(null, _request.origin);
+        const connection = _request.accept(<string>_request.httpRequest.headers['sec-websocket-protocol'] || '', _request.origin);
         const socket = new Socket(_request, connection, this.rooms);
         const index = this.sockets.push(socket) - 1;
         connection.on('close', conn => {
