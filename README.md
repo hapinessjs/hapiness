@@ -115,6 +115,15 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.5.4 (2018-06-19)
+    * WebSocketServer: add sec-websocket-protocol in response
+* v1.5.3 (2018-05-29)
+    * HttpRequestInfo types
+    * Add credentials
+* v1.5.2 (2018-05-09)
+    * Shutdown all extensions if one failed in bootstrap
+* v1.5.1 (2018-04-06)
+    * Allow to import many time the same modules if it has no routes inside
 * v1.5.0 (2018-03-27)
     * EventManager Extension
     * Documentation
