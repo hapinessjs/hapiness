@@ -115,6 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.5.5 (2018-10-15)
+    * Boostrap fix: Exit the process if it fails
 * v1.5.4 (2018-06-19)
     * WebSocketServer: add sec-websocket-protocol in response
 * v1.5.3 (2018-05-29)
