@@ -132,8 +132,7 @@ export class Hapiness {
             .from([].concat(extensions).filter(_ => !!_))
             .map(_ => this.toExtensionWithConfig(_))
             .concatMap(_ => this
-                .loadExtention(_, moduleResolved)
-                .timeout(options.extensionTimeout || this.defaultTimeout)
+                .loadExtention(_, moduleResolved, options)
                 .catch(err => Observable.throw(extensionError(err, _.token.name)))
             )
             .toArray()
@@ -255,7 +254,7 @@ export class Hapiness {
      * @param  {ExtensionWithConfig} extension
      * @returns Observable
      */
-    private static loadExtention(extension: ExtensionWithConfig, module: CoreModule): Observable<Extension> {
+    private static loadExtention(extension: ExtensionWithConfig, module: CoreModule, options: BootstrapOptions): Observable<Extension> {
         return Observable
             .of(Reflect.construct(extension.token, []))
             .do(_ => this.logger.debug(`loading ${extension.token.name}`))
@@ -267,11 +266,10 @@ export class Hapiness {
                         instance,
                         [ module, extension.config ]
                     )
+                    .timeout(options.extensionTimeout || this.defaultTimeout)
                     .catch(_ => {
-                        this.extensions = [].concat(this.extensions, instance);
-                        return this
-                            .shutdown()
-                            .flatMap(() => Observable.throw(_));
+                        setTimeout(() => process.exit(1), 1000);
+                        return Observable.throw(_);
                     })
             )
             .do(_ => this.extensions = []
