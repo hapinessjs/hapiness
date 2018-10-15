@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'test';
 import { suite, test } from 'mocha-typescript';
 import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable, ExtensionShutdownPriority } from '../../src/core';
 import * as unit from 'unit.js';

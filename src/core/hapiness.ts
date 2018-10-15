@@ -268,7 +268,9 @@ export class Hapiness {
                     )
                     .timeout(options.extensionTimeout || this.defaultTimeout)
                     .catch(_ => {
-                        setTimeout(() => process.exit(1), 1000);
+                        if (process.env.NODE_ENV !== 'test') {
+                            setTimeout(() => process.exit(1), 1000);
+                        }
                         return Observable.throw(_);
                     })
             )
