@@ -1,4 +1,5 @@
-import { Observable } from 'rxjs';
+import { EMPTY, merge, Observable, of, throwError } from 'rxjs';
+import { filter, flatMap, map, tap } from 'rxjs/operators';
 import { Type } from './decorators';
 import { InternalLogger } from './logger';
 
@@ -29,24 +30,26 @@ export class HookManager {
      * @returns Observable
      */
     public static triggerHook<T>(hook: string, token: Type<any>, instance: T, args?: any[], throwErr?: boolean): Observable<any> {
-        return Observable
-            .merge(
-                Observable
-                    .of(this.hasLifecycleHook(hook, token))
-                    .filter(_ => !!_)
-                    .map(_ => Reflect.apply(instance[hook], instance, args || []))
-                    .flatMap(_ =>
+        return merge(
+            of(this.hasLifecycleHook(hook, token))
+                .pipe(
+                    filter(_ => !!_),
+                    map(_ => Reflect.apply(instance[ hook ], instance, args || [])),
+                    flatMap(_ =>
                         (_ instanceof Observable) ?
-                        _ : !!_ ?
-                        Observable.of(_) :
-                        Observable.empty()
-                    ),
-
-                Observable
-                    .of(this.hasLifecycleHook(hook, token))
-                    .filter(_ => !_ && throwErr)
-                    .flatMap(_ => Observable.throw(new Error(`Hook missing ${hook} on ${token.name}`)))
-            )
-            .do(_ => this.logger.debug(`Triggering hook '${hook}' on '${token.name}'`));
+                            _ : !!_ ?
+                            of(_) :
+                            EMPTY
+                    )
+                ),
+            of(this.hasLifecycleHook(hook, token))
+                .pipe(
+                    filter(_ => !_ && throwErr),
+                    flatMap(_ => throwError(new Error(`Hook missing ${hook} on ${token.name}`)))
+                )
+        )
+            .pipe(
+                tap(_ => this.logger.debug(`Triggering hook '${hook}' on '${token.name}'`))
+            );
     }
 }

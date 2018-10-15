@@ -1,10 +1,9 @@
-import { suite, test } from 'mocha-typescript';
-import { HttpServerExt, LifecycleManager } from '../../../../src/extensions/http-server';
-import { HookManager, ModuleManager } from '../../../../src/core';
-import { Observable } from 'rxjs';
-import * as unit from 'unit.js';
-
 import * as Hapi from 'hapi';
+import { suite, test } from 'mocha-typescript';
+import { of } from 'rxjs';
+import * as unit from 'unit.js';
+import { HookManager, ModuleManager } from '../../../../src/core';
+import { HttpServerExt, LifecycleManager } from '../../../../src/extensions/http-server';
 
 import { coreModule, EmptyModule } from '../../mocks';
 
@@ -24,7 +23,7 @@ export class ModuleTestSuite {
 
         const uglyHapi = <any>Hapi;
         const tmpServer = uglyHapi.Server;
-        uglyHapi['Server'] = ServerMock;
+        uglyHapi[ 'Server' ] = ServerMock;
 
         const extInstance = new HttpServerExt();
         extInstance
@@ -43,7 +42,7 @@ export class ModuleTestSuite {
                 }
             );
 
-        uglyHapi['Server'] = tmpServer;
+        uglyHapi[ 'Server' ] = tmpServer;
     }
 
     @test('onModuleInstantiated - provide module and server and must return Observable')
@@ -57,7 +56,7 @@ export class ModuleTestSuite {
             { token: EmptyModule2 }
         ];
         const extInstance = new HttpServerExt();
-        const server = { start: () => Promise.resolve() }
+        const server = { start: () => Promise.resolve() };
 
         const stub1 = unit
             .stub(ModuleManager, 'getModules')
@@ -66,21 +65,21 @@ export class ModuleTestSuite {
         const stub2 = unit
             .stub(extInstance, 'registerPlugin');
         stub2
-            .withArgs(getModulesRes[0], server)
-            .returns([{}]);
+            .withArgs(getModulesRes[ 0 ], server)
+            .returns([ {} ]);
         stub2
-            .withArgs(getModulesRes[1], server)
-            .returns([{}, {}]);
+            .withArgs(getModulesRes[ 1 ], server)
+            .returns([ {}, {} ]);
         const stub3 = unit
             .stub(LifecycleManager, 'routeLifecycle');
         const stub4 = unit
             .stub(extInstance, 'instantiateLifecycle');
         stub4
-            .withArgs(getModulesRes[0], server)
-            .returns(Observable.of(getModulesRes[0]));
+            .withArgs(getModulesRes[ 0 ], server)
+            .returns(of(getModulesRes[ 0 ]));
         stub4
-            .withArgs(getModulesRes[1], server)
-            .returns(Observable.of(getModulesRes[1]));
+            .withArgs(getModulesRes[ 1 ], server)
+            .returns(of(getModulesRes[ 1 ]));
 
         extInstance
             .onModuleInstantiated(coreModule, <any>server)
@@ -114,10 +113,10 @@ export class ModuleTestSuite {
         };
         const stub4 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of('toto'));
+            .returns(of('toto'));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
+        extInstance[ 'httpHandler' ](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }
@@ -144,10 +143,10 @@ export class ModuleTestSuite {
         };
         const stub4 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of({ response: 'abc', statusCode: 201 }));
+            .returns(of({ response: 'abc', statusCode: 201 }));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
+        extInstance[ 'httpHandler' ](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }
@@ -174,10 +173,10 @@ export class ModuleTestSuite {
         };
         const stub4 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of(null));
+            .returns(of(null));
 
         const extInstance = new HttpServerExt();
-        extInstance['httpHandler'](<any>request, <any>reply, <any>{});
+        extInstance[ 'httpHandler' ](<any>request, <any>reply, <any>{});
 
         stub4.restore();
     }

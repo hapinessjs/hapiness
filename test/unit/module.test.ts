@@ -1,20 +1,18 @@
 import { suite, test } from 'mocha-typescript';
-import { ModuleManager } from '../../src/core/module';
-import { ModuleLevel } from '../../src/core/enums';
-import { HapinessModule, Lib } from '../../src/core/decorators';
-import { DependencyInjection } from '../../src/core/di';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
 import * as unit from 'unit.js';
+import { DependencyInjection, HapinessModule, Lib, ModuleLevel, ModuleManager } from '../../src/core';
 
 import {
-    EmptyProvider,
-    EmptyModule,
     coreModule,
+    EmptyLib,
+    EmptyModule,
+    EmptyProvider,
     InjToken,
     ModuleWithMetadata,
     ModuleWithMetadataWithChild,
-    ModuleWithMetadataWithChildThatExportProvider,
-    EmptyLib
+    ModuleWithMetadataWithChildThatExportProvider
 } from './mocks';
 
 @suite('Unit - Module')
@@ -42,7 +40,7 @@ export class ModuleTestSuite {
     testCoreModuleParentConfigProviders1() {
 
         unit
-            .object(ModuleManager['coreModuleParentConfigProviders'](coreModule).providers)
+            .object(ModuleManager[ 'coreModuleParentConfigProviders' ](coreModule).providers)
             .is([]);
 
     }
@@ -57,8 +55,8 @@ export class ModuleTestSuite {
         }, coreModule);
 
         unit
-            .object(ModuleManager['coreModuleParentConfigProviders'](module).providers)
-            .is([{ provide: InjToken, useClass: EmptyProvider }]);
+            .object(ModuleManager[ 'coreModuleParentConfigProviders' ](module).providers)
+            .is([ { provide: InjToken, useClass: EmptyProvider } ]);
 
     }
 
@@ -73,7 +71,7 @@ export class ModuleTestSuite {
             providers: [ { provide: InjToken, useClass: EmptyProvider } ]
         };
 
-        ModuleManager['metadataToCoreModule'](metadata, cmwp)
+        ModuleManager[ 'metadataToCoreModule' ](metadata, cmwp)
             .subscribe(
                 _ => unit
                     .value(_)
@@ -102,7 +100,7 @@ export class ModuleTestSuite {
             providers: [ { provide: InjToken, useClass: EmptyProvider } ]
         };
 
-        ModuleManager['metadataToCoreModule'](metadata, cmwp, coreModule)
+        ModuleManager[ 'metadataToCoreModule' ](metadata, cmwp, coreModule)
             .subscribe(
                 _ => unit
                     .value(_)
@@ -132,7 +130,7 @@ export class ModuleTestSuite {
         };
         const module = Object.assign({}, coreModule, { level: ModuleLevel.PRIMARY });
 
-        ModuleManager['metadataToCoreModule'](metadata, cmwp, module)
+        ModuleManager[ 'metadataToCoreModule' ](metadata, cmwp, module)
             .subscribe(
                 _ => unit
                     .value(_)
@@ -158,7 +156,7 @@ export class ModuleTestSuite {
             .withArgs(ModuleWithMetadata)
             .returns(<HapinessModule>{ version: '123' });
 
-        ModuleManager['extractMetadata'](ModuleWithMetadata)
+        ModuleManager[ 'extractMetadata' ](ModuleWithMetadata)
             .subscribe(
                 _ => unit
                     .value(_)
@@ -176,18 +174,20 @@ export class ModuleTestSuite {
             .withArgs(null).returns(null)
             .withArgs(EmptyModule).returns(null);
 
-        ModuleManager['extractMetadata'](null)
+        ModuleManager[ 'extractMetadata' ](null)
             .subscribe(
-                _ => {},
+                _ => {
+                },
                 _ => unit
                     .object(_)
                     .isInstanceOf(Error)
                     .hasProperty('message', 'Module \'null\' resolution failed: No metadata')
             );
 
-        ModuleManager['extractMetadata'](EmptyModule)
+        ModuleManager[ 'extractMetadata' ](EmptyModule)
             .subscribe(
-                _ => {},
+                _ => {
+                },
                 _ => unit
                     .object(_)
                     .isInstanceOf(Error)
@@ -201,7 +201,7 @@ export class ModuleTestSuite {
     testToCoreModuleWithProviders1() {
 
         unit
-            .value(ModuleManager['toCoreModuleWithProviders'](EmptyModule))
+            .value(ModuleManager[ 'toCoreModuleWithProviders' ](EmptyModule))
             .is({ module: EmptyModule, providers: [] });
 
     }
@@ -210,16 +210,16 @@ export class ModuleTestSuite {
     testToCoreModuleWithProviders2() {
 
         unit
-            .value(ModuleManager['toCoreModuleWithProviders']({ module: EmptyModule, providers: [] }))
+            .value(ModuleManager[ 'toCoreModuleWithProviders' ]({ module: EmptyModule, providers: [] }))
             .is({ module: EmptyModule, providers: [] });
 
     }
 
     @test('resolution - provide a Class module with metadata that got 1 child and ' +
-            'must return an Observable of CoreModule with a child module')
+        'must return an Observable of CoreModule with a child module')
     testResolution1() {
 
-        ModuleManager['resolution'](ModuleWithMetadataWithChild)
+        ModuleManager[ 'resolution' ](ModuleWithMetadataWithChild)
             .subscribe(
                 _ => {
                     unit
@@ -241,16 +241,21 @@ export class ModuleTestSuite {
     @test('collectProviders - provide a CoreModule and must return array of CoreProvide')
     testCollectProviders1() {
 
-        const cmodule = Object.assign({}, coreModule, { providers: [{ provide: EmptyModule, useClass: EmptyModule }] });
+        const cmodule = Object.assign({}, coreModule, {
+            providers: [ {
+                provide: EmptyModule,
+                useClass: EmptyModule
+            } ]
+        });
         const stub = unit
             .stub(ModuleManager, 'extractExportedProviders')
             .withArgs(cmodule)
             .returns([]);
 
         unit
-            .array(ModuleManager['collectProviders'](cmodule))
+            .array(ModuleManager[ 'collectProviders' ](cmodule))
             .hasLength(1)
-            .is([{ provide: EmptyModule, useClass: EmptyModule }]);
+            .is([ { provide: EmptyModule, useClass: EmptyModule } ]);
 
         stub.parent.restore();
 
@@ -264,7 +269,7 @@ export class ModuleTestSuite {
             .subscribe(
                 _ => {
                     unit
-                        .array(ModuleManager['extractExportedProviders'](_))
+                        .array(ModuleManager[ 'extractExportedProviders' ](_))
                         .hasLength(2)
                         .is([
                             { provide: EmptyProvider, useClass: EmptyProvider },
@@ -280,7 +285,9 @@ export class ModuleTestSuite {
 
         ModuleManager
             .resolve(ModuleWithMetadataWithChild)
-            .flatMap(_ => ModuleManager.instantiate(_))
+            .pipe(
+                flatMap(_ => ModuleManager.instantiate(_))
+            )
             .subscribe(
                 _ => {
                     unit
@@ -312,9 +319,9 @@ export class ModuleTestSuite {
         const stub = unit
             .stub(DependencyInjection, 'instantiateComponent')
             .withArgs(EmptyLib, { stub: true })
-            .returns(Observable.of(null))
+            .returns(of(null));
 
-        ModuleManager['instantiateLibs'](module)
+        ModuleManager[ 'instantiateLibs' ](module)
             .subscribe(_ =>
                 unit
                     .object(_)
@@ -339,9 +346,9 @@ export class ModuleTestSuite {
         const stub = unit
             .stub(DependencyInjection, 'instantiateComponent')
             .withArgs(LibWithError, { stub: true })
-            .returns(Observable.of(null))
+            .returns(of(null));
 
-        ModuleManager['instantiateLibs'](module)
+        ModuleManager[ 'instantiateLibs' ](module)
             .subscribe(
                 null,
                 _ => unit

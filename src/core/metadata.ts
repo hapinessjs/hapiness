@@ -11,7 +11,7 @@ import 'reflect-metadata';
 export function extractMetadata(type: any): any {
     return extractMetadatas(type)
         .pop();
-};
+}
 
 /**
  * Helper to extract Metadata
@@ -41,4 +41,4 @@ export function extractMetadatas(decorator: any): any[] {
         .map(x => <any[]>Reflect.getOwnMetadata(x, decorator))
         .map(x => [].concat(x))
         .pop() || [];
-};
+}

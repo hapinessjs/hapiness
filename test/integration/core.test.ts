@@ -1,7 +1,16 @@
 import { suite, test } from 'mocha-typescript';
-import { Hapiness, HapinessModule, OnStart, OnRegister, Lib, Injectable, ExtensionShutdownPriority } from '../../src/core';
+import { of } from 'rxjs';
+import { delay } from 'rxjs/operators';
 import * as unit from 'unit.js';
-import { Observable } from 'rxjs';
+import {
+    ExtensionShutdownPriority,
+    Hapiness,
+    HapinessModule,
+    Injectable,
+    Lib,
+    OnRegister,
+    OnStart
+} from '../../src/core';
 
 @suite('Integration - Core')
 export class ModuleTestSuite {
@@ -74,7 +83,8 @@ export class ModuleTestSuite {
             version: '',
             declarations: [ Lib1 ]
         })
-        class Module1 {}
+        class Module1 {
+        }
 
         Hapiness
             .bootstrap(Module1);
@@ -96,7 +106,9 @@ export class ModuleTestSuite {
             providers: [ Provider1 ]
         })
         class Module1 implements OnStart {
-            constructor(private provider1: Provider1) {}
+            constructor(private provider1: Provider1) {
+            }
+
             onStart() {
                 unit
                     .number(this.provider1.value())
@@ -135,7 +147,9 @@ export class ModuleTestSuite {
             providers: [ Provider1 ]
         })
         class Module1 implements OnStart {
-            constructor(private provider1: Provider1) {}
+            constructor(private provider1: Provider1) {
+            }
+
             onStart() {
                 unit
                     .number(this.provider1.value())
@@ -180,9 +194,10 @@ export class ModuleTestSuite {
 
         class TestExtension {
             onExtensionLoad() {
-                return Observable
-                    .of('')
-                    .delay(500);
+                return of('')
+                    .pipe(
+                        delay(500)
+                    );
             }
         }
 
@@ -217,7 +232,7 @@ export class ModuleTestSuite {
 
         class TestExtension1 {
             onExtensionLoad() {
-                return Observable.of({
+                return of({
                     value: 'test',
                     instance: this,
                     token: TestExtension1
@@ -228,16 +243,17 @@ export class ModuleTestSuite {
                 enterred = true;
                 return {
                     priority: ExtensionShutdownPriority.NORMAL,
-                    resolver: Observable.of(true)
+                    resolver: of(true)
                 };
             }
         }
 
         class TestExtension2 {
             onExtensionLoad() {
-                return Observable
-                    .of('')
-                    .delay(500);
+                return of('')
+                    .pipe(
+                        delay(500)
+                    );
             }
         }
 

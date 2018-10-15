@@ -1,9 +1,9 @@
-import { Observable } from 'rxjs/Rx';
 import { suite, test } from 'mocha-typescript';
+import { of } from 'rxjs';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, OnStart } from '../../src/core';
-import { SocketServerExt, SocketServerService } from '../../src/extensions/socket-server';
 import { HttpServerExt } from '../../src/extensions/http-server';
+import { SocketServerExt, SocketServerService } from '../../src/extensions/socket-server';
 
 @suite('Integration - Socket Server')
 export class SocketServerIntegration {
@@ -13,17 +13,18 @@ export class SocketServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            providers: [SocketServerService]
+            providers: [ SocketServerService ]
         })
         class ModuleTest implements OnStart {
 
-            constructor(private server: SocketServerService) {}
+            constructor(private server: SocketServerService) {
+            }
 
             onStart() {
                 this
                     .server
                     .instance()
-                    .configure(_ => Observable.of(true))
+                    .configure(_ => of(true))
                     .subscribe(
                         socket => {
                             unit.array(this.server.instance().getSockets())

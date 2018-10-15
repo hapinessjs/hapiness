@@ -1,10 +1,23 @@
-import { Observable } from 'rxjs';
-import { CoreModule, Extension, ExtensionWithConfig, BootstrapOptions, ExtensionShutdown } from './interfaces';
-import { InternalLogger } from './logger';
+import { from, Observable, of, throwError } from 'rxjs';
+import {
+    catchError,
+    concatMap,
+    defaultIfEmpty,
+    filter,
+    flatMap,
+    ignoreElements,
+    map,
+    switchMap,
+    tap,
+    timeout,
+    toArray
+} from 'rxjs/operators';
 import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
-import { ModuleManager } from './module';
 import { HookManager } from './hook';
+import { BootstrapOptions, CoreModule, Extension, ExtensionShutdown, ExtensionWithConfig } from './interfaces';
+import { InternalLogger } from './logger';
+import { ModuleManager } from './module';
 import { ShutdownUtils } from './shutdown';
 
 function extensionError(error: Error, name: string): Error {
@@ -31,7 +44,7 @@ export class Hapiness {
      * @returns Promise
      */
     public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>,
-            options: BootstrapOptions = {}): Promise<void> {
+                            options: BootstrapOptions = {}): Promise<void> {
 
         if (options.shutdown !== false) {
             this.handleShutdownSignals();
@@ -39,9 +52,11 @@ export class Hapiness {
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
-                .flatMap(_ => ModuleManager.resolve(_))
-                .flatMap(_ => this.loadExtensions(extensions, _, options))
-                .ignoreElements()
+                .pipe(
+                    flatMap(_ => ModuleManager.resolve(_)),
+                    flatMap(_ => this.loadExtensions(extensions, _, options)),
+                    ignoreElements()
+                )
                 .subscribe(
                     null,
                     _ => {
@@ -70,9 +85,8 @@ export class Hapiness {
     public static shutdown(): Observable<boolean> {
         return this
             .getShutdownHooks()
-            .flatMap(_ => this
-                .shutdownUtils
-                .shutdown(_)
+            .pipe(
+                flatMap(_ => this.shutdownUtils.shutdown(_))
             );
     }
 
@@ -80,12 +94,14 @@ export class Hapiness {
         this
             .shutdownUtils
             .events$
-            .flatMap(_ => this.shutdown())
+            .pipe(
+                flatMap(_ => this.shutdown())
+            )
             .subscribe(
                 _ => {
                     this.logger.debug('process shutdown triggered');
                     process.exit(0);
-                 } ,
+                },
                 _ => {
                     errorHandler(_);
                     process.exit(1);
@@ -99,23 +115,24 @@ export class Hapiness {
      * @returns ExtensionShutdown[]
      */
     private static getShutdownHooks(): Observable<ExtensionShutdown[]> {
-        return Observable
-            .from([].concat(this.extensions).filter(e => !!e))
-            .filter(_ => !!_ && HookManager
-                .hasLifecycleHook(
-                    ExtentionHooksEnum.OnShutdown.toString(),
-                    _.token
-                )
-            )
-            .flatMap(_ => HookManager
-                .triggerHook(
-                    ExtentionHooksEnum.OnShutdown.toString(),
-                    _.token,
-                    _.instance,
-                    [module, _.value]
-                )
-            )
-            .toArray();
+        return from([].concat(this.extensions).filter(e => !!e))
+            .pipe(
+                filter(_ => !!_ && HookManager
+                    .hasLifecycleHook(
+                        ExtentionHooksEnum.OnShutdown.toString(),
+                        _.token
+                    )
+                ),
+                flatMap(_ => HookManager
+                    .triggerHook(
+                        ExtentionHooksEnum.OnShutdown.toString(),
+                        _.token,
+                        _.instance,
+                        [ module, _.value ]
+                    )
+                ),
+                toArray()
+            );
     }
 
     /**
@@ -126,18 +143,21 @@ export class Hapiness {
      * @param  {BootstrapOptions} options?
      * @returns Observable
      */
-    private static loadExtensions(extensions:  Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule,
-            options: BootstrapOptions): Observable<void> {
-        return Observable
-            .from([].concat(extensions).filter(_ => !!_))
-            .map(_ => this.toExtensionWithConfig(_))
-            .concatMap(_ => this
-                .loadExtention(_, moduleResolved)
-                .timeout(options.extensionTimeout || this.defaultTimeout)
-                .catch(err => Observable.throw(extensionError(err, _.token.name)))
-            )
-            .toArray()
-            .flatMap(_ => this.instantiateModule(_, moduleResolved, options));
+    private static loadExtensions(extensions: Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule,
+                                  options: BootstrapOptions): Observable<void> {
+        return from([].concat(extensions).filter(_ => !!_))
+            .pipe(
+                map(_ => this.toExtensionWithConfig(_)),
+                concatMap(_ => this
+                    .loadExtention(_, moduleResolved)
+                    .pipe(
+                        timeout(options.extensionTimeout || this.defaultTimeout),
+                        catchError(err => throwError(extensionError(err, _.token.name)))
+                    )
+                ),
+                toArray(),
+                flatMap(_ => this.instantiateModule(_, moduleResolved, options))
+            );
     }
 
     /**
@@ -145,29 +165,34 @@ export class Hapiness {
      *
      * @param  {Extension[]} extensionsLoaded
      * @param  {CoreModule} moduleResolved
+     * @param  {BootstrapOptions} options
      * @returns Observable
      */
     private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule,
-            options: BootstrapOptions): Observable<void> {
-        return Observable
-            .from(extensionsLoaded)
-            .map(_ => ({ provide: _.token, useValue: _.value }))
-            .toArray()
-            .flatMap(_ => ModuleManager.instantiate(moduleResolved, _))
-            .flatMap(_ => this.callRegister(_))
-            .flatMap(moduleInstantiated =>
-                Observable
-                    .from(extensionsLoaded)
-                    .flatMap(_ => this
-                        .moduleInstantiated(_, moduleInstantiated)
-                        .timeout(options.extensionTimeout || this.defaultTimeout)
-                        .catch(err => Observable.throw(extensionError(err, _.token.name)))
-                    )
-                    .toArray()
-                    .map(_ => moduleInstantiated)
-            )
-            .do(_ => this.module = _)
-            .flatMap(_ => this.callStart(_));
+                                     options: BootstrapOptions): Observable<void> {
+        return from(extensionsLoaded)
+            .pipe(
+                map(_ => ({ provide: _.token, useValue: _.value })),
+                toArray(),
+                flatMap(_ => ModuleManager.instantiate(moduleResolved, _)),
+                flatMap(_ => this.callRegister(_)),
+                flatMap(moduleInstantiated =>
+                    from(extensionsLoaded)
+                        .pipe(
+                            flatMap(_ => this
+                                .moduleInstantiated(_, moduleInstantiated)
+                                .pipe(
+                                    timeout(options.extensionTimeout || this.defaultTimeout),
+                                    catchError(err => throwError(extensionError(err, _.token.name)))
+                                )
+                            ),
+                            toArray(),
+                            map(_ => moduleInstantiated)
+                        )
+                ),
+                tap(_ => this.module = _),
+                flatMap(_ => this.callStart(_))
+            );
     }
 
     /**
@@ -177,17 +202,18 @@ export class Hapiness {
      * @returns Observable
      */
     private static callRegister(moduleInstantiated: CoreModule): Observable<CoreModule> {
-        return Observable
-            .from(ModuleManager.getModules(moduleInstantiated))
-            .filter(_ => _.level !== ModuleLevel.ROOT)
-            .filter(_ => HookManager
-                .hasLifecycleHook(ModuleEnum.OnRegister.toString(), _.token)
-            )
-            .flatMap(_ => HookManager
-                .triggerHook(ModuleEnum.OnRegister.toString(), _.token, _.instance)
-            )
-            .toArray()
-            .map(_ => moduleInstantiated)
+        return from(ModuleManager.getModules(moduleInstantiated))
+            .pipe(
+                filter(_ => _.level !== ModuleLevel.ROOT),
+                filter(_ => HookManager
+                    .hasLifecycleHook(ModuleEnum.OnRegister.toString(), _.token)
+                ),
+                flatMap(_ => HookManager
+                    .triggerHook(ModuleEnum.OnRegister.toString(), _.token, _.instance)
+                ),
+                toArray(),
+                map(_ => moduleInstantiated)
+            );
     }
 
     /**
@@ -197,15 +223,16 @@ export class Hapiness {
      * @returns Observable
      */
     private static callStart(moduleInstantiated: CoreModule): Observable<void> {
-        return Observable
-            .of(moduleInstantiated)
-            .flatMap(_ => HookManager
-                .triggerHook(
-                    ModuleEnum.OnStart.toString(),
-                    moduleInstantiated.token,
-                    moduleInstantiated.instance,
-                    null,
-                    false
+        return of(moduleInstantiated)
+            .pipe(
+                flatMap(_ => HookManager
+                    .triggerHook(
+                        ModuleEnum.OnStart.toString(),
+                        _.token,
+                        _.instance,
+                        null,
+                        false
+                    )
                 )
             );
     }
@@ -218,17 +245,18 @@ export class Hapiness {
      * @returns Observable
      */
     private static checkArg(module: Type<any>): Observable<Type<any>> {
-        return Observable
-            .of(module)
-            .do(_ => this.module = null)
-            .do(_ => this.extensions = null)
-            .flatMap(_ => !!_ ?
-                Observable.of(_) :
-                Observable.throw(new Error('Bootstrap failed: no module provided'))
-            )
-            .flatMap(_ => typeof _ === 'function' ?
-                Observable.of(_) :
-                Observable.throw(new Error('Bootstrap failed: module must be a function/class'))
+        return of(module)
+            .pipe(
+                tap(_ => this.module = null),
+                tap(_ => this.extensions = null),
+                flatMap(_ => !!_ ?
+                    of(_) :
+                    throwError(new Error('Bootstrap failed: no module provided'))
+                ),
+                flatMap(_ => typeof _ === 'function' ?
+                    of(_) :
+                    throwError(new Error('Bootstrap failed: module must be a function/class'))
+                )
             );
     }
 
@@ -253,30 +281,33 @@ export class Hapiness {
      * of an extension
      *
      * @param  {ExtensionWithConfig} extension
+     * @param  {CoreModule} module
      * @returns Observable
      */
     private static loadExtention(extension: ExtensionWithConfig, module: CoreModule): Observable<Extension> {
-        return Observable
-            .of(Reflect.construct(extension.token, []))
-            .do(_ => this.logger.debug(`loading ${extension.token.name}`))
-            .switchMap(instance =>
-                HookManager
-                    .triggerHook(
-                        ExtentionHooksEnum.OnExtensionLoad.toString(),
-                        extension.token,
-                        instance,
-                        [ module, extension.config ]
-                    )
-                    .catch(_ => {
-                        this.extensions = [].concat(this.extensions, instance);
-                        return this
-                            .shutdown()
-                            .flatMap(() => Observable.throw(_));
-                    })
-            )
-            .do(_ => this.extensions = []
-                .concat(this.extensions, _)
-                .filter(__ => !!__)
+        return of(Reflect.construct(extension.token, []))
+            .pipe(
+                tap(_ => this.logger.debug(`loading ${extension.token.name}`)),
+                switchMap(instance =>
+                    HookManager
+                        .triggerHook(
+                            ExtentionHooksEnum.OnExtensionLoad.toString(),
+                            extension.token,
+                            instance,
+                            [ module, extension.config ]
+                        )
+                        .pipe(
+                            catchError(_ => {
+                                this.extensions = [].concat(this.extensions, instance);
+                                return this
+                                    .shutdown()
+                                    .pipe(
+                                        flatMap(() => throwError(_))
+                                    );
+                            })
+                        )
+                ),
+                tap(_ => this.extensions = [].concat(this.extensions, _).filter(__ => !!__))
             );
     }
 
@@ -295,8 +326,10 @@ export class Hapiness {
                 extension.instance,
                 [ module, extension.value ]
             )
-            .do(_ => this.logger.debug(`moduleInstantiated ${extension.token.name}`))
-            .defaultIfEmpty(null);
+            .pipe(
+                tap(_ => this.logger.debug(`moduleInstantiated ${extension.token.name}`)),
+                defaultIfEmpty(null)
+            );
     }
 
 }
@@ -311,22 +344,22 @@ export class Hapiness {
  * @returns void
  */
 export function errorHandler(error: Error, data?: any): void {
-    Observable
-        .of(Hapiness['module'])
-        .filter(_ => !!(_ && _.instance))
-        .flatMap(_ =>
-            HookManager
-                .hasLifecycleHook(ModuleEnum.OnError.toString(), _.token) ?
-            HookManager
-                .triggerHook(
-                    ModuleEnum.OnError.toString(),
-                    _.token,
-                    _.instance,
-                    [ error, data ],
-                    false
-                ) :
-                Observable
-                    .throw(error)
+    of(Hapiness[ 'module' ])
+        .pipe(
+            filter(_ => !!(_ && _.instance)),
+            flatMap(_ =>
+                HookManager
+                    .hasLifecycleHook(ModuleEnum.OnError.toString(), _.token) ?
+                    HookManager
+                        .triggerHook(
+                            ModuleEnum.OnError.toString(),
+                            _.token,
+                            _.instance,
+                            [ error, data ],
+                            false
+                        ) :
+                    throwError(error)
+            )
         )
         .subscribe(null, _ => console.error(_));
 }

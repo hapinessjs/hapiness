@@ -1,4 +1,5 @@
-import { Subject, Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { InternalLogger } from '../../core';
 
 export interface EventData {
@@ -21,7 +22,9 @@ export class EventManager {
         this.logger.debug(`listener added on ${type}`);
         return this
             .stream$
-            .filter(_ => !!_ && _.type === type);
+            .pipe(
+                filter(_ => !!_ && _.type === type)
+            );
     }
 
     /**

@@ -1,24 +1,26 @@
-import { CoreModule, Extension, OnExtensionLoad, OnShutdown } from '../../core/interfaces';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { ExtensionShutdown, ExtensionShutdownPriority } from '../../core';
+import { CoreModule, Extension, OnExtensionLoad, OnShutdown } from '../../core/interfaces';
 import { EventManager } from './manager';
 
 export class EventManagerExt implements OnExtensionLoad, OnShutdown {
 
     /**
-     * Initilization of the extension
+     * Initialization of the extension
      *
      * @param  {CoreModule} module
      * @returns Observable
      */
     onExtensionLoad(module: CoreModule): Observable<Extension> {
-        return Observable
-            .of(new EventManager())
-            .map(_ => ({
-                instance: this,
-                token: EventManagerExt,
-                value: _
-            }));
+        return of(new EventManager())
+            .pipe(
+                map(_ => ({
+                    instance: this,
+                    token: EventManagerExt,
+                    value: _
+                }))
+            );
     }
 
     /**
@@ -31,7 +33,7 @@ export class EventManagerExt implements OnExtensionLoad, OnShutdown {
     onShutdown(module: CoreModule, manager: EventManager): ExtensionShutdown {
         return {
             priority: ExtensionShutdownPriority.NORMAL,
-            resolver: Observable.of(manager.close())
+            resolver: of(manager.close())
         }
     }
 }

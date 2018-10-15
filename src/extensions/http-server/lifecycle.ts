@@ -1,10 +1,10 @@
-import { Observable } from 'rxjs';
-import { HookManager } from '../../core/hook';
+import { ReplyWithContinue, Request, Server } from 'hapi';
+import { Observable, of } from 'rxjs';
+import { defaultIfEmpty, filter, flatMap, isEmpty, map, tap } from 'rxjs/operators';
+import { errorHandler, HookManager } from '../../core';
 import { LifecycleEventsEnum, LifecycleHooksEnum } from './enums';
-import { RouteBuilder } from './route';
 import { CoreRoute } from './interfaces';
-import { errorHandler } from '../../core/hapiness';
-import { Request, ReplyWithContinue, Server } from 'hapi';
+import { RouteBuilder } from './route';
 
 export class LifecycleManager {
 
@@ -12,7 +12,8 @@ export class LifecycleManager {
      * Initialize the lifecycle hooks
      * for a route
      *
-     * @param  {MainModule} main
+     * @param  {Server} server
+     * @param  {CoreRoute[]} routes
      */
     static routeLifecycle(server: Server, routes: CoreRoute[]): void {
 
@@ -58,7 +59,7 @@ export class LifecycleManager {
                     .subscribe(
                         _ => reply.continue(),
                         _ => errorHandler(_),
-                        () => request['_hapinessRoute'] = undefined
+                        () => request[ '_hapinessRoute' ] = undefined
                     )
         );
     }
@@ -73,18 +74,21 @@ export class LifecycleManager {
      * @returns Observable
      */
     private static instantiateRoute(routes: CoreRoute[], request: Request, reply: ReplyWithContinue): Observable<any> {
-        return Observable
-            .of(routes)
-            .map(_ => this.findRoute(request, _))
-            .filter(_ => !!(_ && _.token))
-            .flatMap(route =>
-                RouteBuilder
-                    .instantiateRouteAndDI(route, request)
-                    .map(_ => ({ route, instance: _ }))
-            )
-            .do(_ => request['_hapinessRoute'] = _.instance)
-            .defaultIfEmpty(null)
-            .flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply))
+        return of(routes)
+            .pipe(
+                map(_ => this.findRoute(request, _)),
+                filter(_ => !!(_ && _.token)),
+                flatMap(route =>
+                    RouteBuilder
+                        .instantiateRouteAndDI(route, request)
+                        .pipe(
+                            map(_ => ({ route, instance: _ }))
+                        )
+                ),
+                tap(_ => request[ '_hapinessRoute' ] = _.instance),
+                defaultIfEmpty(null),
+                flatMap(_ => this.eventHandler(LifecycleHooksEnum.OnPreAuth, routes, request, reply))
+            );
     }
 
     /**
@@ -128,25 +132,28 @@ export class LifecycleManager {
      * the hook if the route component
      * implements it
      *
-     * @param  {eRouteLifecycleHooks} event
-     * @param  {MainModule} mainModule
-     * @param  {} request
-     * @param  {} reply
+     * @param  {LifecycleHooksEnum} hook
+     * @param  {CoreRoute[]} routes
+     * @param  {Request} request
+     * @param  {ReplyWithContinue} reply
      */
     private static eventHandler(hook: LifecycleHooksEnum, routes: CoreRoute[],
-            request: Request, reply: ReplyWithContinue): Observable<any> {
+                                request: Request, reply: ReplyWithContinue): Observable<any> {
 
-        return Observable
-            .of(routes)
-            .map(_ => this.findRoute(request, _))
-            .filter(_ => request['_hapinessRoute'] && HookManager.hasLifecycleHook(hook.toString(), _.token))
-            .flatMap(_ =>
-                HookManager
-                    .triggerHook(hook.toString(), _.token, request['_hapinessRoute'], [request, reply])
-                    .defaultIfEmpty(null)
-            )
-            .isEmpty()
-            .filter(_ => !!_);
+        return of(routes)
+            .pipe(
+                map(_ => this.findRoute(request, _)),
+                filter(_ => request[ '_hapinessRoute' ] && HookManager.hasLifecycleHook(hook.toString(), _.token)),
+                flatMap(_ =>
+                    HookManager
+                        .triggerHook(hook.toString(), _.token, request[ '_hapinessRoute' ], [ request, reply ])
+                        .pipe(
+                            defaultIfEmpty(null)
+                        )
+                ),
+                isEmpty(),
+                filter(_ => !!_)
+            );
     }
 
 }

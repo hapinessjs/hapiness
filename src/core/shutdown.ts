@@ -1,6 +1,7 @@
-import { Subject, Observable } from 'rxjs';
-import { ExtensionShutdown } from './interfaces';
+import { from, Observable, Subject } from 'rxjs';
+import { concatMap, filter, flatMap, map, toArray } from 'rxjs/operators';
 import { ExtensionShutdownPriority } from '.';
+import { ExtensionShutdown } from './interfaces';
 
 export class ShutdownUtils {
 
@@ -23,18 +24,21 @@ export class ShutdownUtils {
      * @returns Observable
      */
     shutdown(items: ExtensionShutdown[]): Observable<boolean> {
-        return Observable
-            .from(items)
-            .filter(_ => _.priority === ExtensionShutdownPriority.IMPORTANT)
-            .flatMap(_ => _.resolver)
-            .toArray()
-            .concatMap(_ => Observable
-                .from(items)
-                .filter(__ => __.priority === ExtensionShutdownPriority.NORMAL)
-                .flatMap(__ => __.resolver)
-                .toArray()
-            )
-            .map(_ => true);
+        return from(items)
+            .pipe(
+                filter(_ => _.priority === ExtensionShutdownPriority.IMPORTANT),
+                flatMap(_ => _.resolver),
+                toArray(),
+                concatMap(_ =>
+                    from(items)
+                        .pipe(
+                            filter(__ => __.priority === ExtensionShutdownPriority.NORMAL),
+                            flatMap(__ => __.resolver),
+                            toArray()
+                        )
+                ),
+                map(_ => true)
+            );
     }
 
 }

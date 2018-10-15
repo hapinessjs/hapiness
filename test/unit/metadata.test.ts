@@ -1,7 +1,6 @@
 import { suite, test } from 'mocha-typescript';
 import * as unit from 'unit.js';
-import { extractMetadataByDecorator, extractMetadata, extractMetadatas } from '../../src/core/metadata';
-import { HapinessModule } from '../../src/core/decorators';
+import { extractMetadata, extractMetadataByDecorator, extractMetadatas, HapinessModule } from '../../src/core';
 
 @suite('Unit - Metadata')
 export class Metadata {
@@ -11,7 +10,8 @@ export class Metadata {
         @HapinessModule({
             version: 'test'
         })
-        class TestToken {}
+        class TestToken {
+        }
 
         unit.object(extractMetadata(TestToken))
             .contains({ version: 'test' });
@@ -21,7 +21,8 @@ export class Metadata {
     @test('extractMetadatas')
     test3() {
 
-        class TestToken {}
+        class TestToken {
+        }
 
         unit.array(extractMetadatas(TestToken))
             .is([]);
@@ -33,7 +34,8 @@ export class Metadata {
         @HapinessModule({
             version: 'test123'
         })
-        class TestToken {}
+        class TestToken {
+        }
 
         unit.object(extractMetadataByDecorator(TestToken, 'HapinessModule'))
             .contains({ version: 'test123' });

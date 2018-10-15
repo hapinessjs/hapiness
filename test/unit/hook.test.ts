@@ -1,7 +1,8 @@
 import { suite, test } from 'mocha-typescript';
-import { HookManager } from '../../src/core';
-import { Observable } from 'rxjs';
+import { of } from 'rxjs';
+import { isEmpty } from 'rxjs/operators';
 import * as unit from 'unit.js';
+import { HookManager } from '../../src/core';
 
 @suite('Unit - Hook')
 export class ModuleTestSuite {
@@ -10,7 +11,8 @@ export class ModuleTestSuite {
     testHasLifecycleHook1() {
 
         class MyToken {
-            test() {}
+            test() {
+            }
         }
 
         unit
@@ -21,7 +23,8 @@ export class ModuleTestSuite {
     @test('hasLifecycleHook - provide hook and token and must return false')
     testHasLifecycleHook2() {
 
-        class MyToken {}
+        class MyToken {
+        }
 
         unit
             .bool(HookManager.hasLifecycleHook('test', MyToken))
@@ -32,7 +35,9 @@ export class ModuleTestSuite {
     testTriggerHook1() {
 
         class MyToken {
-            test() { return 1 }
+            test() {
+                return 1
+            }
         }
 
         HookManager
@@ -49,7 +54,9 @@ export class ModuleTestSuite {
     testTriggerHook2() {
 
         class MyToken {
-            test() { return Observable.of(1) }
+            test() {
+                return of(1)
+            }
         }
 
         HookManager
@@ -66,12 +73,15 @@ export class ModuleTestSuite {
     testTriggerHook3() {
 
         class MyToken {
-            test() {}
+            test() {
+            }
         }
 
         HookManager
             .triggerHook('test', MyToken, new MyToken())
-            .isEmpty()
+            .pipe(
+                isEmpty()
+            )
             .subscribe(
                 _ =>
                     unit
@@ -83,7 +93,8 @@ export class ModuleTestSuite {
     @test('triggerHook - provide hook, token and instance without hook and must throw error')
     testTriggerHook4() {
 
-        class MyToken {}
+        class MyToken {
+        }
 
         HookManager
             .triggerHook('test', MyToken, new MyToken(), null, true)
@@ -100,11 +111,14 @@ export class ModuleTestSuite {
     @test('triggerHook - provide hook, token and instance without hook and must not throw error')
     testTriggerHook5() {
 
-        class MyToken {}
+        class MyToken {
+        }
 
         HookManager
             .triggerHook('test', MyToken, new MyToken())
-            .isEmpty()
+            .pipe(
+                isEmpty()
+            )
             .subscribe(
                 _ =>
                     unit

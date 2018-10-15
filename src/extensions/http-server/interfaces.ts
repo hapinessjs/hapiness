@@ -1,48 +1,51 @@
-import { CoreModule, CoreProvide } from '../../core/interfaces';
-import { Type } from '../../core/decorators';
-import { Observable } from 'rxjs';
 import {
-    Request,
-    ReplyWithContinue,
     ReplyNoContinue,
-    ServerOptions,
+    ReplyWithContinue,
+    Request,
     RouteAdditionalConfigurationOptions,
-    ServerConnectionOptions
+    ServerConnectionOptions,
+    ServerOptions
 } from 'hapi';
+import { Observable } from 'rxjs';
+import { CoreModule, CoreProvide, Type } from '../../core';
 
 export interface BaseHapiConfig {
     host?: string;
     port: number;
     options?: ServerOptions
 }
+
 export interface ExtendedHapiConfig {
     connections: ConnectionOptions[]
     options?: ServerOptions
 }
+
 export type HapiConfig = BaseHapiConfig | ExtendedHapiConfig;
 
-export interface ConnectionOptions extends ServerConnectionOptions {}
+export interface ConnectionOptions extends ServerConnectionOptions {
+}
 
-export interface RouteConfig extends RouteAdditionalConfigurationOptions {}
+export interface RouteConfig extends RouteAdditionalConfigurationOptions {
+}
 
 /**
  * CoreRoute Type
  * Represents an Http Route
  */
 export interface CoreRoute {
-    token: Type<any> | any;
+    token: Type<any> | any;
     path: string;
     method: string | string[];
     module: CoreModule;
     providers?: CoreProvide[];
     config?: RouteConfig;
-    labels?: string | string[];
+    labels?: string | string[];
 }
 
 export interface HTTPHandlerResponse {
     response: any;
     statusCode?: number;
-    headers?: { [key: string]: string }
+    headers?: { [ key: string ]: string }
 }
 
 /**
@@ -117,7 +120,7 @@ export interface OnDelete {
  * @returns void | Observable
  */
 export interface OnPreAuth {
-    onPreAuth(request: Request, reply?: ReplyWithContinue ): void | Observable<void>;
+    onPreAuth(request: Request, reply?: ReplyWithContinue): void | Observable<void>;
 }
 
 /**
@@ -128,7 +131,7 @@ export interface OnPreAuth {
  * @returns void | Observable
  */
 export interface OnPostAuth {
-    onPostAuth(request: Request, reply?: ReplyWithContinue ): void | Observable<void>;
+    onPostAuth(request: Request, reply?: ReplyWithContinue): void | Observable<void>;
 }
 
 /**
@@ -139,7 +142,7 @@ export interface OnPostAuth {
  * @returns void | Observable
  */
 export interface OnPreHandler {
-    onPreHandler(request: Request, reply?: ReplyWithContinue ): void | Observable<void>;
+    onPreHandler(request: Request, reply?: ReplyWithContinue): void | Observable<void>;
 }
 
 /**
@@ -150,7 +153,7 @@ export interface OnPreHandler {
  * @returns void | Observable
  */
 export interface OnPostHandler {
-    onPostHandler(request: Request, reply?: ReplyWithContinue ): void | Observable<void>;
+    onPostHandler(request: Request, reply?: ReplyWithContinue): void | Observable<void>;
 }
 
 /**
@@ -161,7 +164,7 @@ export interface OnPostHandler {
  * @returns void | Observable
  */
 export interface OnPreResponse {
-    onPreResponse(request: Request, reply?: ReplyWithContinue ): void | Observable<void>;
+    onPreResponse(request: Request, reply?: ReplyWithContinue): void | Observable<void>;
 }
 
 /**
@@ -169,4 +172,6 @@ export interface OnPreResponse {
  *
  * @returns void | Observable
  */
-export interface OnEvent { onEvent(request: Request, reply: ReplyWithContinue): void | Observable<void>; }
+export interface OnEvent {
+    onEvent(request: Request, reply: ReplyWithContinue): void | Observable<void>;
+}

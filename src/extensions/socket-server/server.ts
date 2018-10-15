@@ -1,11 +1,12 @@
-import { Hapiness, HttpServerExt } from '../../';
-import { Observable, Subject } from 'rxjs/Rx';
-import { server, request } from 'websocket';
-import { Socket } from './socket';
-import { SocketConfig } from './extension';
 import * as http from 'http';
 import * as https from 'https';
+import { from, Observable, of, Subject } from 'rxjs';
+import { flatMap, map, tap, toArray } from 'rxjs/operators';
+import { request, server } from 'websocket';
+import { Hapiness, HttpServerExt } from '../../';
+import { SocketConfig } from './extension';
 import { WebSocketRooms } from './rooms';
+import { Socket } from './socket';
 
 export class WebSocketServer {
     private server: server;
@@ -13,9 +14,10 @@ export class WebSocketServer {
     private sockets: Socket[];
     private httpServer: http.Server | https.Server;
     private rooms: WebSocketRooms;
-    private secure: ((request: request) => Observable<boolean>) = () => Observable.of(true);
+    private secure: ((request: request) => Observable<boolean>) = () => of(true);
 
-    constructor(private config: SocketConfig) {}
+    constructor(private config: SocketConfig) {
+    }
 
     public start() {
         this.httpServer = !!this.config.useHttpExtension ? this.getHttpServerExt() : this.createHttpServer();
@@ -40,24 +42,25 @@ export class WebSocketServer {
      * @returns Observable
      */
     public stop(): Observable<boolean> {
-        return Observable
-            .from([].concat(this.getSockets()).filter(_ => !!_))
-            .do(_ => _.close())
-            .toArray()
-            .flatMap(_ => Observable
-                .create(obs => {
-                    if (!this.config.useHttpExtension) {
-                        this.httpServer.close(() => {
+        return from([].concat(this.getSockets()).filter(_ => !!_))
+            .pipe(
+                tap(_ => _.close()),
+                toArray(),
+                flatMap(_ => Observable
+                    .create(obs => {
+                        if (!this.config.useHttpExtension) {
+                            this.httpServer.close(() => {
+                                obs.next();
+                                obs.complete();
+                            })
+                        } else {
                             obs.next();
                             obs.complete();
-                        })
-                    } else {
-                        obs.next();
-                        obs.complete();
-                    }
-                })
-            )
-            .map(_ => true);
+                        }
+                    })
+                ),
+                map(_ => true)
+            );
     }
 
     /**
@@ -65,9 +68,9 @@ export class WebSocketServer {
      * @FIXME Just take the first HapiJS connection for now
      */
     private getHttpServerExt() {
-        const ext = Hapiness['extensions'].find(_ => _.token === HttpServerExt);
+        const ext = Hapiness[ 'extensions' ].find(_ => _.token === HttpServerExt);
         if (!!ext) {
-            return ext.value.connections[0].listener;
+            return ext.value.connections[ 0 ].listener;
         } else {
             throw new Error('Could not find Http Server Extension');
         }

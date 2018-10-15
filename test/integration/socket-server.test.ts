@@ -1,5 +1,5 @@
-import { Observable } from 'rxjs/Rx';
 import { suite, test } from 'mocha-typescript';
+import { of } from 'rxjs';
 import * as unit from 'unit.js';
 import { Hapiness, HapinessModule, OnStart } from '../../src/core';
 import { SocketServerExt, SocketServerService } from '../../src/extensions/socket-server';
@@ -12,7 +12,7 @@ export class SocketServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            providers: [SocketServerService]
+            providers: [ SocketServerService ]
         })
         class ModuleTest implements OnStart {
 
@@ -23,7 +23,7 @@ export class SocketServerIntegration {
                 this
                     .server
                     .instance()
-                    .configure(_ => Observable.of(true))
+                    .configure(_ => of(true))
                     .subscribe(
                         socket => {
                             unit.array(this.server.instance().getSockets())
@@ -78,7 +78,7 @@ export class SocketServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [SocketServerExt.setConfig({ port: 2222 })]);
+        Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
     }
 
     @test('did well stop')
@@ -86,7 +86,7 @@ export class SocketServerIntegration {
 
         @HapinessModule({
             version: '1.0.0',
-            providers: [SocketServerService]
+            providers: [ SocketServerService ]
         })
         class ModuleTest implements OnStart {
             constructor(private server: SocketServerService) {
@@ -97,6 +97,6 @@ export class SocketServerIntegration {
             }
         }
 
-        Hapiness.bootstrap(ModuleTest, [SocketServerExt.setConfig({ port: 2222 })]);
+        Hapiness.bootstrap(ModuleTest, [ SocketServerExt.setConfig({ port: 2222 }) ]);
     }
 }

@@ -1,10 +1,11 @@
-import { Observable } from 'rxjs';
-import { InternalLogger } from './logger';
-import { extractMetadataByDecorator } from './metadata';
-import { HapinessModule, Type, InjectionToken } from './decorators';
-import { CoreModule, CoreProvide, CoreModuleWithProviders } from './interfaces';
+import { from, Observable, of, throwError } from 'rxjs';
+import { filter, flatMap, map, tap, toArray } from 'rxjs/operators';
+import { HapinessModule, InjectionToken, Type } from './decorators';
 import { DependencyInjection } from './di';
 import { ModuleLevel } from './enums';
+import { CoreModule, CoreModuleWithProviders, CoreProvide } from './interfaces';
+import { InternalLogger } from './logger';
+import { extractMetadataByDecorator } from './metadata';
 
 export class ModuleManager {
 
@@ -57,8 +58,8 @@ export class ModuleManager {
      */
     static toCoreProvider(provider: any): CoreProvide {
         return <CoreProvide>(!!provider.provide ?
-            provider :
-            { provide: provider, useClass: provider }
+                provider :
+                { provide: provider, useClass: provider }
         );
     }
 
@@ -79,27 +80,33 @@ export class ModuleManager {
      * @returns Observable
      */
     private static resolution(module: any, parent?: CoreModule): Observable<CoreModule> {
-        return Observable
-            .of(module)
-            .map(_ => this.toCoreModuleWithProviders(_))
-            .flatMap(cmwp =>
-                this
-                    .extractMetadata(cmwp.module)
-                    .map(_ => ({ metadata: _, moduleWithProviders: cmwp }))
-            )
-            .flatMap(mcmwp =>
-                this
-                    .metadataToCoreModule(mcmwp.metadata, mcmwp.moduleWithProviders, parent)
-                    .map(_ => this.coreModuleParentConfigProviders(_))
-                    .map(_ => Object.assign({ module: _ }, mcmwp))
-            )
-            .flatMap(data =>
-                Observable
-                    .from(data.metadata.imports || [])
-                    .flatMap(_ => this.resolution(_, data.module))
-                    .toArray()
-                    .do(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`))
-                    .map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
+        return of(module)
+            .pipe(
+                map(_ => this.toCoreModuleWithProviders(_)),
+                flatMap(cmwp =>
+                    this
+                        .extractMetadata(cmwp.module)
+                        .pipe(
+                            map(_ => ({ metadata: _, moduleWithProviders: cmwp }))
+                        )
+                ),
+                flatMap(mcmwp =>
+                    this
+                        .metadataToCoreModule(mcmwp.metadata, mcmwp.moduleWithProviders, parent)
+                        .pipe(
+                            map(_ => this.coreModuleParentConfigProviders(_)),
+                            map(_ => Object.assign({ module: _ }, mcmwp))
+                        )
+                ),
+                flatMap(data =>
+                    from(data.metadata.imports || [])
+                        .pipe(
+                            flatMap(_ => this.resolution(_, data.module)),
+                            toArray(),
+                            tap(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`)),
+                            map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
+                        )
+                )
             )
     }
 
@@ -131,28 +138,29 @@ export class ModuleManager {
      * @returns Observable
      */
     private static metadataToCoreModule(
-            metadata: HapinessModule,
-            moduleWithProviders: CoreModuleWithProviders,
-            parent?: CoreModule): Observable<CoreModule> {
+        metadata: HapinessModule,
+        moduleWithProviders: CoreModuleWithProviders,
+        parent?: CoreModule): Observable<CoreModule> {
 
-        return Observable
-            .of({
-                parent,
-                token: moduleWithProviders.module,
-                name: moduleWithProviders.module.name,
-                version: metadata.version,
-                exports: metadata.exports || [],
-                declarations: metadata.declarations || [],
-                providers: (metadata.providers || [])
-                    .concat(moduleWithProviders.providers)
-                    .map(_ => this.toCoreProvider(_)),
-                level: !!parent ?
-                    parent.level === ModuleLevel.ROOT ?
+        return of({
+            parent,
+            token: moduleWithProviders.module,
+            name: moduleWithProviders.module.name,
+            version: metadata.version,
+            exports: metadata.exports || [],
+            declarations: metadata.declarations || [],
+            providers: (metadata.providers || [])
+                .concat(moduleWithProviders.providers)
+                .map(_ => this.toCoreProvider(_)),
+            level: !!parent ?
+                parent.level === ModuleLevel.ROOT ?
                     ModuleLevel.PRIMARY :
                     ModuleLevel.SECONDARY :
-                    ModuleLevel.ROOT
-            })
-            .do(_ => this.logger.debug(`Build CoreModule for '${_.name}'`));
+                ModuleLevel.ROOT
+        })
+            .pipe(
+                tap(_ => this.logger.debug(`Build CoreModule for '${_.name}'`))
+            );
     }
 
     /**
@@ -163,12 +171,13 @@ export class ModuleManager {
      * @returns Observable
      */
     private static extractMetadata(module: Type<any>): Observable<HapinessModule> {
-        return Observable
-            .of(extractMetadataByDecorator<HapinessModule>(module, this.decoratorName))
-            .flatMap(_ => !!_ ?
-                Observable.of(_) :
-                Observable.throw(new Error(`Module '${module ? module.name : null}' resolution failed: No metadata`))
-            )
+        return of(extractMetadataByDecorator<HapinessModule>(module, this.decoratorName))
+            .pipe(
+                flatMap(_ => !!_ ?
+                    of(_) :
+                    throwError(new Error(`Module '${module ? module.name : null}' resolution failed: No metadata`))
+                )
+            );
     }
 
     /**
@@ -179,7 +188,7 @@ export class ModuleManager {
      * @returns CoreModuleWithProviders
      */
     private static toCoreModuleWithProviders(module: CoreModuleWithProviders | Type<any>): CoreModuleWithProviders {
-        return <CoreModuleWithProviders>((module && module['module']) ?
+        return <CoreModuleWithProviders>((module && module[ 'module' ]) ?
             module :
             {
                 module,
@@ -205,26 +214,32 @@ export class ModuleManager {
      * @returns Observable
      */
     private static instantiation(module: CoreModule, providers?: CoreProvide[], parent?: CoreModule): Observable<CoreModule> {
-        return Observable
-            .of(module)
-            .flatMap(_ =>
-                Observable
-                    .from(_.modules)
-                    .flatMap(child => this.instantiation(child, providers, parent))
-                    .toArray()
-                    .map(children => <CoreModule>Object.assign({}, _, { modules: children }))
-            )
-            .flatMap(_ =>
-                DependencyInjection
-                    .createAndResolve(this.collectProviders(_, providers))
-                    .map(di => <CoreModule>Object.assign({ di }, _))
-            )
-            .flatMap(_ =>
-                DependencyInjection
-                    .instantiateComponent(_.token, _.di)
-                    .map(instance => <CoreModule>Object.assign({ instance }, _))
-            )
-            .flatMap(_ => this.instantiateLibs(_));
+        return of(module)
+            .pipe(
+                flatMap(_ =>
+                    from(_.modules)
+                        .pipe(
+                            flatMap(child => this.instantiation(child, providers, parent)),
+                            toArray(),
+                            map(children => <CoreModule>Object.assign({}, _, { modules: children }))
+                        )
+                ),
+                flatMap(_ =>
+                    DependencyInjection
+                        .createAndResolve(this.collectProviders(_, providers))
+                        .pipe(
+                            map(di => <CoreModule>Object.assign({ di }, _))
+                        )
+                ),
+                flatMap(_ =>
+                    DependencyInjection
+                        .instantiateComponent(_.token, _.di)
+                        .pipe(
+                            map(instance => <CoreModule>Object.assign({ instance }, _))
+                        )
+                ),
+                flatMap(_ => this.instantiateLibs(_))
+            );
     }
 
     /**
@@ -234,12 +249,13 @@ export class ModuleManager {
      * @returns Type
      */
     private static instantiateLibs(module: CoreModule): Observable<CoreModule> {
-        return Observable
-            .from(module.declarations)
-            .filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lib'))
-            .flatMap(_ => DependencyInjection.instantiateComponent(_, module.di))
-            .toArray()
-            .map(_ => module);
+        return from(module.declarations)
+            .pipe(
+                filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lib')),
+                flatMap(_ => DependencyInjection.instantiateComponent(_, module.di)),
+                toArray(),
+                map(_ => module)
+            );
     }
 
     /**
@@ -247,6 +263,7 @@ export class ModuleManager {
      * inject into the DI
      *
      * @param  {HapinessModule} module
+     * @param  {CoreProvide[]} providers
      */
     private static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
         this.logger.debug(`Collect providers for '${module.name}'`);
@@ -273,7 +290,7 @@ export class ModuleManager {
                 .concat(
                     _.providers
                         .filter(__ => (__.provide instanceof InjectionToken)))
-                )
+            )
             .reduce((a, c) => a.concat(c), [])
             .filter(_ => !!_)
             .map(_ => this.toCoreProvider(_));

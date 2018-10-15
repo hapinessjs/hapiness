@@ -1,13 +1,14 @@
-import { Injectable, Inject } from '../../core';
+import { from, Observable } from 'rxjs';
+import { Inject, Injectable } from '../../core';
 import { HttpServerExt, Server } from './';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class HttpServerService {
 
     constructor(
         @Inject(HttpServerExt) private httpServer: Server
-    ) {}
+    ) {
+    }
 
     /**
      * Get HapiJS Server instance
@@ -24,8 +25,7 @@ export class HttpServerService {
      * @returns Observable
      */
     stop(): Observable<Error> {
-        return Observable
-            .fromPromise(this.httpServer.stop());
+        return from(this.httpServer.stop());
     }
 
 }

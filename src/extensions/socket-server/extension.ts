@@ -1,7 +1,16 @@
-import { CoreModule, Extension, ExtensionWithConfig, OnExtensionLoad, OnModuleInstantiated, OnShutdown } from '../../core/interfaces';
-import { Observable } from 'rxjs/Observable';
+import { Observable, of } from 'rxjs';
+import { map } from 'rxjs/operators';
+import {
+    CoreModule,
+    Extension,
+    ExtensionShutdown,
+    ExtensionShutdownPriority,
+    ExtensionWithConfig,
+    OnExtensionLoad,
+    OnModuleInstantiated,
+    OnShutdown
+} from '../../core';
 import { WebSocketServer } from './server';
-import { ExtensionShutdown, ExtensionShutdownPriority } from '../../core';
 
 export interface SocketConfig {
     port?: number;
@@ -34,13 +43,14 @@ export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated, O
      * @returns Observable
      */
     onExtensionLoad(module: CoreModule, config: SocketConfig): Observable<Extension> {
-        return Observable
-            .of(new WebSocketServer(config))
-            .map(_ => ({
-                instance: this,
-                token: SocketServerExt,
-                value: _
-            }));
+        return of(new WebSocketServer(config))
+            .pipe(
+                map(_ => ({
+                    instance: this,
+                    token: SocketServerExt,
+                    value: _
+                }))
+            );
     }
 
     /**
@@ -51,9 +61,10 @@ export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated, O
      * @returns Observable
      */
     onModuleInstantiated(module: CoreModule, server: WebSocketServer): Observable<any> {
-        return Observable
-            .of(server)
-            .map(_ => _.start());
+        return of(server)
+            .pipe(
+                map(_ => _.start())
+            );
     }
 
     /**

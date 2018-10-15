@@ -1,26 +1,29 @@
+import { ReplyNoContinue, ReplyWithContinue, Request, RouteConfiguration, Server } from 'hapi';
+import { from, Observable, of } from 'rxjs';
+import { defaultIfEmpty, filter, flatMap, map, reduce, tap, toArray } from 'rxjs/operators';
+import {
+    DependencyInjection,
+    errorHandler,
+    ExtensionShutdownPriority,
+    extractMetadataByDecorator,
+    HookManager,
+    ModuleManager,
+    Type
+} from '../../core';
 import {
     CoreModule,
+    Extension,
+    ExtensionShutdown,
+    ExtensionWithConfig,
     OnExtensionLoad,
     OnModuleInstantiated,
-    ExtensionWithConfig,
-    Extension,
-    OnShutdown,
-    ExtensionShutdown
+    OnShutdown
 } from '../../core/interfaces';
-import { DependencyInjection } from '../../core/di';
-import { HookManager } from '../../core/hook';
-import { extractMetadataByDecorator } from '../../core/metadata';
-import { ModuleManager } from '../../core/module';
-import { errorHandler } from '../../core/hapiness';
 import { Lifecycle } from './decorators';
-import { Type } from '../../core/decorators';
 import { enumByMethod, LifecycleComponentEnum } from './enums';
+import { ConnectionOptions, CoreRoute, HapiConfig, HTTPHandlerResponse } from './interfaces';
 import { LifecycleManager } from './lifecycle';
 import { RouteBuilder } from './route';
-import { ConnectionOptions, CoreRoute, HapiConfig, HTTPHandlerResponse } from './interfaces';
-import { Observable } from 'rxjs';
-import { RouteConfiguration, Server, Request, ReplyNoContinue, ReplyWithContinue } from 'hapi';
-import { ExtensionShutdownPriority } from '../../core';
 
 export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnShutdown {
 
@@ -39,22 +42,24 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
      * @returns Observable
      */
     onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
-        return Observable
-            .of(new Server(config.options))
-            .flatMap(server => Observable
-                .of(Object.assign({}, config, { options: undefined }))
-                .map(_ => this.formatConnections(_))
-                .do(_ => _.forEach(connection => server.connection(connection)))
-                .map(_ => server)
-            )
-            .flatMap(server =>
-                Observable
-                    .of({
+        return of(new Server(config.options))
+            .pipe(
+                flatMap(server =>
+                    of(Object.assign({}, config, { options: undefined }))
+                        .pipe(
+                            map(_ => this.formatConnections(_)),
+                            tap(_ => _.forEach(connection => server.connection(connection))),
+                            map(_ => server)
+                        )
+                ),
+                flatMap(server =>
+                    of({
                         instance: this,
                         token: HttpServerExt,
                         value: server
                     })
-            )
+                )
+            );
     }
 
     /**
@@ -68,13 +73,14 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
      * @returns Observable
      */
     onModuleInstantiated(module: CoreModule, server: Server): Observable<any> {
-        return Observable
-            .from(ModuleManager.getModules(module))
-            .flatMap(_ => this.instantiateLifecycle(_, server))
-            .flatMap(_ => this.registerPlugin(_, server))
-            .reduce((a, c) => a.concat(c), [])
-            .do(_ => LifecycleManager.routeLifecycle(server, _))
-            .flatMap(_ => server.start());
+        return from(ModuleManager.getModules(module))
+            .pipe(
+                flatMap(_ => this.instantiateLifecycle(_, server)),
+                flatMap(_ => this.registerPlugin(_, server)),
+                reduce((a, c) => a.concat(c), []),
+                tap(_ => LifecycleManager.routeLifecycle(server, _)),
+                flatMap(_ => server.start())
+            );
     }
 
     /**
@@ -87,7 +93,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
     onShutdown(module: CoreModule, server: Server): ExtensionShutdown {
         return {
             priority: ExtensionShutdownPriority.IMPORTANT,
-            resolver: Observable.fromPromise(server.stop())
+            resolver: from(server.stop())
         }
     }
 
@@ -118,22 +124,28 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
     private registerPlugin(module: CoreModule, server: Server): Observable<CoreRoute[]> {
         return this
             .buildRoutes(module)
-            .filter(_ => !!_ && _.length > 0)
-            .flatMap(routes => Observable
-                .of(<any>this.registerHandler(routes))
-                .do(_ => _.attributes = { name: module.name, version: module.version })
-                .flatMap(_ => Observable
-                    .fromPromise(server.register(_))
-                    .map(__ => routes)
-                )
-            )
-            .defaultIfEmpty([]);
+            .pipe(
+                filter(_ => !!_ && _.length > 0),
+                flatMap(routes =>
+                    of(<any>this.registerHandler(routes))
+                        .pipe(
+                            tap(_ => _.attributes = { name: module.name, version: module.version }),
+                            flatMap(_ =>
+                                from(server.register(_))
+                                    .pipe(
+                                        map(__ => routes)
+                                    )
+                            )
+                        )
+                ),
+                defaultIfEmpty([])
+            );
     }
 
     /**
      * Add routes from CoreModule
      *
-     * @param  {CoreRoute[]} module
+     * @param  {CoreRoute[]} routes
      * @returns Observable
      */
     private registerHandler(routes: CoreRoute[] = []): (s, o, n) => void {
@@ -160,9 +172,10 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
      * @returns Observable
      */
     private buildRoutes(module: CoreModule): Observable<CoreRoute[]> {
-        return Observable
-            .from(RouteBuilder.buildRoutes(module))
-            .toArray();
+        return from(RouteBuilder.buildRoutes(module))
+            .pipe(
+                toArray()
+            );
     }
 
     /**
@@ -179,10 +192,12 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
             .triggerHook(
                 enumByMethod(request.method).toString(),
                 route.token,
-                request['_hapinessRoute'],
+                request[ '_hapinessRoute' ],
                 [ request, reply ]
             )
-            .map(_ => this.formatResponse(_))
+            .pipe(
+                map(_ => this.formatResponse(_))
+            )
             .subscribe(
                 _ => {
                     const repl = reply(_.response)
@@ -220,29 +235,31 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
         return typeof(response) !== 'undefined' && response !== null;
     }
 
-     /**
+    /**
      * Initialize and instantiate lifecycle components
      *
      * @param  {CoreModule} module
      * @param  {Server} server
      */
     private instantiateLifecycle(module: CoreModule, server: Server): Observable<CoreModule> {
-        return Observable
-            .from([].concat(module.declarations))
-            .filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lifecycle'))
-            .map(_ => ({ metadata: <Lifecycle>extractMetadataByDecorator(_, 'Lifecycle'), token: _ }))
-            .do(_ =>
-                server.ext(<any>_.metadata.event, (request: Request, reply: ReplyWithContinue) => {
-                    this
-                        .eventHandler(_.token, module, request, reply)
-                        .subscribe(
-                            () => {},
-                            err => errorHandler(err)
-                        )
-                })
-            )
-            .toArray()
-            .map(_ => module);
+        return from([].concat(module.declarations))
+            .pipe(
+                filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lifecycle')),
+                map(_ => ({ metadata: <Lifecycle>extractMetadataByDecorator(_, 'Lifecycle'), token: _ })),
+                tap(_ =>
+                    server.ext(<any>_.metadata.event, (request: Request, reply: ReplyWithContinue) => {
+                        this
+                            .eventHandler(_.token, module, request, reply)
+                            .subscribe(
+                                () => {
+                                },
+                                err => errorHandler(err)
+                            )
+                    })
+                ),
+                toArray(),
+                map(_ => module)
+            );
     }
 
     /**
@@ -257,15 +274,18 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
      * @returns Observable
      */
     private eventHandler(lifecycle: Type<any>, module: CoreModule, request: Request, reply: ReplyWithContinue): Observable<any> {
-        return Observable
-            .of(lifecycle)
-            .flatMap(lc =>
-                DependencyInjection
-                    .instantiateComponent(lc, module.di)
-                    .flatMap(_ =>
-                        HookManager
-                            .triggerHook(LifecycleComponentEnum.OnEvent.toString(), lc, _, [request, reply])
-                    )
+        return of(lifecycle)
+            .pipe(
+                flatMap(lc =>
+                    DependencyInjection
+                        .instantiateComponent(lc, module.di)
+                        .pipe(
+                            flatMap(_ =>
+                                HookManager
+                                    .triggerHook(LifecycleComponentEnum.OnEvent.toString(), lc, _, [ request, reply ])
+                            )
+                        )
+                )
             );
     }
 }

@@ -19,5 +19,5 @@
     },
     "compileOnSave": false,
     "buildOnSave": false,
-    "exclude": ["src/externals", "node_modules", "dist", "tmp"]
+    "exclude": ["node_modules", "dist", "tmp"]
 }

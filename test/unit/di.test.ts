@@ -1,6 +1,7 @@
 import { suite, test } from 'mocha-typescript';
-import { DependencyInjection, Lib, Injectable } from '../../src/core';
+import { flatMap, tap } from 'rxjs/operators';
 import * as unit from 'unit.js';
+import { DependencyInjection, Injectable, Lib } from '../../src/core';
 
 import { EmptyProvider } from './mocks';
 
@@ -25,11 +26,14 @@ export class ModuleTestSuite {
     testCreateAndResolve2() {
 
         @Injectable()
-        class ParentProvider {}
+        class ParentProvider {
+        }
 
         DependencyInjection
             .createAndResolve([ ParentProvider ])
-            .flatMap(_ => DependencyInjection.createAndResolve([ EmptyProvider ], _))
+            .pipe(
+                flatMap(_ => DependencyInjection.createAndResolve([ EmptyProvider ], _))
+            )
             .subscribe(
                 _ =>
                     unit
@@ -44,7 +48,9 @@ export class ModuleTestSuite {
 
         @Injectable()
         class ParentProvider {
-            constructor() { throw new Error('Oops'); }
+            constructor() {
+                throw new Error('Oops');
+            }
         }
 
         DependencyInjection
@@ -67,13 +73,17 @@ export class ModuleTestSuite {
 
         @Injectable()
         class TestProvider {
-            constructor() { count++; }
+            constructor() {
+                count++;
+            }
         }
 
         DependencyInjection
             .createAndResolve([ TestProvider ])
-            .do(_ => _.get(TestProvider))
-            .flatMap(_ => DependencyInjection.createAndResolve([ TestProvider ], _))
+            .pipe(
+                tap(_ => _.get(TestProvider)),
+                flatMap(_ => DependencyInjection.createAndResolve([ TestProvider ], _))
+            )
             .subscribe(
                 _ => {
                     _.get(TestProvider);
@@ -90,14 +100,17 @@ export class ModuleTestSuite {
 
         @Lib()
         class TestLib {
-            constructor(public provider: EmptyProvider) {}
+            constructor(public provider: EmptyProvider) {
+            }
         }
 
         DependencyInjection
             .createAndResolve([ EmptyProvider ])
-            .flatMap(_ =>
-                DependencyInjection
-                    .instantiateComponent(TestLib, _)
+            .pipe(
+                flatMap(_ =>
+                    DependencyInjection
+                        .instantiateComponent(TestLib, _)
+                )
             )
             .subscribe(
                 _ =>
@@ -113,14 +126,17 @@ export class ModuleTestSuite {
 
         @Lib()
         class TestLib {
-            constructor(public provider: EmptyProvider) {}
+            constructor(public provider: EmptyProvider) {
+            }
         }
 
         DependencyInjection
             .createAndResolve([])
-            .flatMap(_ =>
-                DependencyInjection
-                    .instantiateComponent(TestLib, _)
+            .pipe(
+                flatMap(_ =>
+                    DependencyInjection
+                        .instantiateComponent(TestLib, _)
+                )
             )
             .subscribe(
                 null,

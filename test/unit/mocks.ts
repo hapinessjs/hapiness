@@ -1,45 +1,52 @@
 import 'reflect-metadata';
 
-import { CoreModule } from '../../src/core/interfaces'
-import { ModuleLevel } from '../../src/core/enums';
-import { InjectionToken, HapinessModule, Lib } from '../../src/core/decorators';
+import { CoreModule, HapinessModule, InjectionToken, Lib, ModuleLevel } from '../../src/core'
 
 export class EmptyModule {
-    onStart() {}
+    onStart() {
+    }
 }
-export class EmptyProvider {}
+
+export class EmptyProvider {
+}
+
 export const coreModule: CoreModule = {
     token: EmptyModule,
     name: EmptyModule.name,
     version: '1',
     level: ModuleLevel.ROOT
-}
+};
 export const InjToken = new InjectionToken('token');
 
 @HapinessModule({
     version: '123'
 })
-export class ModuleWithMetadata {}
+export class ModuleWithMetadata {
+}
 
 
 @HapinessModule({
     version: '123',
     imports: [ ModuleWithMetadata ]
 })
-export class ModuleWithMetadataWithChild {}
+export class ModuleWithMetadataWithChild {
+}
 
 @HapinessModule({
     version: '123',
     exports: [ EmptyProvider ],
-    providers: [{ provide: InjToken, useValue: 0 }]
+    providers: [ { provide: InjToken, useValue: 0 } ]
 })
-export class ModuleWithMetadataExportProvider {}
+export class ModuleWithMetadataExportProvider {
+}
 
 @HapinessModule({
     version: '123',
     imports: [ ModuleWithMetadataExportProvider ]
 })
-export class ModuleWithMetadataWithChildThatExportProvider {}
+export class ModuleWithMetadataWithChildThatExportProvider {
+}
 
 @Lib()
-export class EmptyLib {}
+export class EmptyLib {
+}

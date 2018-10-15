@@ -1,9 +1,9 @@
 import { suite, test } from 'mocha-typescript';
-import { Hapiness, ModuleManager, HookManager, errorHandler } from '../../src/core';
-import { Observable } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import * as unit from 'unit.js';
+import { errorHandler, Hapiness, HookManager, ModuleManager } from '../../src/core';
 
-import { EmptyModule, coreModule } from './mocks';
+import { coreModule, EmptyModule } from './mocks';
 
 @suite('Unit - Hapiness')
 export class TestSuite {
@@ -14,15 +14,15 @@ export class TestSuite {
         const stub1 = unit
             .stub(Hapiness, 'checkArg')
             .withArgs(EmptyModule)
-            .returns(Observable.of(EmptyModule));
+            .returns(of(EmptyModule));
         const stub2 = unit
             .stub(ModuleManager, 'resolve')
             .withArgs(EmptyModule)
-            .returns(Observable.of(coreModule));
+            .returns(of(coreModule));
         const stub3 = unit
             .stub(Hapiness, 'loadExtensions')
             .withArgs(undefined, coreModule)
-            .returns(Observable.of([]));
+            .returns(of([]));
 
         Hapiness
             .bootstrap(EmptyModule)
@@ -40,11 +40,11 @@ export class TestSuite {
         const stub1 = unit
             .stub(Hapiness, 'checkArg')
             .withArgs(EmptyModule)
-            .returns(Observable.throw(new Error('Oops')));
+            .returns(throwError(new Error('Oops')));
 
         const stub2 = unit
             .stub(Hapiness, 'shutdown')
-            .returns(Observable.of(false));
+            .returns(of(false));
 
         Hapiness
             .bootstrap(EmptyModule)
@@ -66,7 +66,9 @@ export class TestSuite {
     @test('loadExtensions - provide extensions and module and must call instantiateModule')
     testLoadExtensions1() {
 
-        class MyExt {}
+        class MyExt {
+        }
+
         const extwc = { token: MyExt, config: {} };
         const ext = { value: 123, instance: {}, token: MyExt };
 
@@ -77,13 +79,13 @@ export class TestSuite {
         const stub2 = unit
             .stub(Hapiness, 'loadExtention')
             .withArgs(extwc, coreModule)
-            .returns(Observable.of(ext));
+            .returns(of(ext));
         const stub3 = unit
             .stub(Hapiness, 'instantiateModule')
             .withArgs([ ext ], coreModule)
-            .returns(Observable.of(null));
+            .returns(of(null));
 
-        Hapiness['loadExtensions']([ MyExt, null ], coreModule, {})
+        Hapiness[ 'loadExtensions' ]([ MyExt, null ], coreModule, {})
             .subscribe();
 
         stub1.parent.restore();
@@ -95,27 +97,29 @@ export class TestSuite {
     @test('instantiateModule - provide loaded extensions and module and must call callHooks')
     testInstantiateModule1() {
 
-        class MyExt {}
+        class MyExt {
+        }
+
         const ext = { value: 123, instance: {}, token: MyExt };
 
         const stub1 = unit
             .stub(ModuleManager, 'instantiate')
-            .withArgs(coreModule, [{ provide: MyExt, useValue: 123 }])
-            .returns(Observable.of(coreModule));
+            .withArgs(coreModule, [ { provide: MyExt, useValue: 123 } ])
+            .returns(of(coreModule));
         const stub2 = unit
             .stub(Hapiness, 'moduleInstantiated')
             .withArgs(ext, coreModule)
-            .returns(Observable.of(null));
+            .returns(of(null));
         const stub3 = unit
             .stub(Hapiness, 'callRegister')
             .withArgs(coreModule)
-            .returns(Observable.of(coreModule));
+            .returns(of(coreModule));
         const stub4 = unit
             .stub(Hapiness, 'callStart')
             .withArgs(coreModule)
-            .returns(Observable.of(null));
+            .returns(of(null));
 
-        Hapiness['instantiateModule']([ ext ], coreModule, {})
+        Hapiness[ 'instantiateModule' ]([ ext ], coreModule, {})
             .subscribe();
 
         stub1.parent.restore();
@@ -129,8 +133,10 @@ export class TestSuite {
     testCallHooks1() {
 
         class EmptyModule2 {
-            onRegister() {}
+            onRegister() {
+            }
         }
+
         const module = Object.assign({ instance: new EmptyModule() }, coreModule);
 
         const getModulesRes = [
@@ -148,11 +154,11 @@ export class TestSuite {
             .returns(true);
         const stub3 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of(module))
-            .withArgs('onRegister', EmptyModule2, getModulesRes[1].instance)
-            .returns(Observable.of(module));
+            .returns(of(module))
+            .withArgs('onRegister', EmptyModule2, getModulesRes[ 1 ].instance)
+            .returns(of(module));
 
-        Hapiness['callRegister'](module)
+        Hapiness[ 'callRegister' ](module)
             .subscribe();
 
         stub1.parent.restore();
@@ -164,7 +170,7 @@ export class TestSuite {
     @test('checkArg - provide module and must not throw error')
     testCheckArg1(done) {
 
-        Hapiness['checkArg'](EmptyModule)
+        Hapiness[ 'checkArg' ](EmptyModule)
             .subscribe(
                 _ => done()
             );
@@ -174,7 +180,7 @@ export class TestSuite {
     @test('checkArg - dont provide module and must throw error')
     testCheckArg2() {
 
-        Hapiness['checkArg'](null)
+        Hapiness[ 'checkArg' ](null)
             .subscribe(
                 null,
                 _ =>
@@ -189,29 +195,30 @@ export class TestSuite {
     @test('checkArg - provide wrong module and must throw error')
     testCheckArg3() {
 
-        Hapiness['checkArg'](<any>'module')
-        .subscribe(
-            null,
-            _ =>
-                unit
-                    .object(_)
-                    .isInstanceOf(Error)
-                    .hasProperty('message', 'Bootstrap failed: module must be a function/class')
-        );
+        Hapiness[ 'checkArg' ](<any>'module')
+            .subscribe(
+                null,
+                _ =>
+                    unit
+                        .object(_)
+                        .isInstanceOf(Error)
+                        .hasProperty('message', 'Bootstrap failed: module must be a function/class')
+            );
 
     }
 
     @test('toExtensionWithConfig - provide extension and must return ExtensionWithConfig')
     testToExtensionWithConfig1() {
 
-        class MyExt {}
+        class MyExt {
+        }
 
         unit
-            .object(Hapiness['toExtensionWithConfig'](MyExt))
+            .object(Hapiness[ 'toExtensionWithConfig' ](MyExt))
             .is({ token: MyExt, config: {} });
 
         unit
-            .object(Hapiness['toExtensionWithConfig']({ token: MyExt, config: { test: 1 } }))
+            .object(Hapiness[ 'toExtensionWithConfig' ]({ token: MyExt, config: { test: 1 } }))
             .is({ token: MyExt, config: { test: 1 } });
 
     }
@@ -219,7 +226,9 @@ export class TestSuite {
     @test('loadExtention - provide extension and module and must return Extension')
     testLoadExtention1() {
 
-        class MyExt {}
+        class MyExt {
+        }
+
         const ext = { token: MyExt, config: {} };
         const instance = new MyExt();
 
@@ -229,15 +238,15 @@ export class TestSuite {
         const stub2 = unit
             .stub(HookManager, 'triggerHook')
             .withArgs('onExtensionLoad', MyExt, instance, [ coreModule, {} ])
-            .returns(Observable.of({}));
+            .returns(of({}));
 
-        Hapiness['loadExtention'](ext, coreModule)
+        Hapiness[ 'loadExtention' ](ext, coreModule)
             .subscribe(
                 _ =>
                     unit
                         .value(_)
                         .is({})
-            )
+            );
 
         stub1.restore();
         stub2.parent.restore();
@@ -247,21 +256,23 @@ export class TestSuite {
     @test('moduleInstantiated - provide extension and module and must return Observable')
     testModuleInstantiated1() {
 
-        class MyExt {}
+        class MyExt {
+        }
+
         const ext = { token: MyExt, instance: new MyExt(), value: 123 };
 
         const stub1 = unit
             .stub(HookManager, 'triggerHook')
             .withArgs('onModuleInstantiated', ext.token, ext.instance, [ coreModule, ext.value ])
-            .returns(Observable.of(null));
+            .returns(of(null));
 
-        Hapiness['moduleInstantiated'](ext, coreModule)
+        Hapiness[ 'moduleInstantiated' ](ext, coreModule)
             .subscribe(
                 _ =>
                     unit
                         .value(_)
                         .is(null)
-            )
+            );
 
         stub1.parent.restore();
 
@@ -271,8 +282,10 @@ export class TestSuite {
     testErrorHandler1() {
 
         class ModuleError {
-            onError() {}
+            onError() {
+            }
         }
+
         const module = { token: ModuleError, instance: new ModuleError() };
         const error = new Error('Oops');
 
@@ -281,13 +294,13 @@ export class TestSuite {
             .returns(true);
         const stub2 = unit
             .stub(HookManager, 'triggerHook')
-            .returns(Observable.of(null));
+            .returns(of(null));
 
-        Hapiness['module'] = <any>module;
+        Hapiness[ 'module' ] = <any>module;
         errorHandler(error);
         stub1.restore();
         stub2.restore();
-        Hapiness['module'] = undefined;
+        Hapiness[ 'module' ] = undefined;
 
     }
 
@@ -295,8 +308,10 @@ export class TestSuite {
     testErrorHandler2() {
 
         class ModuleError {
-            onError() {}
+            onError() {
+            }
         }
+
         const module = { token: ModuleError, instance: new ModuleError() };
         const error = new Error('Oops');
 
@@ -308,11 +323,11 @@ export class TestSuite {
             .withArgs(error)
             .returns(null);
 
-        Hapiness['module'] = <any>module;
+        Hapiness[ 'module' ] = <any>module;
         errorHandler(error);
         stub1.restore();
         stub2.parent.restore();
-        Hapiness['module'] = undefined;
+        Hapiness[ 'module' ] = undefined;
 
     }
 

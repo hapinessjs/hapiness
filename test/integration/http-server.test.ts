@@ -1,9 +1,17 @@
-import { suite, test } from 'mocha-typescript';
-import * as unit from 'unit.js';
-import { Hapiness, HapinessModule, Inject, OnRegister, OnStart, OnError } from '../../src/core';
-import { HttpServerExt, Route, Lifecycle, OnGet, OnEvent, OnPreResponse, HttpServerService } from '../../src/extensions/http-server';
 import { Server } from 'hapi';
-import { Observable } from 'rxjs';
+import { suite, test } from 'mocha-typescript';
+import { of } from 'rxjs';
+import * as unit from 'unit.js';
+import { Hapiness, HapinessModule, Inject, OnError, OnRegister, OnStart } from '../../src/core';
+import {
+    HttpServerExt,
+    HttpServerService,
+    Lifecycle,
+    OnEvent,
+    OnGet,
+    OnPreResponse,
+    Route
+} from '../../src/extensions/http-server';
 
 @suite('Integration - Http Server')
 export class HttpServerIntegration {
@@ -28,7 +36,8 @@ export class HttpServerIntegration {
         })
         class ModuleTest implements OnStart {
 
-            constructor(private server: HttpServerService) {}
+            constructor(private server: HttpServerService) {
+            }
 
             onStart() {
                 this.server.instance().inject('/', res => {
@@ -49,7 +58,10 @@ export class HttpServerIntegration {
                 return '123';
             }
         }
-        class Service2 {}
+
+        class Service2 {
+        }
+
         class Service3 {
             getData() {
                 return '456';
@@ -61,10 +73,13 @@ export class HttpServerIntegration {
             method: 'GET'
         })
         class RouteTest implements OnGet, OnPreResponse {
-            constructor(private serv: Service1, private serv3: Service3) {}
+            constructor(private serv: Service1, private serv3: Service3) {
+            }
+
             onGet(request, reply) {
                 reply('x');
             }
+
             onPreResponse(request, reply) {
                 request.response.source = request.response.source + this.serv.getData() + this.serv3.getData();
                 reply.continue();
@@ -84,11 +99,12 @@ export class HttpServerIntegration {
         @HapinessModule({
             version: '1.0.0',
             declarations: [ RouteTest, LF ],
-            providers: [ Service3, Service1, { provide: Service2, useClass: Service2 }  ]
+            providers: [ Service3, Service1, { provide: Service2, useClass: Service2 } ]
         })
         class ModuleTest implements OnStart {
 
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
 
             onStart() {
                 this.server.inject('/', res => {
@@ -120,7 +136,8 @@ export class HttpServerIntegration {
             version: '1.0.0',
             declarations: [ RouteTest ]
         })
-        class SubModuleTest {}
+        class SubModuleTest {
+        }
 
         @HapinessModule({
             version: '1.0.0',
@@ -128,7 +145,8 @@ export class HttpServerIntegration {
         })
         class ModuleTest implements OnStart {
 
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
 
             onStart() {
                 this.server.inject('/', res => {
@@ -164,12 +182,15 @@ export class HttpServerIntegration {
             version: '1.0.0'
         })
         class SubModuleTest implements OnRegister {
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
+
             onRegister() {
                 this.server.route({
                     path: '/route1',
                     method: 'GET',
-                    handler: () => {}
+                    handler: () => {
+                    }
                 });
             }
         }
@@ -179,7 +200,9 @@ export class HttpServerIntegration {
             imports: [ SubModuleTest ]
         })
         class ModuleTest implements OnStart {
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
+
             onStart() {
                 unit.object(this.server.table().pop().table.pop())
                     .hasProperty('path', '/route1');
@@ -199,8 +222,7 @@ export class HttpServerIntegration {
         })
         class RouteTest implements OnGet {
             onGet(request, reply) {
-                return Observable
-                    .of('test');
+                return of('test');
             }
         }
 
@@ -220,8 +242,7 @@ export class HttpServerIntegration {
         })
         class RouteTest3 implements OnGet {
             onGet(request, reply) {
-                return Observable
-                    .of({ response: 'test3', statusCode: 201, headers: { 'x-toto': 'toto' } });
+                return of({ response: 'test3', statusCode: 201, headers: { 'x-toto': 'toto' } });
             }
         }
 
@@ -230,7 +251,9 @@ export class HttpServerIntegration {
             declarations: [ RouteTest, RouteTest2, RouteTest3 ]
         })
         class ModuleTest implements OnStart {
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
+
             onStart() {
                 this.server.inject('/', res => {
                     unit.string(res.result)
@@ -245,7 +268,7 @@ export class HttpServerIntegration {
                                 .is('test3');
                             unit.value(res3.statusCode)
                                 .is(201);
-                            unit.string(res3.headers['x-toto'])
+                            unit.string(res3.headers[ 'x-toto' ])
                                 .is('toto');
                             this.server.stop().then(_ => done());
                         });
@@ -276,7 +299,8 @@ export class HttpServerIntegration {
         })
         class ModuleTest implements OnStart, OnError {
 
-            constructor(@Inject(HttpServerExt) private server: Server) {}
+            constructor(@Inject(HttpServerExt) private server: Server) {
+            }
 
             onStart() {
                 this.server.inject('/', res => {

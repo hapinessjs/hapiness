@@ -1,7 +1,8 @@
-import { Type, ReflectiveInjector, ResolvedReflectiveProvider, ResolvedReflectiveFactory } from 'injection-js';
+import { ReflectiveInjector, ResolvedReflectiveFactory, ResolvedReflectiveProvider, Type } from 'injection-js';
+import { from, Observable, of } from 'rxjs';
+import { map, reduce, tap } from 'rxjs/operators';
 import { CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
-import { Observable } from 'rxjs';
 
 export class DependencyInjection {
 
@@ -16,13 +17,14 @@ export class DependencyInjection {
      * @returns Observable<ReflectiveInjector>
      */
     static createAndResolve(providers: Type<any>[] | CoreProvide[], parent?: ReflectiveInjector): Observable<ReflectiveInjector> {
-        return Observable
-            .of(parent)
-            .map(_ => !!_ ?
-                parent.resolveAndCreateChild(<any>providers) :
-                ReflectiveInjector.resolveAndCreate(<any>providers)
-            )
-            .do(_ => this.logger.debug(`DI created, providers: ${providers.length}`));
+        return of(parent)
+            .pipe(
+                map(_ => !!_ ?
+                    parent.resolveAndCreateChild(<any>providers) :
+                    ReflectiveInjector.resolveAndCreate(<any>providers)
+                ),
+                tap(_ => this.logger.debug(`DI created, providers: ${providers.length}`))
+            );
     }
 
     /**
@@ -36,14 +38,15 @@ export class DependencyInjection {
      * @returns T
      */
     static instantiateComponent<T>(component: Type<T>, di: ReflectiveInjector): Observable<T> {
-        return Observable
-            .from(ReflectiveInjector.resolve([component]))
-            .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <any>[])
-            .map(_ => _.reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), []))
-            .map(_ => _.filter(__ => !!__))
-            .do(_ => this.logger.debug(`Component '${component.name}' deps: ${_.length}`))
-            .map(_ => _.map(d => di['_getByReflectiveDependency'](d)))
-            .map(_ => Reflect.construct(component, _));
+        return from(ReflectiveInjector.resolve([ component ]))
+            .pipe(
+                reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <any>[]),
+                map(_ => _.reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), [])),
+                map(_ => _.filter(__ => !!__)),
+                tap(_ => this.logger.debug(`Component '${component.name}' deps: ${_.length}`)),
+                map(_ => _.map(d => di[ '_getByReflectiveDependency' ](d))),
+                map(_ => Reflect.construct(component, _))
+            );
     }
 
 }

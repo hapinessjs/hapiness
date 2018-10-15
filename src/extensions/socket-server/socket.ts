@@ -1,7 +1,8 @@
+import { Observable, Subject } from 'rxjs';
+import { filter, map } from 'rxjs/operators';
 import { connection, request as WSRequest } from 'websocket';
+import { InternalLogger } from '../../core';
 import { WebSocketRooms } from './rooms';
-import { Subject, Observable } from 'rxjs/Rx';
-import { InternalLogger } from '../../core/logger';
 
 interface Message {
     event: string;
@@ -14,7 +15,7 @@ export class Socket {
 
     private data$ = new Subject<Message>();
 
-    private store: { [key: string]: any } = {};
+    private store: { [ key: string ]: any } = {};
 
     constructor(
         public request: WSRequest,
@@ -66,8 +67,10 @@ export class Socket {
     on$<T = any>(event: string): Observable<T> {
         return this
             .data$
-            .filter(_ => _ && _.event === event)
-            .map(_ => <T>_.data);
+            .pipe(
+                filter(_ => _ && _.event === event),
+                map(_ => <T>_.data)
+            );
     }
 
     /**
@@ -131,12 +134,12 @@ export class Socket {
     }
 
     setData(key: string, value: any): Socket {
-        this.store[key] = value;
+        this.store[ key ] = value;
         return this;
     }
 
     getData(key: string): any {
-        return this.store[key];
+        return this.store[ key ];
     }
 
     private getJSON(data: string) {

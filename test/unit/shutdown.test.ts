@@ -1,7 +1,8 @@
 import { suite, test } from 'mocha-typescript';
+import { of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import * as unit from 'unit.js';
 import { ExtensionShutdownPriority } from '../../src';
-import { Observable } from 'rxjs';
 import { ShutdownUtils } from '../../src/core/shutdown';
 
 @suite('Unit - Shutdown')
@@ -14,32 +15,35 @@ export class Shutdown {
         const list = [
             {
                 priority: ExtensionShutdownPriority.IMPORTANT,
-                resolver: Observable
-                    .of(true)
-                    .do(_ => {
-                        unit.bool(i === 0 || i === 1).isTrue();
-                        i++;
-                    })
+                resolver: of(true)
+                    .pipe(
+                        tap(_ => {
+                            unit.bool(i === 0 || i === 1).isTrue();
+                            i++;
+                        })
+                    )
             },
             {
                 priority: ExtensionShutdownPriority.NORMAL,
-                resolver: Observable
-                    .of(true)
-                    .do(_ => {
-                        unit.number(i).is(2);
-                        i++;
-                    })
+                resolver: of(true)
+                    .pipe(
+                        tap(_ => {
+                            unit.number(i).is(2);
+                            i++;
+                        })
+                    )
             },
             {
                 priority: ExtensionShutdownPriority.IMPORTANT,
-                resolver: Observable
-                    .of(true)
-                    .do(_ => {
-                        unit.bool(i === 0 || i === 1).isTrue();
-                        i++;
-                    })
+                resolver: of(true)
+                    .pipe(
+                        tap(_ => {
+                            unit.bool(i === 0 || i === 1).isTrue();
+                            i++;
+                        })
+                    )
             }
-        ]
+        ];
 
         const su = new ShutdownUtils();
         su.shutdown(list).subscribe(null, null, () => done());
