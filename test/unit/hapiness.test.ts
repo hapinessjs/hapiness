@@ -231,7 +231,7 @@ export class TestSuite {
             .withArgs('onExtensionLoad', MyExt, instance, [ coreModule, {} ])
             .returns(Observable.of({}));
 
-        Hapiness['loadExtention'](ext, coreModule)
+        Hapiness['loadExtention'](ext, coreModule, {})
             .subscribe(
                 _ =>
                     unit
