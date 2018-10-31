@@ -14,7 +14,7 @@
         "rootDir": ".",
         "skipLibCheck": true,
         "typeRoots": ["./node_modules/@types"],
-        "types": ["node", "hapi", "boom", "hoek", "joi", "websocket"],
+        "types": ["node", "websocket", "jest"],
         "lib": ["dom", "es2015"]
     },
     "compileOnSave": false,
