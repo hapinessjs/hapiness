@@ -2,6 +2,7 @@ import { EMPTY, merge, Observable, of, throwError } from 'rxjs';
 import { filter, flatMap, map, tap } from 'rxjs/operators';
 import { Type } from './decorators';
 import { InternalLogger } from './logger';
+import { TokenExt } from './extensions';
 
 export class HookManager {
 
@@ -14,7 +15,7 @@ export class HookManager {
      * @param  {Type} token
      * @returns boolean
      */
-    public static hasLifecycleHook<T>(hook: string, token: Type<T>): boolean {
+    public static hasLifecycleHook<T>(hook: string, token: Type<T> | TokenExt<any>): boolean {
         return token instanceof Type && hook in token.prototype;
     }
 
@@ -29,7 +30,8 @@ export class HookManager {
      * @param  {boolean}  throwErr
      * @returns Observable
      */
-    public static triggerHook<T>(hook: string, token: Type<any>, instance: T, args?: any[], throwErr?: boolean): Observable<any> {
+    public static triggerHook<T>(hook: string, token: Type<any> | TokenExt<any>,
+            instance: T, args?: any[], throwErr?: boolean): Observable<any> {
         return merge(
             of(this.hasLifecycleHook(hook, token))
                 .pipe(

@@ -2,9 +2,10 @@ import { Type } from '../decorators';
 import { Observable } from 'rxjs';
 import { CoreModule } from './module';
 import { ExtensionShutdownPriority } from '../enums';
+import { Extension } from '../extensions';
 
 export interface ExtensionWithConfig {
-    token: Type<any>;
+    token: Type<Extension<any>>;
     config: any;
 }
 
@@ -26,7 +27,7 @@ export interface ExtensionShutdown {
  * @param  {any} config
  * @returns Observable
  */
-export interface OnExtensionLoad { onExtensionLoad(module: CoreModule, config: any): Observable<Extension> }
+export interface OnExtensionLoad { onExtensionLoad(module: CoreModule, config: any): Observable<Extension<any>> }
 
 /**
  * OnModuleInstantiated Hook

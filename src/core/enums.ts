@@ -1,6 +1,6 @@
 export enum ExtentionHooksEnum {
-    OnExtensionLoad = <any>'onExtensionLoad',
-    OnModuleInstantiated = <any>'onModuleInstantiated',
+    OnLoad = <any>'onLoad',
+    OnBuild = <any>'onBuild',
     OnShutdown = <any>'onShutdown'
 }
 

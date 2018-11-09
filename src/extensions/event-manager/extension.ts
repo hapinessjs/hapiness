@@ -1,7 +1,7 @@
 import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ExtensionShutdown, ExtensionShutdownPriority } from '../../core';
-import { CoreModule, Extension, OnExtensionLoad, OnShutdown } from '../../core/interfaces';
+import { CoreModule, OnExtensionLoad, OnShutdown } from '../../core/interfaces';
 import { EventManager } from './manager';
 
 export class EventManagerExt implements OnExtensionLoad, OnShutdown {
@@ -12,7 +12,7 @@ export class EventManagerExt implements OnExtensionLoad, OnShutdown {
      * @param  {CoreModule} module
      * @returns Observable
      */
-    onExtensionLoad(module: CoreModule): Observable<Extension> {
+    onExtensionLoad(module: CoreModule): Observable<any> {
         return of(new EventManager())
             .pipe(
                 map(_ => ({

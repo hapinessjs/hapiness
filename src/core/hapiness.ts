@@ -7,7 +7,6 @@ import {
     flatMap,
     ignoreElements,
     map,
-    switchMap,
     tap,
     timeout,
     toArray
@@ -15,10 +14,15 @@ import {
 import { Type } from './decorators';
 import { ExtentionHooksEnum, ModuleEnum, ModuleLevel } from './enums';
 import { HookManager } from './hook';
-import { BootstrapOptions, CoreModule, Extension, ExtensionShutdown, ExtensionWithConfig } from './interfaces';
+import { BootstrapOptions, CoreModule, ExtensionShutdown, CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
 import { ModuleManager } from './module';
 import { ShutdownUtils } from './shutdown';
+import { Extension, ExtensionValue, ExtensionWithConfig, ExtensionLogger, ExtensionConfig, TokenDI } from './extensions';
+import { cleanArray } from './utils';
+import { ReflectiveInjector } from 'injection-js';
+import { DependencyInjection } from './di';
+import * as Url from 'url';
 
 function extensionError(error: Error, name: string): Error {
     error.message = `[${name}] ${error.message}`;
@@ -28,8 +32,8 @@ function extensionError(error: Error, name: string): Error {
 export class Hapiness {
 
     private static module: CoreModule;
-    private static extensions: Extension[];
-    private static logger = new InternalLogger('bootstrap');
+    private static extensions: ExtensionValue<any>[];
+    private static logger = new InternalLogger();
     private static shutdownUtils = new ShutdownUtils();
     private static defaultTimeout = 5000;
 
@@ -43,12 +47,13 @@ export class Hapiness {
      * @param  {BootstrapOptions} options?
      * @returns Promise
      */
-    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig>,
+    public static bootstrap(module: Type<any>, extensions?: Array<Type<any> | ExtensionWithConfig<any>>,
                             options: BootstrapOptions = {}): Promise<void> {
 
         if (options.shutdown !== false) {
             this.handleShutdownSignals();
         }
+        this.logger.debug(`bootstrap begin for '${module.name}'`);
         return new Promise((resolve, reject) => {
             this
                 .checkArg(module)
@@ -143,21 +148,33 @@ export class Hapiness {
      * @param  {BootstrapOptions} options?
      * @returns Observable
      */
-    private static loadExtensions(extensions: Array<Type<any> | ExtensionWithConfig>, moduleResolved: CoreModule,
-                                  options: BootstrapOptions): Observable<void> {
-        return from([].concat(extensions).filter(_ => !!_))
-            .pipe(
-                map(_ => this.toExtensionWithConfig(_)),
-                concatMap(_ => this
-                    .loadExtention(_, moduleResolved)
-                    .pipe(
-                        timeout(options.extensionTimeout || this.defaultTimeout),
-                        catchError(err => throwError(extensionError(err, _.token.name)))
-                    )
-                ),
-                toArray(),
-                flatMap(_ => this.instantiateModule(_, moduleResolved, options))
-            );
+    private static loadExtensions(extensions: Array<Type<any> | ExtensionWithConfig<any>>,
+            moduleResolved: CoreModule, options: BootstrapOptions): Observable<void> {
+        return from(cleanArray(extensions)).pipe(
+            map(_ => this.toExtensionWithConfig(_)),
+            concatMap(ewc => this.buildDIExt(ewc).pipe(
+                flatMap(_ => this.loadExtension(ewc, moduleResolved, _).pipe(
+                    timeout(options.extensionTimeout || this.defaultTimeout),
+                    catchError(err => throwError(extensionError(err, ewc.token.name)))
+                ))
+            )),
+            toArray(),
+            flatMap(_ => this.instantiateModule(_, moduleResolved, options))
+        );
+    }
+
+    private static buildDIExt(ext: ExtensionWithConfig<any>): Observable<ReflectiveInjector> {
+        const conf = { name: ext.token.name };
+        const providers = cleanArray(this.extensions)
+            .filter(_ => !!_.instance.config.type)
+            .map(_ => (<CoreProvide>{ provide: TokenDI(_.instance.config.type), useValue: _.value }));
+
+        return DependencyInjection.createAndResolve(cleanArray(providers)
+            .concat([
+                { provide: ExtensionConfig, useValue: Object.assign(conf, ext.config) },
+                { provide: ExtensionLogger, useClass: ExtensionLogger }
+            ])
+        );
     }
 
     /**
@@ -168,7 +185,7 @@ export class Hapiness {
      * @param  {BootstrapOptions} options
      * @returns Observable
      */
-    private static instantiateModule(extensionsLoaded: Extension[], moduleResolved: CoreModule,
+    private static instantiateModule(extensionsLoaded: ExtensionValue<any>[], moduleResolved: CoreModule,
                                      options: BootstrapOptions): Observable<void> {
         return from(extensionsLoaded)
             .pipe(
@@ -266,49 +283,51 @@ export class Hapiness {
      * @param  {} extension
      * @returns ExtensionWithConfig
      */
-    private static toExtensionWithConfig(extension): ExtensionWithConfig {
-        if (extension && <ExtensionWithConfig>extension.token) {
-            return <ExtensionWithConfig>extension;
+    private static toExtensionWithConfig(extension): ExtensionWithConfig<any> {
+        if (extension && <ExtensionWithConfig<any>>extension.token) {
+            return <ExtensionWithConfig<any>>extension;
         }
         return {
-            token: <Type<any>>extension,
+            token: <Type<Extension<any>>>extension,
             config: {}
         };
     }
 
     /**
-     * Call the OnExtensionLoad hook
+     * Call the OnLoad hook
      * of an extension
      *
      * @param  {ExtensionWithConfig} extension
      * @param  {CoreModule} module
      * @returns Observable
      */
-    private static loadExtention(extension: ExtensionWithConfig, module: CoreModule): Observable<Extension> {
-        return of(Reflect.construct(extension.token, []))
-            .pipe(
-                tap(_ => this.logger.debug(`loading ${extension.token.name}`)),
-                switchMap(instance =>
-                    HookManager
-                        .triggerHook(
-                            ExtentionHooksEnum.OnExtensionLoad.toString(),
-                            extension.token,
-                            instance,
-                            [ module, extension.config ]
-                        )
-                        .pipe(
-                            catchError(_ => {
-                                this.extensions = [].concat(this.extensions, instance);
-                                return this
-                                    .shutdown()
-                                    .pipe(
-                                        flatMap(() => throwError(_))
-                                    );
-                            })
-                        )
-                ),
-                tap(_ => this.extensions = [].concat(this.extensions, _).filter(__ => !!__))
-            );
+    private static formatConfig(config: ExtensionConfig): string {
+        if (config.uri) {
+            return Url.parse(config.uri).host;
+        } else if (config.host) {
+            return config.host + (config.port ? `:${config.port}` : '');
+        }
+    }
+    private static loadExtension(extension: ExtensionWithConfig<any>, module: CoreModule,
+            di: ReflectiveInjector): Observable<ExtensionValue<any>> {
+        return of(<Extension<any>>Reflect.apply((<any>extension.token).instantiate, extension.token, [di])).pipe(
+            tap(_ => _.logger.info(`loading extension '${extension.token.name}'` +
+                `${this.formatConfig(_.config) ? `, using ${this.formatConfig(_.config)}` : ''}`)),
+            flatMap(instance => HookManager
+                .triggerHook(
+                    ExtentionHooksEnum.OnLoad.toString(),
+                    extension.token,
+                    instance,
+                    [ module, extension.config ]
+                ).pipe(
+                    catchError(err => {
+                        // this.extensions = cleanArray(this.extensions).concat(instance);
+                        return this.shutdown().pipe(flatMap(() => throwError(err)))
+                    })
+                )
+            ),
+            tap(_ => this.extensions = cleanArray(this.extensions).concat(_))
+        );
     }
 
     /**
@@ -318,11 +337,12 @@ export class Hapiness {
      * @param  {Extension} extension
      * @returns Observable
      */
-    private static moduleInstantiated(extension: Extension, module: CoreModule): Observable<void> {
+    private static moduleInstantiated(extension: ExtensionValue<any>, module: CoreModule): Observable<void> {
+        extension.instance.logger.info(`extension '${extension.token.name}' is building`);
         return HookManager
             .triggerHook(
-                ExtentionHooksEnum.OnModuleInstantiated.toString(),
-                extension.token,
+                ExtentionHooksEnum.OnBuild.toString(),
+                <Type<any>>extension.token,
                 extension.instance,
                 [ module, extension.value ]
             )

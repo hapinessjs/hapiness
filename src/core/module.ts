@@ -20,12 +20,12 @@ export class ModuleManager {
      * @returns Observable
      */
     static resolve(module: any): Observable<CoreModule> {
-        this.logger.debug(`Resolving module '${module.name}'`);
+        this.logger.debug(`resolving module '${module.name}'`);
         return this.resolution(module);
     }
 
     static instantiate(module: CoreModule, providers?: CoreProvide[]): Observable<CoreModule> {
-        this.logger.debug(`Instantiation of module '${module.name}'`);
+        this.logger.debug(`instantiation of module '${module.name}'`);
         return this.instantiation(module, providers);
     }
 
@@ -106,7 +106,8 @@ export class ModuleManager {
                             tap(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`)),
                             map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
                         )
-                )
+                ),
+                tap(_ => this.logger.debug(`'${_.name}' module resolved`))
             )
     }
 
@@ -159,7 +160,7 @@ export class ModuleManager {
                 ModuleLevel.ROOT
         })
             .pipe(
-                tap(_ => this.logger.debug(`Build CoreModule for '${_.name}'`))
+                tap(_ => this.logger.debug(`build CoreModule for '${_.name}'`))
             );
     }
 
@@ -175,7 +176,7 @@ export class ModuleManager {
             .pipe(
                 flatMap(_ => !!_ ?
                     of(_) :
-                    throwError(new Error(`Module '${module ? module.name : null}' resolution failed: No metadata`))
+                    throwError(new Error(`module '${module ? module.name : null}' resolution failed: No metadata`))
                 )
             );
     }
@@ -266,7 +267,7 @@ export class ModuleManager {
      * @param  {CoreProvide[]} providers
      */
     private static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
-        this.logger.debug(`Collect providers for '${module.name}'`);
+        this.logger.debug(`collect providers for '${module.name}'`);
         return []
             .concat(module.providers)
             .concat(providers)
@@ -281,7 +282,7 @@ export class ModuleManager {
      * @returns CoreProvide[]
      */
     private static extractExportedProviders(module: CoreModule): CoreProvide[] {
-        this.logger.debug(`Extract exported children providers for '${module.name}'`);
+        this.logger.debug(`extract exported children providers for '${module.name}'`);
         return []
             .concat(module.modules)
             .filter(_ => (!!_.exports && _.exports.length > 0))

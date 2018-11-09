@@ -2,13 +2,13 @@ import { Observable, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import {
     CoreModule,
-    Extension,
     ExtensionShutdown,
     ExtensionShutdownPriority,
     ExtensionWithConfig,
     OnExtensionLoad,
     OnModuleInstantiated,
-    OnShutdown
+    OnShutdown,
+    Type
 } from '../../core';
 import { WebSocketServer } from './server';
 
@@ -29,7 +29,7 @@ export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated, O
 
     public static setConfig(config: SocketConfig): ExtensionWithConfig {
         return {
-            token: SocketServerExt,
+            token: <Type<any>>SocketServerExt,
             config
         };
     }
@@ -42,7 +42,7 @@ export class SocketServerExt implements OnExtensionLoad, OnModuleInstantiated, O
      * @param  {SocketConfig} config
      * @returns Observable
      */
-    onExtensionLoad(module: CoreModule, config: SocketConfig): Observable<Extension> {
+    onExtensionLoad(module: CoreModule, config: SocketConfig): Observable<any> {
         return of(new WebSocketServer(config))
             .pipe(
                 map(_ => ({

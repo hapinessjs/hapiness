@@ -3,6 +3,9 @@ import { from, Observable, of } from 'rxjs';
 import { map, reduce, tap } from 'rxjs/operators';
 import { CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
+import { ReflectiveDependency } from 'injection-js/reflective_provider';
+import { Extension } from './extensions';
+// import { ReflectiveDependency } from 'injection-js/reflective_provider';
 
 export class DependencyInjection {
 
@@ -16,7 +19,7 @@ export class DependencyInjection {
      * @param  {ReflectiveInjector} parent?
      * @returns Observable<ReflectiveInjector>
      */
-    static createAndResolve(providers: Type<any>[] | CoreProvide[], parent?: ReflectiveInjector): Observable<ReflectiveInjector> {
+    static createAndResolve(providers: Array<Type<any> | CoreProvide>, parent?: ReflectiveInjector): Observable<ReflectiveInjector> {
         return of(parent)
             .pipe(
                 map(_ => !!_ ?
@@ -47,6 +50,20 @@ export class DependencyInjection {
                 map(_ => _.map(d => di[ '_getByReflectiveDependency' ](d))),
                 map(_ => Reflect.construct(component, _))
             );
+    }
+
+    private static getComponentDeps<T>(component: Type<T>, di: ReflectiveInjector): any[] {
+        return ReflectiveInjector.resolve([ component ])
+            .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <ResolvedReflectiveFactory[]>[])
+            .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), <ReflectiveDependency[]>[])
+            .filter(__ => !!__)
+            .map(d => di[ '_getByReflectiveDependency' ](d));
+    }
+
+    static instantiateExtension<T>(extension: Type<T>, di: ReflectiveInjector): T {
+        const abstractDeps = this.getComponentDeps(<any>Extension, di);
+        const extDeps = this.getComponentDeps(extension, di);
+        return Reflect.construct(extension, extDeps && extDeps.length ? extDeps : abstractDeps);
     }
 
 }

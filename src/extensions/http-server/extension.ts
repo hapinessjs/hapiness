@@ -12,7 +12,6 @@ import {
 } from '../../core';
 import {
     CoreModule,
-    Extension,
     ExtensionShutdown,
     ExtensionWithConfig,
     OnExtensionLoad,
@@ -29,7 +28,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
 
     public static setConfig(config: HapiConfig): ExtensionWithConfig {
         return {
-            token: HttpServerExt,
+            token: <Type<any>>HttpServerExt,
             config
         };
     }
@@ -41,7 +40,7 @@ export class HttpServerExt implements OnExtensionLoad, OnModuleInstantiated, OnS
      * @param  {HapiConfig} config
      * @returns Observable
      */
-    onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<Extension> {
+    onExtensionLoad(module: CoreModule, config: HapiConfig): Observable<any> {
         return of(new Server(config.options))
             .pipe(
                 flatMap(server =>
