@@ -1,7 +1,7 @@
 import { CoreModule } from '../../core/interfaces';
 import { CoreRoute } from './interfaces';
 import { Observable } from 'rxjs';
-import { Type } from '../../core/decorators';
+import { Type, InjectionToken } from '../../core/decorators';
 import { Route } from './decorators';
 import { extractMetadataByDecorator } from '../../core/metadata';
 import { DependencyInjection } from '../../core/di';
@@ -20,6 +20,8 @@ export class HttpRequestInfo {
     credentials: {[key: string]: any};
     id: string;
 }
+
+export const requestKey = new InjectionToken('request_key');
 
 export class RouteBuilder {
 
@@ -65,7 +67,11 @@ export class RouteBuilder {
                 id: request.id
             }))
             .map(_ => ({ provide: HttpRequestInfo, useValue: _ }))
-            .map(_ => [].concat(route.providers).concat(_))
+            .map(_ => []
+                .concat(route.providers)
+                .concat(_)
+                .concat({ provide: requestKey, useValue: request })
+            )
             .flatMap(_ => DependencyInjection.createAndResolve(_, route.module.di))
             .flatMap(_ => DependencyInjection.instantiateComponent(route.token, _));
     }

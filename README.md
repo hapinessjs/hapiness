@@ -115,6 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.6.0 (2018-11-27)
+    * Request in DI: Add request reference inside route DI
 * v1.5.5 (2018-10-15)
     * Boostrap fix: Exit the process if it fails
 * v1.5.4 (2018-06-19)
