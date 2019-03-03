@@ -5,7 +5,7 @@ import { ExtensionLogger } from './logger';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from '../di';
 import { ExtentionHooksEnum } from '../enums';
-import { ExtensionValue, ExtensionConfig, ExtensionWithConfig } from './interfaces';
+import { ExtensionResult, ExtensionConfig, ExtensionWithConfig } from './interfaces';
 import { CoreModule } from '../interfaces';
 import { extractMetadataAndName } from '../metadata';
 
@@ -30,7 +30,7 @@ export abstract class Extension<T> {
                 }
                 if (typeof method === 'function' && prop === ExtentionHooksEnum.OnLoad.toString()) {
                     return function(...args) {
-                        return (<Observable<ExtensionValue<T>>>method.apply(this, args)).pipe(
+                        return (<Observable<ExtensionResult<T>>>method.apply(this, args)).pipe(
                             tap(_ => receiver.value = _.value)
                         )
                     }
@@ -63,7 +63,7 @@ export abstract class Extension<T> {
         @Inject(ExtensionConfig) public config: ExtensionConfig
     ) {}
 
-    abstract onLoad(module: CoreModule): Observable<ExtensionValue<T>>;
+    abstract onLoad(module: CoreModule): Observable<ExtensionResult<T>>;
 
     abstract onBuild(module: CoreModule, decorators: CoreDecorator<any>[]): Observable<void>;
 
@@ -85,7 +85,7 @@ export abstract class Extension<T> {
      * }
      *
      */
-    loadedResult(value: T): ExtensionValue<T> {
+    loadedResult(value: T): ExtensionResult<T> {
         return {
             value,
             instance: this,

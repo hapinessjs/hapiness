@@ -1,4 +1,4 @@
-import { Extension, ExtensionValue, ExtensionConfig } from '../../core/extensions';
+import { Extension, ExtensionResult, ExtensionConfig } from '../../core/extensions';
 import * as Fastify from 'fastify';
 import { ServerOptions } from 'https';
 import { CoreModule, CoreDecorator } from '../../core';
@@ -19,7 +19,7 @@ export class HttpServer extends Extension<ServerHTTP> {
 
     decorators = [ 'Route' ]
 
-    onLoad(): Observable<ExtensionValue<ServerHTTP>> {
+    onLoad(): Observable<ExtensionResult<ServerHTTP>> {
         return of(this.loadedResult(Fastify()));
     }
 

@@ -10,3 +10,4 @@
 - JSON Schema as standard for every models
 - Rewrite http server with fastify
 - Auto add Components/Providers ?
+- DI in Route handlers (Auto inject Query, Params, ...) 

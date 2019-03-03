@@ -1,12 +1,9 @@
-import { EMPTY, merge, Observable, of, throwError } from 'rxjs';
-import { filter, flatMap, map, tap } from 'rxjs/operators';
-import { Type } from './decorators';
-import { InternalLogger } from './logger';
+import { Observable, of, throwError, isObservable } from 'rxjs';
+import { flatMap, map } from 'rxjs/operators';
+import { Type } from 'injection-js';
 import { TokenExt } from './extensions';
 
 export class HookManager {
-
-    private static logger = new InternalLogger('hook');
 
     /**
      * Check if a token has a hook implemented
@@ -30,28 +27,23 @@ export class HookManager {
      * @param  {boolean}  throwErr
      * @returns Observable
      */
-    public static triggerHook<T>(hook: string, token: Type<any> | TokenExt<any>,
-            instance: T, args?: any[], throwErr?: boolean): Observable<any> {
-        return merge(
-            of(this.hasLifecycleHook(hook, token))
-                .pipe(
-                    filter(_ => !!_),
-                    map(_ => Reflect.apply(instance[ hook ], instance, args || [])),
-                    flatMap(_ =>
-                        (_ instanceof Observable) ?
-                            _ : !!_ ?
-                            of(_) :
-                            EMPTY
-                    )
-                ),
-            of(this.hasLifecycleHook(hook, token))
-                .pipe(
-                    filter(_ => !_ && throwErr),
-                    flatMap(_ => throwError(new Error(`Hook missing ${hook} on ${token.name}`)))
+    public static triggerHook<T, R>(hook: string, token: Type<T> | TokenExt<T>,
+            instance: T, args?: any[], throwErr?: boolean): Observable<R> {
+        return of(this.hasLifecycleHook(hook, token)).pipe(
+            flatMap(bool => !bool ?
+                throwErr ?
+                    throwError(new Error(`Hook missing ${hook} on ${token.name}`)) :
+                    of(<R>null) :
+                of(bool).pipe(
+                    map(_ => <R>Reflect.apply(instance[ hook ], instance, args || [])),
+                    flatMap(_ => this.wrapObservable(_))
                 )
+            )
         )
-            .pipe(
-                tap(_ => this.logger.debug(`Triggering hook '${hook}' on '${token.name}'`))
-            );
+    }
+
+    private static wrapObservable<R>(value: Observable<R> | R): Observable<R> {
+        return isObservable(value) ?
+            value : of(value || null);
     }
 }
