@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { CoreDecorator, Type } from './decorators';
+import { Type } from './decorators';
 
 /**
  * Helper to extract Metadata

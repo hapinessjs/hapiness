@@ -1,4 +1,5 @@
-export * from './hapiness';
+import 'reflect-metadata';
+export * from './bootstrap';
 export * from './decorators';
 export * from './di';
 export * from './enums';

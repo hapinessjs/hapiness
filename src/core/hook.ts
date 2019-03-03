@@ -27,8 +27,8 @@ export class HookManager {
      * @param  {boolean}  throwErr
      * @returns Observable
      */
-    public static triggerHook<T, R>(hook: string, token: Type<T> | TokenExt<T>,
-            instance: T, args?: any[], throwErr?: boolean): Observable<R> {
+    public static triggerHook<Instance, R>(hook: string, token: Type<Instance> | TokenExt<Instance>,
+            instance: Instance, args?: any[], throwErr?: boolean): Observable<R> {
         return of(this.hasLifecycleHook(hook, token)).pipe(
             flatMap(bool => !bool ?
                 throwErr ?

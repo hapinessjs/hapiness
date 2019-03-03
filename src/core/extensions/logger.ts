@@ -22,7 +22,7 @@ export class ExtensionLogger {
         @Inject(ExtensionConfig) config: ExtensionConfig
     ) {
         if (!this.logger) {
-            this.debug_logger = new InternalLogger('extension', config.name.toLowerCase());
+            this.debug_logger = new InternalLogger('extension', config.extension_name.toLowerCase());
         }
     }
 

@@ -4,7 +4,7 @@ import { ExtensionType } from './types';
 export type TokenExt<T> = (Function & { prototype: T });
 
 export interface ExtensionConfig {
-    name?: string;
+    extension_name?: string;
     port?: number;
     host?: string;
     uri?: string;
