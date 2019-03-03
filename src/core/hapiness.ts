@@ -23,6 +23,7 @@ import { cleanArray } from './utils';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from './di';
 import * as Url from 'url';
+import { extractMetadataAndName } from './metadata';
 
 function extensionError(error: Error, name: string): Error {
     error.message = `[${name}] ${error.message}`;
@@ -30,6 +31,10 @@ function extensionError(error: Error, name: string): Error {
 }
 
 export class Hapiness {
+
+}
+
+export class Hapiness2 {
 
     private static module: CoreModule;
     private static extensions: ExtensionValue<any>[];
@@ -339,12 +344,18 @@ export class Hapiness {
      */
     private static moduleInstantiated(extension: ExtensionValue<any>, module: CoreModule): Observable<void> {
         extension.instance.logger.info(`extension '${extension.token.name}' is building`);
+        const decorators = extension.instance.decorators || [];
+        const metadata = ModuleManager.getModules(module)
+            .map(_ => _.declarations)
+            .reduce((a, c) => a.concat(c), <any>[])
+            .map(_ => extractMetadataAndName(_))
+            .filter(_ => decorators.indexOf(_.name) > -1);
         return HookManager
             .triggerHook(
                 ExtentionHooksEnum.OnBuild.toString(),
                 <Type<any>>extension.token,
                 extension.instance,
-                [ module, extension.value ]
+                [ module, metadata ]
             )
             .pipe(
                 tap(_ => this.logger.debug(`moduleInstantiated ${extension.token.name}`)),

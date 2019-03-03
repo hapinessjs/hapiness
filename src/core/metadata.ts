@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import { CoreDecorator, Type } from './decorators';
 
 /**
  * Helper to extract Metadata
@@ -41,4 +42,15 @@ export function extractMetadatas(decorator: any): any[] {
         .map(x => <any[]>Reflect.getOwnMetadata(x, decorator))
         .map(x => [].concat(x))
         .pop() || [];
+}
+
+export type MetadataAndName<T> = { name: string, metadata: any };
+
+export function extractMetadataAndName<T>(type: Type<any>): MetadataAndName<T> {
+    return extractMetadatas(type)
+        .map(_ => ({
+            name: _.toString().slice(1),
+            metadata: _
+        }))
+        .pop();
 }

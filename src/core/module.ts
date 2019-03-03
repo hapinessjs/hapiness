@@ -1,6 +1,6 @@
 import { from, Observable, of, throwError } from 'rxjs';
 import { filter, flatMap, map, tap, toArray } from 'rxjs/operators';
-import { HapinessModule, InjectionToken, Type } from './decorators';
+import { Module, InjectionToken, Type } from './decorators';
 import { DependencyInjection } from './di';
 import { ModuleLevel } from './enums';
 import { CoreModule, CoreModuleWithProviders, CoreProvide } from './interfaces';
@@ -9,7 +9,7 @@ import { extractMetadataByDecorator } from './metadata';
 
 export class ModuleManager {
 
-    private static decoratorName = 'HapinessModule';
+    private static decoratorName = 'Module';
 
     private static logger = new InternalLogger('module');
 
@@ -139,7 +139,7 @@ export class ModuleManager {
      * @returns Observable
      */
     private static metadataToCoreModule(
-        metadata: HapinessModule,
+        metadata: Module,
         moduleWithProviders: CoreModuleWithProviders,
         parent?: CoreModule): Observable<CoreModule> {
 
@@ -171,8 +171,8 @@ export class ModuleManager {
      * @param  {Type<any>} module
      * @returns Observable
      */
-    private static extractMetadata(module: Type<any>): Observable<HapinessModule> {
-        return of(extractMetadataByDecorator<HapinessModule>(module, this.decoratorName))
+    private static extractMetadata(module: Type<any>): Observable<Module> {
+        return of(extractMetadataByDecorator<Module>(module, this.decoratorName))
             .pipe(
                 flatMap(_ => !!_ ?
                     of(_) :

@@ -19,8 +19,7 @@
         "url": "git+ssh://git@github.com/hapinessjs/hapiness.git"
     },
     "keywords": [
-        "HapiJS",
-        "Hapi",
+        "Webservice",
         "Framework",
         "NodeJS",
         "Node",
@@ -37,12 +36,6 @@
         "Observable",
         "Observer",
         "Module",
-        "ES2015",
-        "ES2016",
-        "ES2017",
-        "ES6",
-        "ES7",
-        "ES8",
         "Typescript"
     ],
     "contributors": [
@@ -61,10 +54,6 @@
         {
             "name": "Nicolas Jessel",
             "url": "https://github.com/njl07"
-        },
-        {
-            "name": "Tara Lerias",
-            "url": "https://github.com/tlerias"
         }
     ],
     "license": "SEE LICENSE IN https://github.com/hapinessjs/hapiness/blob/master/LICENSE.md",
@@ -73,12 +62,11 @@
     },
     "homepage": "https://github.com/hapinessjs/hapiness#readme",
     "dependencies": {
-        "debug": "^4.1.0",
-        "fastify": "^1.12.1",
-        "hapi": "^16.6.3",
-        "injection-js": "^2.2.1",
-        "reflect-metadata": "^0.1.12",
-        "websocket": "^1.0.28"
+        "debug": "4.1.0",
+        "fastify": "2.0.0-rc.6",
+        "injection-js": "2.2.1",
+        "opentracing": "0.14.3",
+        "reflect-metadata": "0.1.12"
     },
     "devDependencies": {
         "@types/fs-extra": "^5.0.4",
@@ -87,6 +75,7 @@
         "@types/websocket": "0.0.40",
         "coveralls": "^3.0.2",
         "fs-extra": "^7.0.0",
+        "jaeger-client": "^3.13.0",
         "jest": "^23.6.0",
         "rimraf": "^2.6.2",
         "rxjs": "^6.3.3",

@@ -1,19 +1,22 @@
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Inject, CoreDecorator } from '../decorators';
+import { Inject, CoreDecorator, createDecorator } from '../decorators';
 import { ExtensionLogger } from './logger';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from '../di';
 import { ExtentionHooksEnum } from '../enums';
 import { ExtensionValue, ExtensionConfig, ExtensionWithConfig } from './interfaces';
 import { CoreModule } from '../interfaces';
+import { extractMetadataAndName } from '../metadata';
 
 export abstract class Extension<T> {
 
     public static LOGGER = 'logger';
+    static createDecorator = createDecorator;
+    static extractMetadata = extractMetadataAndName;
 
     protected value: T;
-    protected decorators: CoreDecorator<any>[];
+    public decorators: string[] = [];
 
     static instantiate<T>(di: ReflectiveInjector): Extension<T> {
         if (this.name === 'Extension') {
@@ -54,6 +57,7 @@ export abstract class Extension<T> {
         };
     }
 
+
     constructor(
         @Inject(ExtensionLogger) public logger: ExtensionLogger,
         @Inject(ExtensionConfig) public config: ExtensionConfig
@@ -61,7 +65,7 @@ export abstract class Extension<T> {
 
     abstract onLoad(module: CoreModule): Observable<ExtensionValue<T>>;
 
-    abstract onBuild(module: CoreModule): Observable<void>;
+    abstract onBuild(module: CoreModule, decorators: CoreDecorator<any>[]): Observable<void>;
 
     abstract onShutdown(module: CoreModule): Observable<void>;
 
