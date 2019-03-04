@@ -114,6 +114,10 @@ export class Socket {
         this._connection.close();
     }
 
+    drop(reasonCode?: number, description?: string): void {
+        this._connection.drop(reasonCode, description);
+    }
+
     join(room: string): Socket {
         this._rooms.join(room, this);
 
