@@ -2,6 +2,7 @@ import { Optional, Inject, Injectable } from 'injection-js';
 import { TokenDI } from './tokens';
 import { InternalLogger } from '../logger';
 import { ExtensionConfig } from './interfaces';
+import { ExtensionType } from './types';
 
 export interface ExtensionLogger {
     trace(...any): void;
@@ -18,7 +19,7 @@ export class ExtensionLogger {
     private debug_logger: InternalLogger;
 
     constructor(
-        @Optional() @Inject(TokenDI('logger')) private logger: ExtensionLogger,
+        @Optional() @Inject(TokenDI(ExtensionType.LOGGING.toString())) private logger: ExtensionLogger,
         @Inject(ExtensionConfig) config: ExtensionConfig
     ) {
         if (!this.logger) {

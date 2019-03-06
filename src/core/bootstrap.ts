@@ -6,7 +6,7 @@ import { ModuleManager } from './module';
 import { CoreModule, CoreProvide } from './interfaces';
 import { Observable, from, throwError, of } from 'rxjs';
 import { arr } from './utils';
-import { map, tap, flatMap, concatMap, toArray, filter, mapTo, ignoreElements } from 'rxjs/operators';
+import { map, tap, flatMap, concatMap, toArray, filter, mapTo, ignoreElements, retryWhen, take, delay } from 'rxjs/operators';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from './di';
 import * as Url from 'url';
@@ -20,7 +20,7 @@ class CoreState {
     module: CoreModule;
     internal_logger = new InternalLogger('bootstrap');
     logger(): ExtensionLogger {
-        const logger = this.extensions.find(ext => ext.instance.config.type === ExtensionType.LOGGING);
+        const logger = this.extensions.find(ext => ext.token['type'] === ExtensionType.LOGGING);
         return logger ? logger.value : this.internal_logger;
     }
 }
@@ -37,23 +37,23 @@ export class Hapiness {
 }
 
 function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionToLoad<any>[], options?: BootstrapOptions) {
-    extensions = extensions || [];
-    options = options || {};
-    options.tracer = options.tracer || new Tracer();
     if (!module || typeof module !== 'function') {
         return Promise.reject(new Error('You have to provide a module'));
     }
+    extensions = extensions || [];
+    options = options || {};
+    options.tracer = options.tracer || new Tracer();
     return new Promise((resolve, reject) => {
         ModuleManager.resolve(module).pipe(
             tap(coreModule => state.module = coreModule),
             flatMap(() => loadExtensions(extensions, state)),
-            tap(() => state.logger().info('--- Extensions loaded.')),
+            tap(() => state.logger().info('--- extensions loaded.')),
             flatMap(extensionResults => instantiateModule(extensionResults, state)),
-            tap(() => state.logger().info('--- Modules instantiated and registered.')),
+            tap(() => state.logger().info('--- modules instantiated and registered.')),
             flatMap(() => buildExtensions(state)),
-            tap(() => state.logger().info('--- Extensions built. starting...')),
+            tap(() => state.logger().info('--- extensions built. starting...')),
             flatMap(() => callStart(state)),
-            tap(() => state.logger().info('--- Hapiness is running')),
+            tap(() => state.logger().info('--- hapiness is running')),
             ignoreElements()
         )
         .subscribe(
@@ -76,8 +76,8 @@ function convertToExtensionWithConfig<T>(extension: TokenExt<T> | ExtensionWithC
 
 function buildDIForExtension<T>(extension: ExtensionWithConfig<T>, state: CoreState): Observable<ReflectiveInjector> {
     const providers = arr(state.extensions)
-        .filter(ext => !! ext.instance.config.type)
-        .map(ext => (<CoreProvide>{ provide: TokenDI(ext.instance.config.type.toString()), useValue: ext.value }));
+        .filter(ext => ext.token['type'] !== ExtensionType.DEFAULT)
+        .map(ext => (<CoreProvide>{ provide: TokenDI(ext.token['type'].toString()), useValue: ext.value }));
     return DependencyInjection.createAndResolve(arr(providers)
         .concat([
             { provide: ExtensionConfig, useValue: { ...extension.config, extension_name: extension.token.name } },
@@ -87,7 +87,7 @@ function buildDIForExtension<T>(extension: ExtensionWithConfig<T>, state: CoreSt
 }
 
 function findLoggingExtension(state: CoreState): ExtensionResult<any> | null {
-    return state.extensions.find(e => e.instance.config.type === ExtensionType.LOGGING);
+    return state.extensions.find(e => e.token['type'] === ExtensionType.LOGGING);
 }
 
 function formatConfig(config: ExtensionConfig): string {
@@ -100,7 +100,7 @@ function formatConfig(config: ExtensionConfig): string {
 
 function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjector): Observable<ExtensionResult<T>> {
     return of(<Extension<T>>Reflect.apply((<any>extension.token).instantiate, extension.token, [di])).pipe(
-        tap(instance => instance.logger && instance.logger.info(`loading extension '${extension.token.name}'` +
+        tap(instance => instance.logger && instance.logger.info(`loading extension ${extension.token.name}` +
             `${formatConfig(instance.config) ? `, using ${formatConfig(instance.config)}` : ''}`)),
         flatMap(instance => HookManager
             .triggerHook<Extension<T>, ExtensionResult<T>>(
@@ -108,16 +108,25 @@ function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjec
                 extension.token,
                 instance,
                 [ module ]
+            ).pipe(
+                retryWhen(errors => errors.pipe(
+                    tap(error => instance.logger && instance.logger.error(error.message)),
+                    delay(1000),
+                    take(2),
+                    // concat(e => throwError(e))
+                ))
             )
         )
     );
 }
 
 function loadExtensions(extensions: ExtensionToLoad<any>[], state: CoreState): Observable<ExtensionResult<any>[]> {
-    return from(arr(extensions)).pipe(
-        map(ext => convertToExtensionWithConfig(ext)),
+    return from(arr(extensions)
+        .map(ext => convertToExtensionWithConfig(ext))
+        .sort((a, b) => b.token['type'] - a.token['type'])
+    ).pipe(
         flatMap(ext =>
-            !!findLoggingExtension(state) ?
+            ext.token['type'] === ExtensionType.LOGGING && !!findLoggingExtension(state) ?
                 throwError(new Error(`Logging extension already loaded: ${findLoggingExtension(state).token.name}`)) :
                 of(ext)
         ),

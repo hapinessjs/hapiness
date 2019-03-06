@@ -8,12 +8,14 @@ import { ExtentionHooksEnum } from '../enums';
 import { ExtensionResult, ExtensionConfig, ExtensionWithConfig } from './interfaces';
 import { CoreModule } from '../interfaces';
 import { extractMetadataAndName } from '../metadata';
+import { ExtensionType } from './types';
 
 export abstract class Extension<T> {
 
     public static LOGGER = 'logger';
     static createDecorator = createDecorator;
     static extractMetadata = extractMetadataAndName;
+    static type: ExtensionType = ExtensionType.DEFAULT;
 
     protected value: T;
     public decorators: string[] = [];
