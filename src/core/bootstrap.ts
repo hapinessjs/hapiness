@@ -1,19 +1,20 @@
+import { Extension, ExtensionWithConfig, TokenExt, ExtensionToLoad, ExtensionResult,
+    TokenDI, ExtensionConfig, ExtensionLogger, ExtensionShutdown } from './extensions';
+import { map, tap, flatMap, concatMap, toArray, filter, mapTo, ignoreElements, retryWhen, delay, scan,
+        timeout, catchError } from 'rxjs/operators';
 import { Tracer } from 'opentracing';
 import { Type } from './decorators';
-import { Extension, ExtensionWithConfig, TokenExt, ExtensionToLoad, ExtensionResult,
-    TokenDI, ExtensionConfig, ExtensionLogger, ExtensionType } from './extensions';
 import { ModuleManager } from './module';
 import { CoreModule, CoreProvide } from './interfaces';
-import { Observable, from, throwError, of } from 'rxjs';
-import { arr } from './utils';
-import { map, tap, flatMap, concatMap, toArray, filter, mapTo, ignoreElements, retryWhen, take, delay } from 'rxjs/operators';
+import { Observable, from, throwError, of, empty, isObservable } from 'rxjs';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from './di';
-import * as Url from 'url';
 import { HookManager } from './hook';
-import { ExtentionHooksEnum, ModuleLevel, ModuleEnum } from './enums';
+import { ExtensionHooksEnum, ModuleLevel, ModuleEnum, ExtensionShutdownPriority, ExtensionType } from './enums';
 import { extractMetadataAndName } from './metadata';
 import { InternalLogger } from './logger';
+import { arr } from './utils';
+import * as Url from 'url';
 
 class CoreState {
     extensions: ExtensionResult<any>[] = [];
@@ -25,14 +26,30 @@ class CoreState {
     }
 }
 
+type ExtensionShutdownMap = ExtensionShutdown & { extension: ExtensionResult<any> };
+
 export interface BootstrapOptions {
     tracer?: Tracer;
+    retry?: {
+        interval?: number,
+        count?: number
+    },
+    timeout?: number;
 }
 
 export class Hapiness {
 
+    private static state: CoreState;
+
     static bootstrap(module: Type<any>, extensions?: ExtensionToLoad<any>[], options?: BootstrapOptions) {
-        return bootstrap(new CoreState(), module, extensions, options);
+        this.state = new CoreState();
+        process.once('SIGTERM', () => this.shutdown());
+        process.once('SIGINT', () => this.shutdown());
+        return bootstrap(this.state, module, extensions, options);
+    }
+
+    static shutdown() {
+        return shutdown(this.state).toPromise();
     }
 }
 
@@ -41,16 +58,17 @@ function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionTo
         return Promise.reject(new Error('You have to provide a module'));
     }
     extensions = extensions || [];
-    options = options || {};
-    options.tracer = options.tracer || new Tracer();
+    // TODO MAKE SURE TO HAVE ALWAYS DEFAULT VALUES
+    const opts = { timeout: 5000, retry: { count: 3, interval: 3000 }, ...options };
+    opts.tracer = opts.tracer || new Tracer();
     return new Promise((resolve, reject) => {
         ModuleManager.resolve(module).pipe(
             tap(coreModule => state.module = coreModule),
-            flatMap(() => loadExtensions(extensions, state)),
+            flatMap(() => loadExtensions(extensions, state, opts)),
             tap(() => state.logger().info('--- extensions loaded.')),
             flatMap(extensionResults => instantiateModule(extensionResults, state)),
             tap(() => state.logger().info('--- modules instantiated and registered.')),
-            flatMap(() => buildExtensions(state)),
+            flatMap(() => buildExtensions(state, opts)),
             tap(() => state.logger().info('--- extensions built. starting...')),
             flatMap(() => callStart(state)),
             tap(() => state.logger().info('--- hapiness is running')),
@@ -58,7 +76,7 @@ function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionTo
         )
         .subscribe(
             null,
-            err => reject(err),
+            err => { reject(err); shutdown(state).subscribe(); },
             () => resolve()
         )
     });
@@ -98,29 +116,40 @@ function formatConfig(config: ExtensionConfig): string {
     }
 }
 
-function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjector): Observable<ExtensionResult<T>> {
+function logExt<T>(level: string, instance: Extension<T>, message: string): void {
+    if (instance && instance.logger) {
+        instance.logger[level](`[${instance.constructor.name}]: ${message}`);
+    }
+}
+
+function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjector,
+        options: BootstrapOptions): Observable<ExtensionResult<T>> {
     return of(<Extension<T>>Reflect.apply((<any>extension.token).instantiate, extension.token, [di])).pipe(
-        tap(instance => instance.logger && instance.logger.info(`loading extension ${extension.token.name}` +
+        tap(instance => logExt('info', instance, `loading the extension` +
             `${formatConfig(instance.config) ? `, using ${formatConfig(instance.config)}` : ''}`)),
         flatMap(instance => HookManager
             .triggerHook<Extension<T>, ExtensionResult<T>>(
-                ExtentionHooksEnum.OnLoad.toString(),
+                ExtensionHooksEnum.OnLoad.toString(),
                 extension.token,
                 instance,
                 [ module ]
             ).pipe(
+                timeout(options.timeout),
                 retryWhen(errors => errors.pipe(
-                    tap(error => instance.logger && instance.logger.error(error.message)),
-                    delay(1000),
-                    take(2),
-                    // concat(e => throwError(e))
+                    scan((c, err: Error) => {
+                        logExt('error', instance, `Retry (${c + 1}): ${err.message}`);
+                        if (c >= (options.retry.count - 1)) { throw err; }
+                        return c + 1;
+                    }, 0),
+                    delay(options.retry.interval),
                 ))
             )
         )
     );
 }
 
-function loadExtensions(extensions: ExtensionToLoad<any>[], state: CoreState): Observable<ExtensionResult<any>[]> {
+function loadExtensions(extensions: ExtensionToLoad<any>[], state: CoreState,
+        options: BootstrapOptions): Observable<ExtensionResult<any>[]> {
     return from(arr(extensions)
         .map(ext => convertToExtensionWithConfig(ext))
         .sort((a, b) => b.token['type'] - a.token['type'])
@@ -131,7 +160,7 @@ function loadExtensions(extensions: ExtensionToLoad<any>[], state: CoreState): O
                 of(ext)
         ),
         concatMap(ext => buildDIForExtension(ext, state).pipe(
-            flatMap(di => loadExtension(ext, di)),
+            flatMap(di => loadExtension(ext, di, options)),
             tap(extRes => state.extensions.push(extRes))
         )),
         toArray()
@@ -170,31 +199,94 @@ function instantiateModule(extensions: ExtensionResult<any>[], state: CoreState)
         map(ext => ({ provide: ext.token, useValue: ext.value })),
         toArray(),
         flatMap(extProviders => ModuleManager.instantiate(state.module, extProviders)),
+        tap(coreModule => state.module = coreModule),
         flatMap(coreModule => callRegister(coreModule))
     )
 }
 
-function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState): Observable<void> {
+function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, options: BootstrapOptions): Observable<void> {
     const decorators = extension.instance.decorators || [];
     const metadata = ModuleManager.getModules(state.module)
         .map(module => module.declarations)
         .reduce((a, c) => a.concat(c), <any>[])
         .map(components => extractMetadataAndName(components))
         .filter(data => decorators.indexOf(data.name) > -1);
-    extension.instance.logger.info(`building extension ${extension.token.name}.`);
+    logExt('info', extension.instance, `building the extension.`);
     return HookManager
-        .triggerHook(
-            ExtentionHooksEnum.OnBuild.toString(),
+        .triggerHook<Extension<T>, void>(
+            ExtensionHooksEnum.OnBuild.toString(),
             extension.token,
             <any>extension.instance,
             [ module, metadata ]
+        ).pipe(
+            timeout(options.timeout),
+            retryWhen(errors => errors.pipe(
+                delay(options.retry.interval),
+                scan((c, err: Error) => {
+                    logExt('error', extension.instance, `Retry (${c + 1}): ${err.message}`);
+                    if (c >= (options.retry.count - 1)) { throw err; }
+                    return c + 1;
+                }, 0)
+            ))
         );
 }
 
-function buildExtensions(state: CoreState): Observable<void> {
+function buildExtensions(state: CoreState, options: BootstrapOptions): Observable<void> {
     return from(state.extensions).pipe(
-        flatMap(ext => buildExtension(ext, state)),
+        flatMap(ext => buildExtension(ext, state, options)),
         toArray(),
         mapTo(undefined)
     )
+}
+
+function getShutdownHooks(state: CoreState): Observable<ExtensionShutdownMap[]> {
+    return from(arr(state.extensions)).pipe(
+        filter(ext => !!ext && HookManager
+            .hasLifecycleHook(
+                ExtensionHooksEnum.OnShutdown.toString(),
+                ext.token
+            )
+        ),
+        flatMap(ext => HookManager
+            .triggerHook<Extension<any>, ExtensionShutdown>(
+                ExtensionHooksEnum.OnShutdown.toString(),
+                ext.token,
+                ext.instance,
+                [ state.module ]
+            ).pipe(
+                map(res => ({ extension: ext, ...res })),
+                timeout(100),
+                catchError(() => empty())
+            )
+        ),
+        toArray()
+    );
+}
+
+function shutdown(state: CoreState): Observable<void> {
+    state.logger().warn('shutdown has been triggered');
+    return getShutdownHooks(state).pipe(
+        flatMap(hooks => from(hooks).pipe(
+            filter(hook => hook.priority === ExtensionShutdownPriority.IMPORTANT),
+            tap(hook => logExt('info', hook.extension.instance, 'shutdown.')),
+            flatMap(hook => isObservable(hook.resolver) ? hook.resolver : of(null)),
+            timeout(1000),
+            toArray(),
+            concatMap(() => from(hooks)
+                .pipe(
+                    filter(hook => hook.priority === ExtensionShutdownPriority.NORMAL),
+                    tap(hook => logExt('info', hook.extension.instance, 'shutdown.')),
+                    flatMap(hook => isObservable(hook.resolver) ? hook.resolver : of(null)),
+                    timeout(1000),
+                    toArray()
+                )
+            ),
+            mapTo(null)
+        )),
+        catchError(err => {
+            state.logger().fatal(`shutdown process failed: ${err.message}`);
+            process.exit(-1);
+            return of(null);
+        })
+    );
 }

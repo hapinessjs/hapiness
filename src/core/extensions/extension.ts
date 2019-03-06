@@ -4,11 +4,10 @@ import { Inject, CoreDecorator, createDecorator } from '../decorators';
 import { ExtensionLogger } from './logger';
 import { ReflectiveInjector } from 'injection-js';
 import { DependencyInjection } from '../di';
-import { ExtentionHooksEnum } from '../enums';
-import { ExtensionResult, ExtensionConfig, ExtensionWithConfig } from './interfaces';
+import { ExtensionHooksEnum, ExtensionType } from '../enums';
+import { ExtensionResult, ExtensionConfig, ExtensionWithConfig, ExtensionShutdown } from './interfaces';
 import { CoreModule } from '../interfaces';
 import { extractMetadataAndName } from '../metadata';
-import { ExtensionType } from './types';
 
 export abstract class Extension<T> {
 
@@ -30,7 +29,7 @@ export abstract class Extension<T> {
                 if (!method) {
                     return method;
                 }
-                if (typeof method === 'function' && prop === ExtentionHooksEnum.OnLoad.toString()) {
+                if (typeof method === 'function' && prop === ExtensionHooksEnum.OnLoad.toString()) {
                     return function(...args) {
                         return (<Observable<ExtensionResult<T>>>method.apply(this, args)).pipe(
                             tap(_ => receiver.value = _.value)
@@ -69,7 +68,7 @@ export abstract class Extension<T> {
 
     abstract onBuild(module: CoreModule, decorators: CoreDecorator<any>[]): Observable<void>;
 
-    abstract onShutdown(module: CoreModule): Observable<void>;
+    abstract onShutdown(module: CoreModule): Observable<ExtensionShutdown>;
 
     /**
      * Helper to build an ExtensionValue used

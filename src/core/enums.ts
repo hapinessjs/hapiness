@@ -1,4 +1,4 @@
-export enum ExtentionHooksEnum {
+export enum ExtensionHooksEnum {
     OnLoad = <any>'onLoad',
     OnBuild = <any>'onBuild',
     OnShutdown = <any>'onShutdown'
@@ -23,4 +23,9 @@ export enum ModuleLevel {
 export enum ExtensionShutdownPriority {
     IMPORTANT,
     NORMAL
+}
+
+export enum ExtensionType {
+    DEFAULT,
+    LOGGING
 }

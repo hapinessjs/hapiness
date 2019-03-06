@@ -1,3 +1,3 @@
 export function arr<T>(array: Array<T>): Array<T> {
-    return [].concat(array).filter(_ => !!_);
+    return [].concat(array).filter(Boolean);
 }

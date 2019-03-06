@@ -2,7 +2,7 @@ import { Optional, Inject, Injectable } from 'injection-js';
 import { TokenDI } from './tokens';
 import { InternalLogger } from '../logger';
 import { ExtensionConfig } from './interfaces';
-import { ExtensionType } from './types';
+import { ExtensionType } from '../enums';
 
 export interface ExtensionLogger {
     trace(...any): void;

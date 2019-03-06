@@ -1,7 +1,7 @@
 import { Extension, ExtensionResult, ExtensionConfig } from '../../core/extensions';
 import * as Fastify from 'fastify';
 import { ServerOptions } from 'https';
-import { CoreModule, CoreDecorator } from '../../core';
+import { CoreModule, CoreDecorator, ExtensionShutdownPriority } from '../../core';
 import { Observable, of, from } from 'rxjs';
 import { map, filter, toArray, mapTo } from 'rxjs/operators';
 import { metadataToCoreRoute, CoreRoute } from './route';
@@ -28,11 +28,18 @@ export class HttpServer extends Extension<ServerHTTP> {
     }
 
     onShutdown() {
+        return <any>{
+            resolver: this.close(),
+            priority: ExtensionShutdownPriority.IMPORTANT
+        }
+    }
+
+    private close(): Observable<void> {
         return Observable.create(observer => {
             this.value.close(() => {
                 observer.complete();
             });
-        });
+        }) as Observable<void>;
     }
 
     private buildRoutes(decorators: CoreDecorator<any>[], module: CoreModule): Observable<CoreRoute[]> {

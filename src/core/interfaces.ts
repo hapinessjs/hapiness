@@ -1,7 +1,7 @@
-import { Type } from '../decorators';
+import { Type } from './decorators';
 import { ReflectiveInjector } from 'injection-js';
 import { Observable } from 'rxjs';
-import { ModuleLevel } from '../enums';
+import { ModuleLevel } from './enums';
 
 /**
  * CoreProvide Type

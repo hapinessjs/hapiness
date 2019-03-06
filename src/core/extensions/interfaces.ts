@@ -1,4 +1,6 @@
 import { Extension } from '.';
+import { ExtensionShutdownPriority } from '../enums';
+import { Observable } from 'rxjs';
 
 export type TokenExt<T> = (Function & { prototype: T });
 
@@ -22,3 +24,8 @@ export interface ExtensionWithConfig<T> {
 }
 
 export type ExtensionToLoad<T> = TokenExt<T> | ExtensionWithConfig<T>;
+
+export interface ExtensionShutdown {
+    priority: ExtensionShutdownPriority;
+    resolver: Observable<any>;
+}
