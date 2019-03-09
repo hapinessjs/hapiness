@@ -1,5 +1,5 @@
-import 'reflect-metadata';
-import { HttpServer } from '../../../src/extensions/http-server-2/extension';
+// import 'reflect-metadata';
+// import { HttpServer } from '../../../src/extensions/http-server-2/extension';
 // import { Extension } from '../../../src/core/extensions';
 // import { HapinessModule, Hapiness } from '../../../src';
 // import { of } from 'rxjs';
@@ -85,23 +85,23 @@ import { HttpServer } from '../../../src/extensions/http-server-2/extension';
 // })
 
 
-import { initTracer } from 'jaeger-client';
-import {Hapiness} from '../../../src/core/bootstrap';
-test('Test !', () => {
+// import { initTracer } from 'jaeger-client';
+// import {Hapiness} from '../../../src/core/bootstrap';
+// test('Test !', () => {
 
-    const tracer = initTracer({ serviceName: 'Hapiness',
-        sampler: {
-            type: 'const',
-            param: 1
-        },
-        reporter: {
-            agentHost: 'localhost',
-            agentPort: 6832
-        }
-    }, {});
+//     const tracer = initTracer({ serviceName: 'Hapiness',
+//         sampler: {
+//             type: 'const',
+//             param: 1
+//         },
+//         reporter: {
+//             agentHost: 'localhost',
+//             agentPort: 6832
+//         }
+//     }, {});
 
-    class Test {}
-    Hapiness.bootstrap(Test, [HttpServer.setConfig({  })], { tracer });
+//     class Test {}
+//     Hapiness.bootstrap(Test, [HttpServer.setConfig({  })], { tracer });
 
 
-});
+// });

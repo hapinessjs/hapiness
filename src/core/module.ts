@@ -108,7 +108,7 @@ export class ModuleManager {
                         )
                 ),
                 tap(_ => this.logger.debug(`'${_.name}' module resolved`))
-            )
+            );
     }
 
     /**

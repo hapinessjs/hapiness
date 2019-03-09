@@ -33,7 +33,7 @@ export interface BootstrapOptions {
     retry?: {
         interval?: number,
         count?: number
-    },
+    };
     timeout?: number;
 }
 
@@ -51,6 +51,17 @@ export class Hapiness {
     static shutdown() {
         return shutdown(this.state).toPromise();
     }
+}
+
+export function errorHandler(error: Error, data?: any): void {
+    of(Hapiness['state'].module).pipe(
+        filter(module => module && module.instance),
+        flatMap(module => HookManager.hasLifecycleHook(ModuleEnum.OnError.toString(), module.token) ?
+            HookManager.triggerHook(ModuleEnum.OnError.toString(), module.token, module.instance, [ error, data ]) :
+            throwError(error)
+        )
+    )
+    .subscribe(null, console.log);
 }
 
 function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionToLoad<any>[], options?: BootstrapOptions) {
@@ -78,7 +89,7 @@ function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionTo
             null,
             err => { reject(err); shutdown(state).subscribe(); },
             () => resolve()
-        )
+        );
     });
 }
 
@@ -122,7 +133,7 @@ function logExt<T>(level: string, instance: Extension<T>, message: string): void
     }
 }
 
-function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjector,
+function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjector, state: CoreState,
         options: BootstrapOptions): Observable<ExtensionResult<T>> {
     return of(<Extension<T>>Reflect.apply((<any>extension.token).instantiate, extension.token, [di])).pipe(
         tap(instance => logExt('info', instance, `loading the extension` +
@@ -132,7 +143,7 @@ function loadExtension<T>(extension: ExtensionWithConfig<T>, di: ReflectiveInjec
                 ExtensionHooksEnum.OnLoad.toString(),
                 extension.token,
                 instance,
-                [ module ]
+                [ state.module ]
             ).pipe(
                 timeout(options.timeout),
                 retryWhen(errors => errors.pipe(
@@ -160,17 +171,17 @@ function loadExtensions(extensions: ExtensionToLoad<any>[], state: CoreState,
                 of(ext)
         ),
         concatMap(ext => buildDIForExtension(ext, state).pipe(
-            flatMap(di => loadExtension(ext, di, options)),
+            flatMap(di => loadExtension(ext, di, state, options)),
             tap(extRes => state.extensions.push(extRes))
         )),
         toArray()
-    )
+    );
 }
 
 function callStart(state: CoreState): Observable<void> {
     return of(state.module).pipe(
         flatMap(coreModule => HookManager
-            .triggerHook(
+            .triggerHook<Type<any>, void>(
                 ModuleEnum.OnStart.toString(),
                 coreModule.token,
                 coreModule.instance,
@@ -201,7 +212,7 @@ function instantiateModule(extensions: ExtensionResult<any>[], state: CoreState)
         flatMap(extProviders => ModuleManager.instantiate(state.module, extProviders)),
         tap(coreModule => state.module = coreModule),
         flatMap(coreModule => callRegister(coreModule))
-    )
+    );
 }
 
 function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, options: BootstrapOptions): Observable<void> {
@@ -217,7 +228,7 @@ function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, opti
             ExtensionHooksEnum.OnBuild.toString(),
             extension.token,
             <any>extension.instance,
-            [ module, metadata ]
+            [ state.module, metadata ]
         ).pipe(
             timeout(options.timeout),
             retryWhen(errors => errors.pipe(
@@ -236,7 +247,7 @@ function buildExtensions(state: CoreState, options: BootstrapOptions): Observabl
         flatMap(ext => buildExtension(ext, state, options)),
         toArray(),
         mapTo(undefined)
-    )
+    );
 }
 
 function getShutdownHooks(state: CoreState): Observable<ExtensionShutdownMap[]> {
