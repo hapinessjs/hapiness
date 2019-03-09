@@ -6,6 +6,7 @@ import { ModuleLevel } from './enums';
 import { CoreModule, CoreModuleWithProviders, CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
 import { extractMetadataByDecorator } from './metadata';
+import { arr } from './utils';
 
 export class ModuleManager {
 
@@ -268,11 +269,11 @@ export class ModuleManager {
      */
     private static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
         this.logger.debug(`collect providers for '${module.name}'`);
-        return []
-            .concat(module.providers)
+        const f = arr(module.providers)
             .concat(providers)
             .filter(_ => !!_)
             .concat(this.extractExportedProviders(module));
+        return f;
     }
 
     /**
@@ -283,17 +284,15 @@ export class ModuleManager {
      */
     private static extractExportedProviders(module: CoreModule): CoreProvide[] {
         this.logger.debug(`extract exported children providers for '${module.name}'`);
-        return []
-            .concat(module.modules)
-            .filter(_ => (!!_.exports && _.exports.length > 0))
-            .map(_ => []
-                .concat(_.exports)
-                .concat(
-                    _.providers
-                        .filter(__ => (__.provide instanceof InjectionToken)))
-            )
+        return arr(module.modules)
+            .filter(submodule => (!!submodule.exports && submodule.exports.length > 0))
+            .map(submodule => arr(submodule.exports))
+            .map(providers => providers.concat(providers
+                .map(provider => DependencyInjection.getDeps(provider))
+                .reduce((a, c) => a.concat(c), [])
+            ))
             .reduce((a, c) => a.concat(c), [])
-            .filter(_ => !!_)
-            .map(_ => this.toCoreProvider(_));
+            .filter((provider, i, array) => !!provider && array.indexOf(provider) === i)
+            .map(provider => this.toCoreProvider(provider));
     }
 }

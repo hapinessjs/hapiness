@@ -1,12 +1,12 @@
-import { Injectable, Inject } from '../../core';
-import { EventManagerExt, EventManager, EventData } from './';
+import { Injectable, Inject } from '../core';
+import { EventExt, EventManager, EventData } from './';
 import { Observable } from 'rxjs';
 
 @Injectable()
 export class EventService {
 
     constructor(
-        @Inject(EventManagerExt) private manager: EventManager
+        @Inject(EventExt) private manager: EventManager
     ) {}
 
     /**

@@ -1,6 +1,6 @@
 import { Observable, Subject } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { InternalLogger } from '../../core';
+import { InternalLogger } from '../core';
 
 export interface EventData {
     type: string;

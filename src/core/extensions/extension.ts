@@ -33,13 +33,13 @@ export abstract class Extension<T> {
                     return function(...args) {
                         return (<Observable<ExtensionResult<T>>>method.apply(this, args)).pipe(
                             tap(_ => receiver.value = _.value)
-                        )
-                    }
+                        );
+                    };
                 } else {
                     return method;
                 }
             }
-        }
+        };
         // DI instantiation
         const instance = DependencyInjection.instantiateExtension(<any>this, di);
         return new Proxy(instance, handler);
@@ -68,7 +68,7 @@ export abstract class Extension<T> {
 
     abstract onBuild(module: CoreModule, decorators: CoreDecorator<any>[]): Observable<void>;
 
-    abstract onShutdown(module: CoreModule): Observable<ExtensionShutdown>;
+    abstract onShutdown(module: CoreModule): ExtensionShutdown;
 
     /**
      * Helper to build an ExtensionValue used
@@ -91,7 +91,7 @@ export abstract class Extension<T> {
             value,
             instance: this,
             token: this.constructor
-        }
+        };
     }
 
 }

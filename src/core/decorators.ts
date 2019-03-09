@@ -10,7 +10,7 @@ export interface Type<T> extends Function {
  */
 export interface CoreDecorator<T> {
     (obj: T): TypeDecorator;
-    new (obj: T): T
+    new (obj: T): T;
 }
 
 /**

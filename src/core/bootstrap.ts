@@ -16,6 +16,11 @@ import { InternalLogger } from './logger';
 import { arr } from './utils';
 import * as Url from 'url';
 
+/**
+ * State of an Hapiness instance
+ * Contains the root module and the
+ * extensions.
+ */
 class CoreState {
     extensions: ExtensionResult<any>[] = [];
     module: CoreModule;
@@ -37,10 +42,17 @@ export interface BootstrapOptions {
     timeout?: number;
 }
 
+/**
+ * Hapiness static class
+ * Allow to bootstrap/shutdown a Module
+ */
 export class Hapiness {
 
     private static state: CoreState;
 
+    /**
+     * Bootstrap a Module with a set of extensions
+     */
     static bootstrap(module: Type<any>, extensions?: ExtensionToLoad<any>[], options?: BootstrapOptions) {
         this.state = new CoreState();
         process.once('SIGTERM', () => this.shutdown());
@@ -48,11 +60,19 @@ export class Hapiness {
         return bootstrap(this.state, module, extensions, options);
     }
 
+    /**
+     * Shutdown the Module that has already been bootstrap
+     */
     static shutdown() {
         return shutdown(this.state).toPromise();
     }
 }
 
+/**
+ * Error Handler
+ * Use the `onError` hook from the root module.
+ * If there is not, it will just log.
+ */
 export function errorHandler(error: Error, data?: any): void {
     of(Hapiness['state'].module).pipe(
         filter(module => module && module.instance),
@@ -64,6 +84,11 @@ export function errorHandler(error: Error, data?: any): void {
     .subscribe(null, console.log);
 }
 
+/**
+ * `bootstrap` function
+ * Entry point to load a Module
+ * Will load and build the extensions provided
+ */
 function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionToLoad<any>[], options?: BootstrapOptions) {
     if (!module || typeof module !== 'function') {
         return Promise.reject(new Error('You have to provide a module'));
