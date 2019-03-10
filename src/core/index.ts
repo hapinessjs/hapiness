@@ -8,3 +8,4 @@ export * from './metadata';
 export * from './module';
 export * from './interfaces';
 export * from './logger';
+export * from './extensions';

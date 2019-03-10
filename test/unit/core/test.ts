@@ -1,8 +1,10 @@
 import { Hapiness, Module, Lib, Inject, ExtensionShutdownPriority, ExtensionType, Injectable } from '../../../src/core';
-import { HttpServer } from '../../../src/extensions/http-server-2/extension';
+import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
 import { Extension } from '../../../src/core/extensions';
-import { of } from 'rxjs';
+import { of, Observable } from 'rxjs';
 import { delay } from 'rxjs/operators';
+import { Route, Get } from '../../../src/httpserver/decorators';
+import { Property, Required } from '@juneil/tschema';
 
 
 export class Logger extends Extension<any> {
@@ -32,12 +34,12 @@ class Weird extends Extension<number> {
     onShutdown() { return { priority: ExtensionShutdownPriority.IMPORTANT, resolver: of(null) }; }
 }
 
-@Lib()
-class Lib1 {
-    constructor(@Inject(Logger) logger: any) {
-        logger.info('YO');
-    }
-}
+// @Lib()
+// class Lib1 {
+//     constructor(@Inject(Logger) logger: any) {
+//         logger.info('YO');
+//     }
+// }
 
 @Injectable()
 class BDep {
@@ -46,27 +48,64 @@ class BDep {
 
 @Injectable()
 class ADep {
-    constructor(public dep: BDep) {}
-    foo() { return 1 + this.dep.foo(); }
+    foo() { return 1; }
 }
 
 @Injectable()
 class TestService {
-    constructor(private dep: ADep) {}
+    constructor(private dep: BDep) {}
     foo() { return 'foo lala ' + this.dep.foo(); }
 }
 
 @Module({ version: '1', exports: [ TestService ]})
 class SubModule {}
 
-@Module({ version: '1', declarations: [ Lib1 ], imports: [ SubModule ] })
-class MyMod {
+
+class Query {
+    @Property()
+    foo: boolean;
+    @Property()
+    yolo: number;
+}
+
+@Route({
+    path: '/'
+})
+class RouteA {
+
     constructor(private test: TestService) {}
+
+    @Get({
+        query: Query
+    })
+    handler(query: Query, toto: string) {
+        console.log('>>>> access to route', query, toto);
+        return { message: this.test.foo() };
+    }
+
+}
+
+
+
+@Module({
+    version: '1',
+    declarations: [ RouteA ],
+    providers: [ ADep ],
+    imports: [ SubModule ]
+})
+class MyMod {
     onStart() {
-        console.log(this.test.foo());
+        console.log('started...');
+        // console.log(Reflect.getMetadataKeys(RouteA));
+        // console.log(Reflect.getMetadata('propMetadata', RouteA));
+        // console.log(Extension.extractMetadata(RouteA, 'handler'));
     }
 }
-// NOT ENOUGH... SHOULD PROVIDE TYPE IN THE EXTENSION IMPLEMENTATION
-Hapiness.bootstrap(MyMod, [ HttpServer, Logger, Weird.setConfig({ uri: 'uri://yolo:99' }) ], { retry: { interval: 100, count: 2 } })
+
+
+Hapiness.bootstrap(MyMod, [
+    HttpServer,
+    Logger, Weird.setConfig({ uri: 'uri://yolo:99' })
+], { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));
 

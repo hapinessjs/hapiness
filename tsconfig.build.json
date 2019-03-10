@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "./dist/commonjs",
     "rootDir": "./src",
-    "declarationDir": "./dist"
+    "declarationDir": "./dist",
+    "noUnusedLocals": true,
   },
   "exclude": [
     "src/externals",

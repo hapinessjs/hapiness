@@ -267,13 +267,12 @@ export class ModuleManager {
      * @param  {HapinessModule} module
      * @param  {CoreProvide[]} providers
      */
-    private static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
+    static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
         this.logger.debug(`collect providers for '${module.name}'`);
-        const f = arr(module.providers)
+        return arr(module.providers)
             .concat(providers)
             .filter(_ => !!_)
             .concat(this.extractExportedProviders(module));
-        return f;
     }
 
     /**

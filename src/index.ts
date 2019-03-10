@@ -1,6 +1,6 @@
 export {
     Hapiness,
-    HapinessModule,
+    Module,
     Inject,
     Injectable,
     Optional,
@@ -17,8 +17,6 @@ export {
     ExtensionWithConfig,
     makeDecorator,
     Type,
-    OnModuleInstantiated,
-    OnExtensionLoad,
     createDecorator,
     extractMetadata,
     extractMetadataByDecorator,
@@ -26,26 +24,25 @@ export {
     errorHandler,
     ExtensionShutdown,
     ExtensionShutdownPriority,
-    OnShutdown
 } from './core';
 
-export {
-    HttpServerExt, HapiConfig, Route, Lifecycle, HttpRequestInfo, OnEvent, OnGet, OnDelete, OnOptions,
-    OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth, OnPreHandler, OnPostHandler, OnPreResponse, Request,
-    ReplyWithContinue, ReplyNoContinue, Server, HttpServerService, HTTPHandlerResponse, ConnectionOptions
-} from './extensions/http-server';
+// export {
+//     HttpServerExt, HapiConfig, Route, Lifecycle, HttpRequestInfo, OnEvent, OnGet, OnDelete, OnOptions,
+//     OnPatch, OnPost, OnPut, OnPreAuth, OnPostAuth, OnPreHandler, OnPostHandler, OnPreResponse, Request,
+//     ReplyWithContinue, ReplyNoContinue, Server, HttpServerService, HTTPHandlerResponse, ConnectionOptions
+// } from './extensions/http-server';
 
-export {
-    SocketServerExt,
-    Socket,
-    SocketConfig,
-    WebSocketServer,
-    SocketServerService
-} from './extensions/socket-server';
+// export {
+//     SocketServerExt,
+//     Socket,
+//     SocketConfig,
+//     WebSocketServer,
+//     SocketServerService
+// } from './extensions/socket-server';
 
-export {
-    EventManagerExt,
-    EventManager,
-    EventService,
-    EventData
-} from './extensions/event-manager';
+// export {
+//     EventManagerExt,
+//     EventManager,
+//     EventService,
+//     EventData
+// } from './extensions/event-manager';

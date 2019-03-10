@@ -10,7 +10,7 @@ import { Type } from './decorators';
  * @returns any
  */
 export function extractMetadata(type: any): any {
-    return extractMetadatas(type)
+    return extractMetadataList(type)
         .pop();
 }
 
@@ -22,7 +22,7 @@ export function extractMetadata(type: any): any {
  * @param  {string} name
  */
 export function extractMetadataByDecorator<T>(type: any, name: string): T {
-    return extractMetadatas(type)
+    return extractMetadataList(type)
         .filter(x => x.toString().slice(1) === name)
         .map(x => <T>x)
         .pop();
@@ -36,21 +36,27 @@ export function extractMetadataByDecorator<T>(type: any, name: string): T {
  * @param  {any} decorator
  * @returns []
  */
-export function extractMetadatas(decorator: any): any[] {
-    return Reflect.getOwnMetadataKeys(decorator)
-        .filter(x => x === 'annotations')
-        .map(x => <any[]>Reflect.getOwnMetadata(x, decorator))
-        .map(x => [].concat(x))
-        .pop() || [];
+export function extractMetadataList(decorator: any, key?: string): any[] {
+    return (Reflect.getOwnMetadataKeys(decorator)
+        .filter(x => x === (!!key ? 'propMetadata' : 'annotations'))
+        .map(x => Reflect.getOwnMetadata(x, decorator))
+        .map(x => [].concat(!!key && x.hasOwnProperty(key) ? x[key] : x))
+        .pop() || [])
+        .filter(item => item.constructor.name === 'DecoratorFactory'
+            || item.constructor.name === 'PropDecoratorFactory');
 }
 
-export type MetadataAndName<T> = { name: string, metadata: any };
+export type MetadataAndName<T> = { token: Type<any>, property?: string, name: string, metadata: T };
 
-export function extractMetadataAndName<T>(type: Type<any>): MetadataAndName<T> {
-    return extractMetadatas(type)
-        .map(_ => ({
-            name: _.toString().slice(1),
-            metadata: _
+export function extractMetadataAndName<T>(token: Type<any>, property?: string): MetadataAndName<T> {
+    return extractMetadataList(token, property)
+        .filter(Boolean)
+        .map(data => ({
+            token,
+            property,
+            name: data.toString().slice(1),
+            metadata: data
         }))
         .pop();
 }
+
