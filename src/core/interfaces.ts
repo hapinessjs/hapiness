@@ -1,4 +1,4 @@
-import { Type } from './decorators';
+import { Type, Module } from './decorators';
 import { ReflectiveInjector } from 'injection-js';
 import { Observable } from 'rxjs';
 import { ModuleLevel } from './enums';
@@ -20,18 +20,14 @@ export interface CoreProvide {
  * CoreModule Type
  * Represents a Module
  */
-export class CoreModule {
+export class CoreModule extends Module {
     token: Type<any> | any;
     name: string;
-    version: string;
     instance?: any;
     level: ModuleLevel;
     di?: ReflectiveInjector;
-    providers?: CoreProvide[];
-    modules?: CoreModule[];
     parent?: CoreModule;
-    exports?: Type<any>[] | any[];
-    declarations?: Type<any>[] | any[];
+    modules?: CoreModule[];
 }
 
 /**

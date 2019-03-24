@@ -14,6 +14,13 @@ export const Route = Extension.createDecorator<Route>('Route', {
     providers: undefined
 });
 
+export interface Lifecycle {
+    event: string;
+}
+export const Lifecycle = Extension.createDecorator<Lifecycle>('Lifecycle', {
+    event: undefined
+});
+
 interface RouteHandler {
     query?: Type<any>;
     params?: Type<any>;

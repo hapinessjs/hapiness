@@ -92,6 +92,7 @@ export function createPropDecorator<T>(name: string, props?: { [name: string]: a
  */
 export interface Module {
     version: string;
+    prefix?: string | boolean;
     declarations?: Array<Type<any>|any>;
     providers?: Array<Type<any>|any>;
     imports?: Array<Type<any>|any>;
@@ -99,6 +100,7 @@ export interface Module {
 }
 export const Module = createDecorator<Module>('Module', {
     version: undefined,
+    prefix: true,
     declarations: undefined,
     providers: undefined,
     imports: undefined,

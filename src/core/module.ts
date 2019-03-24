@@ -149,6 +149,7 @@ export class ModuleManager {
             token: moduleWithProviders.module,
             name: moduleWithProviders.module.name,
             version: metadata.version,
+            prefix: metadata.prefix,
             exports: metadata.exports || [],
             declarations: metadata.declarations || [],
             providers: (metadata.providers || [])

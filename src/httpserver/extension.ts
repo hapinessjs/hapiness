@@ -6,6 +6,7 @@ import { Observable, of, from } from 'rxjs';
 import { mapTo, tap, flatMap, toArray, filter } from 'rxjs/operators';
 import { buildRoutes } from './route';
 import { IncomingMessage } from 'http';
+import { buildLifecycleComponents } from './lifecycle';
 
 export interface HttpServerConfig extends ExtensionConfig {
     https?: ServerOptions;
@@ -29,7 +30,7 @@ export class HttpServerRequest {
 
 export class HttpServer extends Extension<FastifyServer> {
 
-    decorators = [ 'Route' ];
+    decorators = [ 'Route', 'Lifecycle' ];
 
     private defaultHost = '0.0.0.0';
     private defaultPort = 8080;
@@ -42,7 +43,12 @@ export class HttpServer extends Extension<FastifyServer> {
         return from(decorators).pipe(
             filter(decorator => decorator.name === 'Route'),
             toArray(),
-            flatMap(routeDecorators => buildRoutes(module, routeDecorators, this.value)),
+            flatMap(routeDecorators => buildRoutes(routeDecorators, this.value)),
+            flatMap(() => from(decorators).pipe(
+                filter(decorator => decorator.name === 'Lifecycle'),
+                toArray()
+            )),
+            flatMap(lifecycleDecorators => buildLifecycleComponents(module, lifecycleDecorators, this.value)),
             flatMap(() => this.value.listen(this.config.port || this.defaultPort, this.config.host || this.defaultHost)),
             tap(info => this.logger.info(`server running at ${info}`)),
             mapTo(null)

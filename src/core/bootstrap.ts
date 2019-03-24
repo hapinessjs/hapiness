@@ -243,9 +243,10 @@ function instantiateModule(extensions: ExtensionResult<any>[], state: CoreState)
 function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, options: BootstrapOptions): Observable<void> {
     const decorators = extension.instance.decorators || [];
     const metadata = ModuleManager.getModules(state.module)
-        .map(module => module.declarations)
-        .reduce((a, c) => a.concat(c), <any>[])
-        .map(components => extractMetadataAndName(components))
+        .map(module => arr(module.declarations)
+            .map(component => extractMetadataAndName(module, component))
+        )
+        .reduce((a, c) => a.concat(c), [])
         .filter(data => decorators.indexOf(data.name) > -1);
     logExt('info', extension.instance, `building the extension.`);
     return HookManager

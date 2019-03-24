@@ -1,9 +1,9 @@
-import { Hapiness, Module, Lib, Inject, ExtensionShutdownPriority, ExtensionType, Injectable } from '../../../src/core';
-import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
+import { Hapiness, Module, ExtensionShutdownPriority, ExtensionType, Injectable, Inject } from '../../../src/core';
+import { HttpServer, FastifyServer } from '../../../src/httpserver/extension';
 import { Extension } from '../../../src/core/extensions';
-import { of, Observable } from 'rxjs';
+import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { Route, Get } from '../../../src/httpserver/decorators';
+import { Route, Get, Post, Lifecycle } from '../../../src/httpserver/decorators';
 import { Property, Required } from '@juneil/tschema';
 
 
@@ -28,6 +28,7 @@ export class Logger extends Extension<any> {
 
 class Weird extends Extension<number> {
     onLoad() {
+        
         return of(this.loadedResult(1)).pipe(delay(10));
     }
     onBuild() { return of(null); }
@@ -57,7 +58,36 @@ class TestService {
     foo() { return 'foo lala ' + this.dep.foo(); }
 }
 
-@Module({ version: '1', exports: [ TestService ]})
+@Injectable()
+class Isolate {
+    constructor(@Inject(HttpServer) private server: FastifyServer) {}
+    yo() {
+        return this.server.printRoutes();
+    }
+}
+
+@Route({
+    path: '/fu'
+})
+class RouteC {
+
+    constructor(@Inject(HttpServer) private server: FastifyServer, private iso: Isolate) {}
+
+    @Get()
+    yo() {
+        return this.iso.yo();
+    }
+
+}
+
+
+@Module({
+    version: '1',
+    exports: [ TestService ],
+    declarations: [ RouteC ],
+    providers: [ Isolate ],
+    prefix: 'sub'
+})
 class SubModule {}
 
 
@@ -68,28 +98,74 @@ class Query {
     yolo: number;
 }
 
+class Params {
+    @Required()
+    @Property()
+    id: string;
+}
+
+class Payload {
+    @Property()
+    @Required()
+    name: string;
+
+    @Property()
+    @Required()
+    description: string;
+
+    @Property()
+    @Required()
+    option: boolean;
+}
+
 @Route({
-    path: '/'
+    path: '/:id'
 })
 class RouteA {
 
     constructor(private test: TestService) {}
 
     @Get({
-        query: Query
+        query: Query,
+        params: Params
     })
-    handler(query: Query, toto: string) {
-        console.log('>>>> access to route', query, toto);
+    handler(query: Query, params: Params) {
+        console.log('>>>> access to route', query, params);
         return { message: this.test.foo() };
     }
 
 }
 
+@Route({
+    path: '/yolo/:id'
+})
+class RouteB {
+
+    @Post({
+        params: Params,
+        payload: Payload
+    })
+    handler(payload: Payload, params: Params) {
+        console.log('>>>> access to route', params, payload);
+        return payload;
+    }
+
+}
+
+// @Lifecycle({
+//     event:''
+// })
+// class MyLC {
+
+//     @Event('request')
+//     request()
+
+// }
 
 
 @Module({
     version: '1',
-    declarations: [ RouteA ],
+    declarations: [ RouteA, RouteB ],
     providers: [ ADep ],
     imports: [ SubModule ]
 })
@@ -105,7 +181,7 @@ class MyMod {
 
 Hapiness.bootstrap(MyMod, [
     HttpServer,
-    Logger, Weird.setConfig({ uri: 'uri://yolo:99' })
+    Logger, Weird.setConfig({ uri: 'uri://yolo:99', toto: true })
 ], { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));
 

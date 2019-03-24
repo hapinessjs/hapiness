@@ -9,7 +9,7 @@ import { ExtensionResult, ExtensionConfig, ExtensionWithConfig, ExtensionShutdow
 import { CoreModule } from '../interfaces';
 import { extractMetadataAndName, MetadataAndName } from '../metadata';
 
-export abstract class Extension<T> {
+export abstract class Extension<T, C = ExtensionConfig> {
 
     public static LOGGER = 'logger';
     static createDecorator = createDecorator;
@@ -20,7 +20,7 @@ export abstract class Extension<T> {
     protected value: T;
     public decorators: string[] = [];
 
-    static instantiate<T>(di: ReflectiveInjector): Extension<T> {
+    static instantiate<T, C extends ExtensionConfig>(di: ReflectiveInjector): Extension<T, C> {
         if (this.name === 'Extension') {
             throw new Error('Cannot instantiate an abstract class');
         }
@@ -52,7 +52,7 @@ export abstract class Extension<T> {
      *
      * @param config
      */
-    static setConfig(config: ExtensionConfig): ExtensionWithConfig<Extension<any>> {
+    static setConfig<C extends ExtensionConfig>(config: C): ExtensionWithConfig<Extension<any, C>> {
         return {
             token: this,
             config
@@ -62,7 +62,7 @@ export abstract class Extension<T> {
 
     constructor(
         @Inject(ExtensionLogger) public logger: ExtensionLogger,
-        @Inject(ExtensionConfig) public config: ExtensionConfig
+        @Inject(ExtensionConfig) public config: C
     ) {}
 
     abstract onLoad(module: CoreModule): Observable<ExtensionResult<T>>;

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import { Type } from './decorators';
+import { CoreModule } from './interfaces';
 
 /**
  * Helper to extract Metadata
@@ -46,16 +47,17 @@ export function extractMetadataList(decorator: any, key?: string): any[] {
             || item.constructor.name === 'PropDecoratorFactory');
 }
 
-export type MetadataAndName<T> = { token: Type<any>, property?: string, name: string, metadata: T };
+export type MetadataAndName<T> = { token: Type<any>, property?: string, name: string, metadata: T, source: CoreModule };
 
-export function extractMetadataAndName<T>(token: Type<any>, property?: string): MetadataAndName<T> {
+export function extractMetadataAndName<T>(source: CoreModule, token: Type<any>, property?: string): MetadataAndName<T> {
     return extractMetadataList(token, property)
         .filter(Boolean)
         .map(data => ({
             token,
             property,
             name: data.toString().slice(1),
-            metadata: data
+            metadata: data,
+            source
         }))
         .pop();
 }

@@ -1,8 +1,8 @@
-import { Type, CoreModule, MetadataAndName, DependencyInjection, ModuleManager, HookManager, errorHandler } from '../core';
+import { Type, CoreModule, MetadataAndName, DependencyInjection, ModuleManager, HookManager, errorHandler, ModuleLevel } from '../core';
 import { Route, Get, Methods } from './decorators';
 import { Observable, from, of } from 'rxjs';
 import { map, toArray, tap, flatMap, mapTo, filter } from 'rxjs/operators';
-import { FastifyServer, HttpServerRequest } from './extension';
+import { FastifyServer, HttpServerRequest, HttpServer } from './extension';
 import { Extension } from '../core/extensions';
 import { IncomingMessage } from 'http';
 import { isTSchema, serializer } from '@juneil/tschema';
@@ -21,32 +21,70 @@ export interface HttpResponse<T> {
     redirect?: boolean;
 }
 
-export function buildRoutes(module: CoreModule, decorators: MetadataAndName<Route>[], server: FastifyServer): Observable<CoreRoute[]> {
+export function buildRoutes(decorators: MetadataAndName<Route>[], server: FastifyServer): Observable<void> {
     return from(decorators).pipe(
-        map(data => toCoreRoute(data.metadata, module, data.token)),
-        flatMap(route => addRoute(module, route, server)),
-        toArray()
+        map(data => toCoreRoute(data.metadata, data.token, data.source)),
+        toArray(),
+        map(routes => organizeRoutes(routes)),
+        tap(routes => buildPlugin(routes, server)),
+        mapTo(null)
     );
 }
 
-function toCoreRoute(route: Route, module: CoreModule, token: Type<any>): CoreRoute {
+function buildPlugin(routes: Organized[], server: FastifyServer) {
+    server.register(function (instance, opts, next) {
+        from(routes).pipe(
+            flatMap(route => {
+                if (route.module.level === ModuleLevel.ROOT) {
+                    return from(route.routes).pipe(
+                        flatMap(_route => addRoute(_route, instance)),
+                        toArray()
+                    );
+                } else {
+                    const prefix = route.module.prefix === true ?
+                        route.module.name.toLowerCase() :
+                        !!route.module.prefix ?
+                            route.module.prefix.toString() :
+                            undefined;
+                    instance.register(function(_instance, _opts, _next) {
+                        from(route.routes).pipe(
+                            flatMap(_route => addRoute(_route, _instance)),
+                            toArray()
+                        ).subscribe(null, null, () => _next());
+                    }, { prefix });
+                    return of(null);
+                }
+            })
+        ).subscribe(null, null, () => next());
+    });
+}
+
+function toCoreRoute(route: Route, token: Type<any>, module: CoreModule): CoreRoute {
     return Object.assign({
         token,
         module
     }, route);
 }
 
-function addRoute(module: CoreModule, route: CoreRoute, server: FastifyServer) {
+function schema(meta: MetadataAndName<Methods>): { [k: string]: Type<any> } {
+    const schema = {} as any;
+    if (meta.metadata.query && isTSchema(meta.metadata.query)) schema.querystring = serializer(meta.metadata.query);
+    if (meta.metadata.params && isTSchema(meta.metadata.params)) schema.params = serializer(meta.metadata.params);
+    if (meta.metadata.headers && isTSchema(meta.metadata.headers)) schema.headers = serializer(meta.metadata.headers);
+    if (meta.metadata.payload && isTSchema(meta.metadata.payload)) schema.body = serializer(meta.metadata.payload);
+    return schema;
+}
+
+function addRoute(route: CoreRoute, server: FastifyServer) {
     return from(Object.getOwnPropertyNames(route.token.prototype)).pipe(
-        map(property => Extension.extractMetadata<Methods>(route.token, property)),
+        map(property => Extension.extractMetadata<Methods>(route.module, route.token, property)),
         filter(meta => !!meta),
         tap(meta => server.route({
             method: getMethod(meta.name),
             url: route.path,
-            handler: handler(module, route, meta),
-            schema: {
-                querystring: isTSchema(meta.metadata.query) ? serializer(meta.metadata.query) : undefined
-            }
+            handler: handler(route, meta),
+            schema: schema(meta),
+            config: route
         })),
         toArray(),
         mapTo(route)
@@ -85,11 +123,13 @@ function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
 }
 
 function populateTSchema(key: string, param: any, request: Fastify.FastifyRequest<IncomingMessage>) {
-    let data = {};
-    switch (key) {
-        case 'query':
-            data = request.query;
-            break;
+    let data;
+    if (key === 'query') { data = request['querystring']; }
+    if (key === 'params') { data = request['params']; }
+    if (key === 'headers') { data = request['headers']; }
+    if (key === 'payload') { data = request['body']; }
+    if (!data) {
+        return;
     }
     const instance = Reflect.construct(param, []);
     Object.keys(data).forEach(prop => Reflect.set(instance, prop, data[prop]));
@@ -105,10 +145,9 @@ function resolveHandlerDI(request: Fastify.FastifyRequest<IncomingMessage>, meta
         );
 }
 
-function handler(module: CoreModule, route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
+function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
     return (request: Fastify.FastifyRequest<IncomingMessage>, reply: Fastify.FastifyReply<any>) => {
-        DependencyInjection.createAndResolve([], module.di).pipe(
-            flatMap(di => DependencyInjection.instantiateComponent(route.token, di)),
+        DependencyInjection.instantiateComponent(route.token, request['_hapiness'].di).pipe(
             flatMap(instance => of(resolveHandlerDI(request, metadataAndName)).pipe(
                 flatMap(args => HookManager.triggerHook(metadataAndName.property, route.token, instance, args))
             )),
@@ -129,4 +168,18 @@ function handler(module: CoreModule, route: CoreRoute, metadataAndName: Metadata
             }
         );
     };
+}
+
+type Organized = { module: CoreModule, routes: CoreRoute[] };
+function organizeRoutes(routes: CoreRoute[]): Organized[] {
+    const result = [];
+    routes.forEach(route => {
+        const item = result.find(r => r.module.name === route.module.name);
+        if (item) {
+            item.routes.push(route);
+        } else {
+            result.push({ module: route.module, routes: [ route ] });
+        }
+    });
+    return result.sort((a, b) => a.module.level - b.module.level);
 }
