@@ -67,12 +67,18 @@ function toCoreRoute(route: Route, token: Type<any>, module: CoreModule): CoreRo
 }
 
 function schema(meta: MetadataAndName<Methods>): { [k: string]: Type<any> } {
-    const schema = {} as any;
-    if (meta.metadata.query && isTSchema(meta.metadata.query)) schema.querystring = serializer(meta.metadata.query);
-    if (meta.metadata.params && isTSchema(meta.metadata.params)) schema.params = serializer(meta.metadata.params);
-    if (meta.metadata.headers && isTSchema(meta.metadata.headers)) schema.headers = serializer(meta.metadata.headers);
-    if (meta.metadata.payload && isTSchema(meta.metadata.payload)) schema.body = serializer(meta.metadata.payload);
-    return schema;
+    const schemaValue = {} as any;
+    if (meta.metadata.query && isTSchema(meta.metadata.query)) { schemaValue.querystring = serializer(meta.metadata.query); }
+    if (meta.metadata.params && isTSchema(meta.metadata.params)) { schemaValue.params = serializer(meta.metadata.params); }
+    if (meta.metadata.headers && isTSchema(meta.metadata.headers)) { schemaValue.headers = serializer(meta.metadata.headers); }
+    if (meta.metadata.payload && isTSchema(meta.metadata.payload)) { schemaValue.body = serializer(meta.metadata.payload); }
+    if (meta.metadata.response) {
+        schemaValue.response = {};
+        Object.keys(meta.metadata.response)
+            .filter(key => isTSchema(meta.metadata.response[key]))
+            .forEach(key => schemaValue.response[key] = serializer(meta.metadata.response[key]));
+    }
+    return schemaValue;
 }
 
 function addRoute(route: CoreRoute, server: FastifyServer) {
@@ -151,9 +157,8 @@ function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
             flatMap(instance => of(resolveHandlerDI(request, metadataAndName)).pipe(
                 flatMap(args => HookManager.triggerHook(metadataAndName.property, route.token, instance, args))
             )),
-            map(response => handleResponse(response))
-        ).subscribe(
-            response => {
+            map(response => handleResponse(response)),
+            tap(response => {
                 reply
                     .code(response.status)
                     .headers(response.headers);
@@ -161,7 +166,9 @@ function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
                     return reply.redirect(response.value as string);
                 }
                 reply.send(response.value);
-            },
+            })
+        ).subscribe(
+            null,
             error => {
                 errorHandler(error);
                 reply.send(error);

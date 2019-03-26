@@ -3,7 +3,7 @@ import { HttpServer, FastifyServer } from '../../../src/httpserver/extension';
 import { Extension } from '../../../src/core/extensions';
 import { of } from 'rxjs';
 import { delay } from 'rxjs/operators';
-import { Route, Get, Post, Lifecycle } from '../../../src/httpserver/decorators';
+import { Route, Get, Post, Lifecycle, Hook } from '../../../src/httpserver/decorators';
 import { Property, Required } from '@juneil/tschema';
 
 
@@ -28,7 +28,6 @@ export class Logger extends Extension<any> {
 
 class Weird extends Extension<number> {
     onLoad() {
-        
         return of(this.loadedResult(1)).pipe(delay(10));
     }
     onBuild() { return of(null); }
@@ -118,6 +117,12 @@ class Payload {
     option: boolean;
 }
 
+class Value {
+    @Property()
+    @Required()
+    message: string;
+}
+
 @Route({
     path: '/:id'
 })
@@ -127,11 +132,14 @@ class RouteA {
 
     @Get({
         query: Query,
-        params: Params
+        params: Params,
+        response: {
+            200: Value
+        }
     })
     handler(query: Query, params: Params) {
-        console.log('>>>> access to route', query, params);
-        return { message: this.test.foo() };
+        console.log('>>>> A access to route', query, params);
+        return { message: this.test.foo(), t: true };
     }
 
 }
@@ -146,26 +154,27 @@ class RouteB {
         payload: Payload
     })
     handler(payload: Payload, params: Params) {
-        console.log('>>>> access to route', params, payload);
+        console.log('>>>> B access to route', params, payload);
         return payload;
     }
 
 }
 
-// @Lifecycle({
-//     event:''
-// })
-// class MyLC {
+@Lifecycle()
+class MyLC {
 
-//     @Event('request')
-//     request()
+    @Hook({ name: 'request' })
+    request1() {}
+    @Hook({ name: 'request' })
+    request2() {}
 
-// }
+}
+
 
 
 @Module({
     version: '1',
-    declarations: [ RouteA, RouteB ],
+    declarations: [ RouteA, RouteB, MyLC ],
     providers: [ ADep ],
     imports: [ SubModule ]
 })
@@ -184,4 +193,3 @@ Hapiness.bootstrap(MyMod, [
     Logger, Weird.setConfig({ uri: 'uri://yolo:99', toto: true })
 ], { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));
-

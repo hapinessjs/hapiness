@@ -64,7 +64,7 @@
     "dependencies": {
         "@juneil/tschema": "^1.0.0-alpha.1",
         "debug": "4.1.1",
-        "fastify": "2.0.1",
+        "fastify": "2.1.0",
         "injection-js": "2.2.1",
         "opentracing": "0.14.3",
         "reflect-metadata": "0.1.13"

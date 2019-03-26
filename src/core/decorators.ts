@@ -9,8 +9,8 @@ export interface Type<T> extends Function {
  * Decorator signature
  */
 export interface CoreDecorator<T> {
-    (obj: T): TypeDecorator;
-    new (obj: T): T;
+    (obj?: T): TypeDecorator;
+    new (obj?: T): T;
 }
 
 export interface CorePropDecorator<T> {

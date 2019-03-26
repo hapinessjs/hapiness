@@ -1,5 +1,5 @@
 import { Extension } from '../core/extensions';
-import { Type } from '../core/decorators';
+import { Type, makeDecorator } from '../core/decorators';
 
 export interface Route {
     path?: string;
@@ -14,45 +14,50 @@ export const Route = Extension.createDecorator<Route>('Route', {
     providers: undefined
 });
 
-export interface Lifecycle {
-    event: string;
-}
-export const Lifecycle = Extension.createDecorator<Lifecycle>('Lifecycle', {
-    event: undefined
-});
+export interface Lifecycle {}
+export const Lifecycle = Extension.createDecorator('Lifecycle', null);
+// export const Lifecycle = makeDecorator('Lifecycle', null);
 
 interface RouteHandler {
     query?: Type<any>;
     params?: Type<any>;
     headers?: Type<any>;
+    response?: {
+        [code: string]: Type<any>,
+        [code: number]: Type<any>
+    };
 }
 
 export interface Get extends RouteHandler {}
 export const Get = Extension.createPropDecorator<Get>('Get', {
     query: undefined,
     params: undefined,
-    headers: undefined
+    headers: undefined,
+    response: undefined
 });
 
 export interface Delete extends RouteHandler {}
 export const Delete = Extension.createPropDecorator<Delete>('Delete', {
     query: undefined,
     params: undefined,
-    headers: undefined
+    headers: undefined,
+    response: undefined
 });
 
 export interface Head extends RouteHandler {}
 export const Head = Extension.createPropDecorator<Head>('Head', {
     query: undefined,
     params: undefined,
-    headers: undefined
+    headers: undefined,
+    response: undefined
 });
 
 export interface Options extends RouteHandler {}
 export const Options = Extension.createPropDecorator<Options>('Options', {
     query: undefined,
     params: undefined,
-    headers: undefined
+    headers: undefined,
+    response: undefined
 });
 
 export interface Post extends RouteHandler {
@@ -62,7 +67,8 @@ export const Post = Extension.createPropDecorator<Post>('Post', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    payload: undefined
+    payload: undefined,
+    response: undefined
 });
 
 export interface Put extends RouteHandler {
@@ -72,7 +78,8 @@ export const Put = Extension.createPropDecorator<Put>('Put', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    payload: undefined
+    payload: undefined,
+    response: undefined
 });
 
 export interface Patch extends RouteHandler {
@@ -82,7 +89,15 @@ export const Patch = Extension.createPropDecorator<Patch>('Patch', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    payload: undefined
+    payload: undefined,
+    response: undefined
 });
 
 export type Methods = Get & Post & Put & Patch & Delete & Head & Options;
+
+export interface Hook {
+    name: 'request' | 'pre_validation' | 'pre_handler' | 'post_handler' | 'response';
+}
+export const Hook = Extension.createPropDecorator<Hook>('Hook', {
+    name: undefined
+});

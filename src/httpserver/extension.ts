@@ -48,7 +48,7 @@ export class HttpServer extends Extension<FastifyServer> {
                 filter(decorator => decorator.name === 'Lifecycle'),
                 toArray()
             )),
-            flatMap(lifecycleDecorators => buildLifecycleComponents(module, lifecycleDecorators, this.value)),
+            flatMap(lifecycleDecorators => buildLifecycleComponents(lifecycleDecorators, this.value)),
             flatMap(() => this.value.listen(this.config.port || this.defaultPort, this.config.host || this.defaultHost)),
             tap(info => this.logger.info(`server running at ${info}`)),
             mapTo(null)
