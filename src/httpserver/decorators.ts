@@ -1,5 +1,6 @@
+import 'reflect-metadata';
 import { Extension } from '../core/extensions';
-import { Type, makeDecorator } from '../core/decorators';
+import { Type } from '../core/decorators';
 
 export interface Route {
     path?: string;
@@ -94,9 +95,9 @@ export const Patch = Extension.createPropDecorator<Patch>('Patch', {
 });
 
 export type Methods = Get & Post & Put & Patch & Delete & Head & Options;
-
+export type Hooks = 'request' | 'pre_validation' | 'pre_handler' | 'response';
 export interface Hook {
-    name: 'request' | 'pre_validation' | 'pre_handler' | 'post_handler' | 'response';
+    name: Hooks;
 }
 export const Hook = Extension.createPropDecorator<Hook>('Hook', {
     name: undefined

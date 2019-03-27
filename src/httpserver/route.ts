@@ -1,4 +1,4 @@
-import { Type, CoreModule, MetadataAndName, DependencyInjection, ModuleManager, HookManager, errorHandler, ModuleLevel } from '../core';
+import { Type, CoreModule, MetadataAndName, DependencyInjection, HookManager, errorHandler, ModuleLevel } from '../core';
 import { Route, Get, Methods } from './decorators';
 import { Observable, from, of } from 'rxjs';
 import { map, toArray, tap, flatMap, mapTo, filter } from 'rxjs/operators';
@@ -130,13 +130,14 @@ function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
 
 function populateTSchema(key: string, param: any, request: Fastify.FastifyRequest<IncomingMessage>) {
     let data;
-    if (key === 'query') { data = request['querystring']; }
+    if (key === 'query') { data = request['query']; }
     if (key === 'params') { data = request['params']; }
     if (key === 'headers') { data = request['headers']; }
     if (key === 'payload') { data = request['body']; }
     if (!data) {
         return;
     }
+    // TODO ONLY SET PROPERTIES DEFINED !!!!!!!!!
     const instance = Reflect.construct(param, []);
     Object.keys(data).forEach(prop => Reflect.set(instance, prop, data[prop]));
     return instance;
@@ -168,7 +169,7 @@ function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
                 reply.send(response.value);
             })
         ).subscribe(
-            null,
+            () => null,
             error => {
                 errorHandler(error);
                 reply.send(error);

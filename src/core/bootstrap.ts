@@ -101,13 +101,13 @@ function bootstrap(state: CoreState, module: Type<any>, extensions?: ExtensionTo
         ModuleManager.resolve(module).pipe(
             tap(coreModule => state.module = coreModule),
             flatMap(() => loadExtensions(extensions, state, opts)),
-            tap(() => state.logger().info('--- extensions loaded.')),
+            tap(() => state.logger().info('[bootstrap]: extensions loaded.')),
             flatMap(extensionResults => instantiateModule(extensionResults, state)),
-            tap(() => state.logger().info('--- modules instantiated and registered.')),
+            tap(() => state.logger().info('[bootstrap]: modules instantiated and registered.')),
             flatMap(() => buildExtensions(state, opts)),
-            tap(() => state.logger().info('--- extensions built. starting...')),
+            tap(() => state.logger().info('[bootstrap]: extensions built. starting...')),
+            tap(() => state.logger().info('[bootstrap]: hapiness is running')),
             flatMap(() => callStart(state)),
-            tap(() => state.logger().info('--- hapiness is running')),
             ignoreElements()
         )
         .subscribe(
@@ -154,7 +154,7 @@ function formatConfig(config: ExtensionConfig): string {
 
 function logExt<T>(level: string, instance: Extension<T>, message: string): void {
     if (instance && instance.logger) {
-        instance.logger[level](`[${instance.constructor.name}]: ${message}`);
+        instance.logger[level](`[${instance.constructor.name.toLowerCase()}]: ${message}`);
     }
 }
 
