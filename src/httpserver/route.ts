@@ -55,7 +55,7 @@ function buildPlugin(routes: Organized[], server: FastifyServer) {
                     return of(null);
                 }
             })
-        ).subscribe(null, null, () => next());
+        ).subscribe(() => null, () => null, () => next());
     });
 }
 
@@ -66,17 +66,17 @@ function toCoreRoute(route: Route, token: Type<any>, module: CoreModule): CoreRo
     }, route);
 }
 
-function schema(meta: MetadataAndName<Methods>): { [k: string]: Type<any> } {
+function schema(method: MetadataAndName<Methods>): { [k: string]: Type<any> } {
     const schemaValue = {} as any;
-    if (meta.metadata.query && isTSchema(meta.metadata.query)) { schemaValue.querystring = serializer(meta.metadata.query); }
-    if (meta.metadata.params && isTSchema(meta.metadata.params)) { schemaValue.params = serializer(meta.metadata.params); }
-    if (meta.metadata.headers && isTSchema(meta.metadata.headers)) { schemaValue.headers = serializer(meta.metadata.headers); }
-    if (meta.metadata.payload && isTSchema(meta.metadata.payload)) { schemaValue.body = serializer(meta.metadata.payload); }
-    if (meta.metadata.response) {
+    if (method.metadata.query && isTSchema(method.metadata.query)) { schemaValue.querystring = serializer(method.metadata.query); }
+    if (method.metadata.params && isTSchema(method.metadata.params)) { schemaValue.params = serializer(method.metadata.params); }
+    if (method.metadata.headers && isTSchema(method.metadata.headers)) { schemaValue.headers = serializer(method.metadata.headers); }
+    if (method.metadata.payload && isTSchema(method.metadata.payload)) { schemaValue.body = serializer(method.metadata.payload); }
+    if (method.metadata.response) {
         schemaValue.response = {};
-        Object.keys(meta.metadata.response)
-            .filter(key => isTSchema(meta.metadata.response[key]))
-            .forEach(key => schemaValue.response[key] = serializer(meta.metadata.response[key]));
+        Object.keys(method.metadata.response)
+            .filter(key => isTSchema(method.metadata.response[key]))
+            .forEach(key => schemaValue.response[key] = serializer(method.metadata.response[key]));
     }
     return schemaValue;
 }
@@ -110,7 +110,7 @@ function getMethod(name: string): Fastify.HTTPMethod {
     }
 }
 
-function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
+export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
     if (!!response && typeof response === 'object') {
         return {
             status: (response as HttpResponse<T>).status || 200,
@@ -126,6 +126,16 @@ function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
             value: response as T
         };
     }
+}
+
+export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.FastifyReply<T>) {
+    reply
+        .code(response.status)
+        .headers(response.headers);
+    if (response.redirect) {
+        return reply.redirect(response.value.toString());
+    }
+    reply.send(response.value);
 }
 
 function populateTSchema(key: string, param: any, request: Fastify.FastifyRequest<IncomingMessage>) {
@@ -159,15 +169,7 @@ function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
                 flatMap(args => HookManager.triggerHook(metadataAndName.property, route.token, instance, args))
             )),
             map(response => handleResponse(response)),
-            tap(response => {
-                reply
-                    .code(response.status)
-                    .headers(response.headers);
-                if (response.redirect) {
-                    return reply.redirect(response.value as string);
-                }
-                reply.send(response.value);
-            })
+            tap(response => replyHttpResponse(response, reply))
         ).subscribe(
             () => null,
             error => {

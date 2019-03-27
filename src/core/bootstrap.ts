@@ -81,7 +81,7 @@ export function errorHandler(error: Error, data?: any): void {
             throwError(error)
         )
     )
-    .subscribe(null, console.log);
+    .subscribe(() => null, console.log);
 }
 
 /**

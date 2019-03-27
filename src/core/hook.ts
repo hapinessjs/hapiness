@@ -39,7 +39,7 @@ export class HookManager {
                     flatMap(_ => this.wrapObservable(_))
                 )
             )
-        )
+        );
     }
 
     private static wrapObservable<R>(value: Observable<R> | R): Observable<R> {

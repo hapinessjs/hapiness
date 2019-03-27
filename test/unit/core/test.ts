@@ -3,6 +3,8 @@ import { Hapiness, Module, ExtensionType, Extension } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
 import { of } from 'rxjs';
 import { Property, Required } from '@juneil/tschema';
+import { ServerResponse } from 'http';
+import { HttpResponse } from '../../../src/httpserver/route';
 // import { HttpServer, FastifyServer } from '../../../src/httpserver/extension';
 // import { Extension } from '../../../src/core/extensions';
 // import { of } from 'rxjs';
@@ -203,9 +205,9 @@ class Route1 {
     @Get({
         query: Query
     })
-    getTamere(query: Query) {
+    getTamere(query: Query): HttpResponse<string> {
         console.log('HANDLER', this.req.id, query);
-        return 'GET';
+        return { status: 201, value: 'GET' };
     }
 }
 
@@ -214,22 +216,12 @@ class LC {
     constructor(private req: HttpServerRequest) {}
     @Hook({ name: 'request' })
     request() {
-        console.log('NEW REQUEST', this.req.id);
-    }
-
-    @Hook({ name: 'pre_validation' })
-    request1() {
-        console.log('PRE VALID', this.req.id);
-    }
-
-    @Hook({ name: 'pre_handler' })
-    request2() {
-        console.log('PRE HANDLER', this.req.id);
+        console.log('>>>>>>>', this.req.id, this.req.raw.url);
     }
 
     @Hook({ name: 'response' })
-    request4() {
-        console.log('RESPONSE', this.req.id);
+    request4(res: ServerResponse) {
+        console.log('<<<<<<<', this.req.id, this.req.raw.url, res.statusCode);
     }
 }
 
