@@ -1,4 +1,4 @@
-import { Route, Get, Lifecycle, Hook } from '../../../src/httpserver/decorators';
+import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
 import { Hapiness, Module, ExtensionType, Extension } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
 import { of } from 'rxjs';
@@ -199,15 +199,31 @@ class Query {
     toto: string;
 }
 
-@Route({ path: '/' })
+class Param {
+    @Property()
+    @Required()
+    id: string;
+}
+
+@Route({ path: '/:id' })
 class Route1 {
     constructor(private req: HttpServerRequest) {}
-    @Get({
-        query: Query
-    })
-    getTamere(query: Query): HttpResponse<string> {
+    @Get({ query: Query })
+    get(query: Query): HttpResponse<string> {
         console.log('HANDLER', this.req.id, query);
         return { status: 201, value: 'GET' };
+    }
+
+    @Delete({ query: Query })
+    delete(q: Query) {
+        console.log('HANDLER DEL', q);
+        return null;
+    }
+
+    @Post({ query: Query, params: Param })
+    pp(p: Param, q: Query) {
+        console.log('HANDLER POST', q, p);
+        return 'POST';
     }
 }
 

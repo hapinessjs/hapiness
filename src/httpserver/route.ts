@@ -135,7 +135,11 @@ export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.F
     if (response.redirect) {
         return reply.redirect(response.value.toString());
     }
-    reply.send(response.value);
+    if (response.value) {
+        reply.send(response.value);
+    } else {
+        reply.send();
+    }
 }
 
 function populateTSchema(key: string, param: any, request: Fastify.FastifyRequest<IncomingMessage>) {
