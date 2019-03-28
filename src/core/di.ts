@@ -66,13 +66,21 @@ export class DependencyInjection {
         return Reflect.construct(extension, extDeps && extDeps.length ? extDeps : abstractDeps);
     }
 
-    static getDeps<T>(component: Type<T>): any[] {
+    static getAllDeps<T>(component: Type<T>): any[] {
         return ReflectiveInjector.resolve([ component ])
             .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <ResolvedReflectiveFactory[]>[])
             .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), <ReflectiveDependency[]>[])
             .filter(Boolean)
             .map(dep => dep.key.token)
-            .map(provider => this.getDeps(<any>provider).concat(provider))
+            .map(provider => this.getAllDeps(<any>provider).concat(provider))
             .reduce((a, c) => a.concat(c), []);
+    }
+
+    static getDeps<T>(component: Type<T>): any[] {
+        return ReflectiveInjector.resolve([ component ])
+            .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <ResolvedReflectiveFactory[]>[])
+            .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), <ReflectiveDependency[]>[])
+            .filter(Boolean)
+            .map(dep => dep.key.token);
     }
 }

@@ -114,3 +114,23 @@ export const Module = createDecorator<Module>('Module', {
  */
 export interface Lib {}
 export const Lib = makeDecorator('Lib', null);
+
+export interface HTTPService {
+    baseUrl?: string;
+}
+
+export const HTTPService = makeDecorator('HTTPService', {
+    baseUrl: undefined
+});
+
+export interface Call {
+    method?: 'get' | 'post' | 'put' | 'delete' | 'patch';
+    path?: string;
+    response?: Type<any>;
+}
+
+export const Call = createPropDecorator('Call', {
+    method: 'get',
+    path: undefined,
+    response: undefined
+});

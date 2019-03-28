@@ -1,10 +1,11 @@
 import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
-import { Hapiness, Module, ExtensionType, Extension } from '../../../src/core';
+import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Injectable, DependencyInjection } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
-import { of } from 'rxjs';
+import { of, Observable } from 'rxjs';
 import { Property, Required } from '@juneil/tschema';
 import { ServerResponse } from 'http';
 import { HttpResponse } from '../../../src/httpserver/route';
+import { isHTTPService } from '../../../src/core/httpservice';
 // import { HttpServer, FastifyServer } from '../../../src/httpserver/extension';
 // import { Extension } from '../../../src/core/extensions';
 // import { of } from 'rxjs';
@@ -52,10 +53,10 @@ export class Logger extends Extension<any> {
 //     foo() { return 3; }
 // }
 
-// @Injectable()
-// class ADep {
-//     foo() { return 1; }
-// }
+@Injectable()
+class ADep {
+    foo() { return 1; }
+}
 
 // @Injectable()
 // class TestService {
@@ -193,6 +194,25 @@ export class Logger extends Extension<any> {
 //     }
 // }
 
+// class PK {
+//     @Property()
+//     public_key: string;
+// }
+
+@HTTPService({
+    baseUrl: 'http://tdw01.dev01.in.tdw:4030'
+})
+class MyService {
+
+    constructor(private d: ADep) {}
+    // @Call({
+    //     path: '/jwt/public-key/:option',
+    //     response: PK
+    // })
+    // publicKey: (p: Param) => Future<PK>;
+    yo() { return this.d; }
+}
+isHTTPService(MyService);
 class Query {
     @Property()
     @Required()
@@ -207,7 +227,7 @@ class Param {
 
 @Route({ path: '/:id' })
 class Route1 {
-    constructor(private req: HttpServerRequest) {}
+    constructor(private req: HttpServerRequest, private ms: MyService) {}
     @Get({ query: Query })
     get(query: Query): HttpResponse<string> {
         console.log('HANDLER', this.req.id, query);
@@ -223,7 +243,7 @@ class Route1 {
     @Post({ query: Query, params: Param })
     pp(p: Param, q: Query) {
         console.log('HANDLER POST', q, p);
-        return 'POST';
+        return this.ms.yo();
     }
 }
 
@@ -243,7 +263,8 @@ class LC {
 
 @Module({
     version: 'x',
-    declarations: [Route1, LC]
+    declarations: [Route1, LC],
+    providers: [MyService, ADep]
 })
 class MyMod {
     onStart() {

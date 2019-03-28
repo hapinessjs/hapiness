@@ -7,6 +7,7 @@ import { CoreModule, CoreModuleWithProviders, CoreProvide } from './interfaces';
 import { InternalLogger } from './logger';
 import { extractMetadataByDecorator } from './metadata';
 import { arr } from './utils';
+import { isHTTPService, wrap } from './httpservice';
 
 export class ModuleManager {
 
@@ -58,6 +59,9 @@ export class ModuleManager {
      * @returns CoreProvide
      */
     static toCoreProvider(provider: any): CoreProvide {
+        if (isHTTPService(provider)) {
+            return wrap(provider);
+        }
         return <CoreProvide>(!!provider.provide ?
                 provider :
                 { provide: provider, useClass: provider }
@@ -288,7 +292,7 @@ export class ModuleManager {
             .filter(submodule => (!!submodule.exports && submodule.exports.length > 0))
             .map(submodule => arr(submodule.exports))
             .map(providers => providers.concat(providers
-                .map(provider => DependencyInjection.getDeps(provider))
+                .map(provider => DependencyInjection.getAllDeps(provider))
                 .reduce((a, c) => a.concat(c), [])
             ))
             .reduce((a, c) => a.concat(c), [])
