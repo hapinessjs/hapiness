@@ -1,11 +1,12 @@
 import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
-import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Injectable, DependencyInjection } from '../../../src/core';
+import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Injectable } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
-import { of, Observable } from 'rxjs';
+import { of } from 'rxjs';
 import { Property, Required } from '@juneil/tschema';
 import { ServerResponse } from 'http';
 import { HttpResponse } from '../../../src/httpserver/route';
-import { isHTTPService } from '../../../src/core/httpservice';
+import { isHTTPService, CallResponse, HTTPParams } from '../../../src/core/httpservice';
+import { tap } from 'rxjs/operators';
 // import { HttpServer, FastifyServer } from '../../../src/httpserver/extension';
 // import { Extension } from '../../../src/core/extensions';
 // import { of } from 'rxjs';
@@ -194,24 +195,28 @@ class ADep {
 //     }
 // }
 
-// class PK {
-//     @Property()
-//     public_key: string;
-// }
+class PK {
+    @Property()
+    public_key: string;
+}
+
+
+
 
 @HTTPService({
-    baseUrl: 'http://tdw01.dev01.in.tdw:4030'
+    baseUrl: ''
 })
 class MyService {
-
-    constructor(private d: ADep) {}
-    // @Call({
-    //     path: '/jwt/public-key/:option',
-    //     response: PK
-    // })
-    // publicKey: (p: Param) => Future<PK>;
-    yo() { return this.d; }
+    @Call({
+        path: '',
+        response: PK
+    })
+    publicKey: (params?: HTTPParams) => CallResponse<PK>;
 }
+
+
+
+
 isHTTPService(MyService);
 class Query {
     @Property()
@@ -243,7 +248,7 @@ class Route1 {
     @Post({ query: Query, params: Param })
     pp(p: Param, q: Query) {
         console.log('HANDLER POST', q, p);
-        return this.ms.yo();
+        return this.ms.publicKey();
     }
 }
 

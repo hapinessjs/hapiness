@@ -244,7 +244,7 @@ function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, opti
     const decorators = extension.instance.decorators || [];
     const metadata = ModuleManager.getModules(state.module)
         .map(module => arr(module.declarations)
-            .map(component => extractMetadataAndName(module, component))
+            .map(component => extractMetadataAndName(component, null, module))
         )
         .reduce((a, c) => a.concat(c), [])
         .filter(data => decorators.indexOf(data.name) > -1);

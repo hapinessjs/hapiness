@@ -83,7 +83,7 @@ function schema(method: MetadataAndName<Methods>): { [k: string]: Type<any> } {
 
 function addRoute(route: CoreRoute, server: FastifyServer) {
     return from(Object.getOwnPropertyNames(route.token.prototype)).pipe(
-        map(property => Extension.extractMetadata<Methods>(route.module, route.token, property)),
+        map(property => Extension.extractMetadata<Methods>(route.token, property, route.module)),
         filter(meta => !!meta),
         tap(meta => server.route({
             method: getMethod(meta.name),

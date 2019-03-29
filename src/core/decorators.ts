@@ -1,4 +1,6 @@
 import { Type, TypeDecorator, makeDecorator, Inject, Injectable, InjectionToken, Optional } from 'injection-js';
+import * as Ajv from 'ajv';
+import { serializer, isTSchema } from '@juneil/tschema';
 export { Injectable, Inject, Optional, InjectionToken, makeDecorator };
 
 export interface Type<T> extends Function {
@@ -47,9 +49,12 @@ function makePropDecorator(name: string, props: ([string, any] | { [key: string]
         }
         const decoratorInstance = new (<any>PropDecoratorFactory)(...args);
         return function PropDecorator(target: any, _name: string) {
+            // TODO /!\ Only for Call.response. Find a generic way...
+            // Object.keys(decoratorInstance).forEach(key => decoratorInstance[key] = compileSchema(decoratorInstance[key]));
             const paramtypes = Reflect.getOwnMetadata('design:paramtypes', target, _name) || {};
             decoratorInstance.paramtypes = paramtypes;
             const meta = Reflect.getOwnMetadata('propMetadata', target.constructor) || {};
+            console.log(name, meta, decoratorInstance);
             meta[_name] = (meta.hasOwnProperty(_name) && meta[_name]) || [];
             meta[_name].unshift(decoratorInstance);
             Reflect.defineMetadata('propMetadata', meta, target.constructor);
@@ -61,6 +66,17 @@ function makePropDecorator(name: string, props: ([string, any] | { [key: string]
     PropDecoratorFactory.prototype.toString = () => `@${name}`;
     (<any>PropDecoratorFactory).annotationCls = PropDecoratorFactory;
     return PropDecoratorFactory;
+}
+
+function compileSchema(value: any) {
+    if (!(value instanceof Function && isTSchema(value))) {
+        return value;
+    }
+    const ajv = Ajv();
+    return {
+        ajv,
+        validate: ajv.compile(serializer(value))
+    };
 }
 
 /**
@@ -119,7 +135,7 @@ export interface HTTPService {
     baseUrl?: string;
 }
 
-export const HTTPService = makeDecorator('HTTPService', {
+export const HTTPService = createDecorator<HTTPService>('HTTPService', {
     baseUrl: undefined
 });
 
@@ -129,7 +145,7 @@ export interface Call {
     response?: Type<any>;
 }
 
-export const Call = createPropDecorator('Call', {
+export const Call = createPropDecorator<Call>('Call', {
     method: 'get',
     path: undefined,
     response: undefined
