@@ -49,8 +49,7 @@ function makePropDecorator(name: string, props: ([string, any] | { [key: string]
         }
         const decoratorInstance = new (<any>PropDecoratorFactory)(...args);
         return function PropDecorator(target: any, _name: string) {
-            // TODO /!\ Only for Call.response. Find a generic way...
-            // Object.keys(decoratorInstance).forEach(key => decoratorInstance[key] = compileSchema(decoratorInstance[key]));
+            Object.keys(decoratorInstance).forEach(key => decoratorInstance[key] = compileSchema(decoratorInstance[key]));
             const paramtypes = Reflect.getOwnMetadata('design:paramtypes', target, _name) || {};
             decoratorInstance.paramtypes = paramtypes;
             const meta = Reflect.getOwnMetadata('propMetadata', target.constructor) || {};
@@ -73,10 +72,8 @@ function compileSchema(value: any) {
         return value;
     }
     const ajv = Ajv();
-    return {
-        ajv,
-        validate: ajv.compile(serializer(value))
-    };
+    value['_compile'] = { ajv, validate: ajv.compile(serializer(value)) }
+    return value;
 }
 
 /**

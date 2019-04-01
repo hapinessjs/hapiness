@@ -1,11 +1,12 @@
 import * as Client from 'phin';
 import * as Path from 'path';
-import { Observable, of } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { Type, HTTPService, Call } from './decorators';
 import { CoreProvide } from './interfaces';
 import { DependencyInjection } from './di';
 import { extractMetadataAndName } from './metadata';
 import { flatMap, map } from 'rxjs/operators';
+import { Biim } from '@hapiness/biim';
 import * as Ajv from 'ajv';
 
 export interface HTTPParams<T = any> {
@@ -54,22 +55,34 @@ function proxyGetHandler(target: Type<any>, prop: string) {
     const call = extractMetadataAndName<Call>(<any>target.constructor, prop);
     if (call.name === 'Call') {
         const svc = extractMetadataAndName<HTTPService>(<any>target.constructor);
-        return () => of(buildURL(svc.name, svc.metadata.baseUrl, call.metadata.path)).pipe(
+        return () => of(buildURL(target.constructor.name, svc.metadata.baseUrl, call.metadata.path)).pipe(
             flatMap(url => Client({
                 url,
                 method: call.metadata.method.toUpperCase(),
                 parse: 'json'
             })),
-            map(res => res.body)
+            flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToBiim(res)) : of(res.body)),
+            map(res => validateResponse(res, call.metadata.response))
         );
     }
     return source;
 }
 
-function validateResponse<T>(data: T, ajv: Ajv.Ajv, schema: Ajv.ValidateFunction): T {
-    const validate = schema(data);
+function validateResponse<T>(data: T, schema: Type<any>): T {
+    const compile = schema['_compile'];
+    if (!data || !compile) {
+        return data;
+    }
+    const validate = compile.validate(data);
     if (validate) {
         return data;
     }
-    throw new Error(ajv.errorsText(ajv.errors));
+    throw new Error(compile.ajv.errorsText(compile.ajv.errors));
+}
+
+function convertBodyToBiim(response: Client.JsonResponse): Biim {
+    if (typeof response.body !== 'object') {
+        response.body = { message: response.body };
+    }
+    return Biim.create(response.statusCode, response.body.message, response.body, response.body);
 }
