@@ -5,7 +5,7 @@ import { map, toArray, tap, flatMap, mapTo, filter } from 'rxjs/operators';
 import { FastifyServer, HttpServerRequest, HttpServer } from './extension';
 import { Extension } from '../core/extensions';
 import { IncomingMessage } from 'http';
-import { isTSchema, serializer } from '@juneil/tschema';
+import { isTSchema, serializer, properties } from '@juneil/tschema';
 import * as Fastify from 'fastify';
 import { arr } from '../core/utils';
 
@@ -143,7 +143,7 @@ export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.F
 }
 
 function populateTSchema(key: string, param: any, request: Fastify.FastifyRequest<IncomingMessage>) {
-    let data;
+    let data: any;
     if (key === 'query') { data = request['query']; }
     if (key === 'params') { data = request['params']; }
     if (key === 'headers') { data = request['headers']; }
@@ -151,9 +151,9 @@ function populateTSchema(key: string, param: any, request: Fastify.FastifyReques
     if (!data) {
         return;
     }
-    // TODO ONLY SET PROPERTIES DEFINED !!!!!!!!!
     const instance = Reflect.construct(param, []);
-    Object.keys(data).forEach(prop => Reflect.set(instance, prop, data[prop]));
+    const props = properties(param);
+    Object.keys(props).forEach(prop => Reflect.set(instance, prop, data[prop]));
     return instance;
 }
 

@@ -62,13 +62,12 @@
     },
     "homepage": "https://github.com/hapinessjs/hapiness#readme",
     "dependencies": {
-        "@hapiness/biim": "^1.4.0",
-        "@juneil/tschema": "^1.0.0-alpha.1",
+        "@juneil/tschema": "^1.0.0-alpha.2",
         "debug": "4.1.1",
         "fastify": "2.1.0",
         "injection-js": "2.2.1",
         "opentracing": "0.14.3",
-        "phin": "^3.3.0",
+        "phin": "3.3.0",
         "reflect-metadata": "0.1.13"
     },
     "devDependencies": {

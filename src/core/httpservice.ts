@@ -6,8 +6,6 @@ import { CoreProvide } from './interfaces';
 import { DependencyInjection } from './di';
 import { extractMetadataAndName } from './metadata';
 import { flatMap, map } from 'rxjs/operators';
-import { Biim } from '@hapiness/biim';
-import * as Ajv from 'ajv';
 
 export interface HTTPParams<T = any> {
     query?: { [key: string]: string };
@@ -20,6 +18,10 @@ export interface WrapValue<R = any> {
     status: number;
     headers: { [key: string]: string };
     value: R;
+}
+
+export class HTTPError extends Error {
+    statusCode: number;
 }
 
 export type CallResponse<R> = Observable<WrapValue<R>>;
@@ -61,7 +63,7 @@ function proxyGetHandler(target: Type<any>, prop: string) {
                 method: call.metadata.method.toUpperCase(),
                 parse: 'json'
             })),
-            flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToBiim(res)) : of(res.body)),
+            flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToError(res)) : of(res.body)),
             map(res => validateResponse(res, call.metadata.response))
         );
     }
@@ -77,12 +79,14 @@ function validateResponse<T>(data: T, schema: Type<any>): T {
     if (validate) {
         return data;
     }
-    throw new Error(compile.ajv.errorsText(compile.ajv.errors));
+    throw new Error(compile.ajv.errorsText(compile.validate.errors));
 }
 
-function convertBodyToBiim(response: Client.JsonResponse): Biim {
+function convertBodyToError(response: Client.JsonResponse): HTTPError {
     if (typeof response.body !== 'object') {
         response.body = { message: response.body };
     }
-    return Biim.create(response.statusCode, response.body.message, response.body, response.body);
+    const err = new HTTPError(response.body.message);
+    err.statusCode = response.statusCode;
+    return err;
 }

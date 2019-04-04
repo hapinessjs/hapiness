@@ -197,27 +197,24 @@ class ADep {
 
 class PK {
     @Property()
-    public_key: string;
+    @Required()
+    public: string;
 }
 
 
 
 
 @HTTPService({
-    baseUrl: ''
+    baseUrl: 'http://tdw01.dev01.in.tdw:4030'
 })
 class MyService {
     @Call({
-        path: '',
+        path: '/jwt/keys',
         response: PK
     })
     publicKey: (params?: HTTPParams) => CallResponse<PK>;
 }
 
-
-
-
-isHTTPService(MyService);
 class Query {
     @Property()
     @Required()
@@ -234,9 +231,9 @@ class Param {
 class Route1 {
     constructor(private req: HttpServerRequest, private ms: MyService) {}
     @Get({ query: Query })
-    get(query: Query): HttpResponse<string> {
+    get(query: Query) {
         console.log('HANDLER', this.req.id, query);
-        return { status: 201, value: 'GET' };
+        return this.ms.publicKey();
     }
 
     @Delete({ query: Query })
@@ -248,7 +245,7 @@ class Route1 {
     @Post({ query: Query, params: Param })
     pp(p: Param, q: Query) {
         console.log('HANDLER POST', q, p);
-        return this.ms.publicKey();
+        return 'post';
     }
 }
 

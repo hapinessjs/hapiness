@@ -19,6 +19,13 @@ export interface CorePropDecorator<T> {
     (obj?: T): any;
 }
 
+const AJV = new Ajv({
+    removeAdditional: true,
+    useDefaults: true,
+    coerceTypes: true,
+    allErrors: true
+});
+
 /**
  * Merge properties
  */
@@ -53,7 +60,6 @@ function makePropDecorator(name: string, props: ([string, any] | { [key: string]
             const paramtypes = Reflect.getOwnMetadata('design:paramtypes', target, _name) || {};
             decoratorInstance.paramtypes = paramtypes;
             const meta = Reflect.getOwnMetadata('propMetadata', target.constructor) || {};
-            console.log(name, meta, decoratorInstance);
             meta[_name] = (meta.hasOwnProperty(_name) && meta[_name]) || [];
             meta[_name].unshift(decoratorInstance);
             Reflect.defineMetadata('propMetadata', meta, target.constructor);
@@ -71,8 +77,7 @@ function compileSchema(value: any) {
     if (!(value instanceof Function && isTSchema(value))) {
         return value;
     }
-    const ajv = Ajv();
-    value['_compile'] = { ajv, validate: ajv.compile(serializer(value)) }
+    value['_compile'] = { ajv: AJV, validate: AJV.compile({ ...serializer(value), additionalProperties: false }) };
     return value;
 }
 
