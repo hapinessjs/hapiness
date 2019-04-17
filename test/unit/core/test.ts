@@ -1,5 +1,5 @@
 import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
-import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Injectable } from '../../../src/core';
+import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
 import { of } from 'rxjs';
 import { Property, Required } from '@juneil/tschema';
@@ -54,7 +54,7 @@ export class Logger extends Extension<any> {
 //     foo() { return 3; }
 // }
 
-@Injectable()
+@Service()
 class ADep {
     foo() { return 1; }
 }
@@ -201,6 +201,15 @@ class PK {
     public: string;
 }
 
+const tok = new InjectionToken('test');
+const tok2 = new InjectionToken('test2');
+@Service()
+class GetStuff {
+    constructor(@Inject(tok) private conf: any) {}
+    stuff() {
+        return this.conf;
+    }
+}
 
 
 
@@ -229,11 +238,11 @@ class Param {
 
 @Route({ path: '/:id' })
 class Route1 {
-    constructor(private req: HttpServerRequest, private ms: MyService) {}
+    constructor(private req: HttpServerRequest, private t: GetStuff) {}
     @Get({ query: Query })
     get(query: Query) {
-        console.log('HANDLER', this.req.id, query);
-        return this.ms.publicKey();
+        console.log('HANDLER', this.t.stuff(), this.req.id, query);
+        return 11;
     }
 
     @Delete({ query: Query })
@@ -263,10 +272,24 @@ class LC {
     }
 }
 
+
+
+@Module({
+    version: 'x',
+    providers: [ GetStuff ],
+    exports: [ GetStuff ]
+})
+class StaticStuff {
+    static setConfig(data) {
+        return { module: StaticStuff, providers: [{ provide: tok, useValue: data }] }
+    }
+}
+
 @Module({
     version: 'x',
     declarations: [Route1, LC],
-    providers: [MyService, ADep]
+    providers: [MyService, ADep, { provide: tok2, useValue: 1 }],
+    imports: [ StaticStuff.setConfig('YOLYOYOYOYOY') ]
 })
 class MyMod {
     onStart() {

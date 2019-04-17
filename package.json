@@ -62,7 +62,7 @@
     },
     "homepage": "https://github.com/hapinessjs/hapiness#readme",
     "dependencies": {
-        "@juneil/tschema": "^1.0.0-alpha.2",
+        "@juneil/tschema": "^1.0.0-alpha.3",
         "debug": "4.1.1",
         "fastify": "2.1.0",
         "injection-js": "2.2.1",

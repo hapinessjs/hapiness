@@ -261,8 +261,7 @@ function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, opti
                 delay(options.retry.interval),
                 scan((c, err: Error) => {
                     logExt('error', extension.instance, `Retry (${c + 1}): ${err.message}`);
-                    if (c >= (options.retry.count - 1)) { throw err; }
-                    return c + 1;
+                    throw err;
                 }, 0)
             ))
         );

@@ -67,6 +67,7 @@ export class DependencyInjection {
     }
 
     static getAllDeps<T>(component: Type<T>): any[] {
+        if (!(component && typeof component === 'function')) { return []; }
         return ReflectiveInjector.resolve([ component ])
             .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <ResolvedReflectiveFactory[]>[])
             .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), <ReflectiveDependency[]>[])
@@ -77,6 +78,7 @@ export class DependencyInjection {
     }
 
     static getDeps<T>(component: Type<T>): any[] {
+        if (!(component && typeof component === 'function')) { return []; }
         return ReflectiveInjector.resolve([ component ])
             .reduce((a, x: ResolvedReflectiveProvider) => a.concat(x.resolvedFactories), <ResolvedReflectiveFactory[]>[])
             .reduce((a, r: ResolvedReflectiveFactory) => a.concat(r.dependencies), <ReflectiveDependency[]>[])

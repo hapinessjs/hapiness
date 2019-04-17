@@ -87,52 +87,21 @@ export class ModuleManager {
     private static resolution(module: any, parent?: CoreModule): Observable<CoreModule> {
         return of(module)
             .pipe(
-                map(_ => this.toCoreModuleWithProviders(_)),
-                flatMap(cmwp =>
-                    this
-                        .extractMetadata(cmwp.module)
-                        .pipe(
-                            map(_ => ({ metadata: _, moduleWithProviders: cmwp }))
-                        )
-                ),
-                flatMap(mcmwp =>
-                    this
-                        .metadataToCoreModule(mcmwp.metadata, mcmwp.moduleWithProviders, parent)
-                        .pipe(
-                            map(_ => this.coreModuleParentConfigProviders(_)),
-                            map(_ => Object.assign({ module: _ }, mcmwp))
-                        )
-                ),
-                flatMap(data =>
-                    from(data.metadata.imports || [])
-                        .pipe(
-                            flatMap(_ => this.resolution(_, data.module)),
-                            toArray(),
-                            tap(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`)),
-                            map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
-                        )
-                ),
+                map(coreModule => this.toCoreModuleWithProviders(coreModule)),
+                flatMap(cmwp => this.extractMetadata(cmwp.module).pipe(
+                    map(moduleMeta => ({ metadata: moduleMeta, moduleWithProviders: cmwp }))
+                )),
+                flatMap(mcmwp => this.metadataToCoreModule(mcmwp.metadata, mcmwp.moduleWithProviders, parent).pipe(
+                    map(coreModule => Object.assign({ module: coreModule }, mcmwp))
+                )),
+                flatMap(data => from(data.metadata.imports || []).pipe(
+                    flatMap(_ => this.resolution(_, data.module)),
+                    toArray(),
+                    tap(_ => this.logger.debug(`'${data.module.name}' got ${_.length} children`)),
+                    map(_ => <CoreModule>Object.assign({ modules: _ }, data.module))
+                )),
                 tap(_ => this.logger.debug(`'${_.name}' module resolved`))
             );
-    }
-
-    /**
-     * FIX for exported providers
-     * that need internal config
-     *
-     * @todo find a better solution
-     * @param  {CoreModule} module
-     * @returns CoreModule
-     */
-    private static coreModuleParentConfigProviders(module: CoreModule): CoreModule {
-        module.providers = []
-            .concat(module.providers)
-            .concat((module.parent && module.parent.providers) ?
-                module.parent.providers.filter(_ => (_.provide instanceof InjectionToken)) :
-                []
-            )
-            .filter(_ => !!_);
-        return module;
     }
 
     /**
@@ -290,11 +259,17 @@ export class ModuleManager {
         this.logger.debug(`extract exported children providers for '${module.name}'`);
         return arr(module.modules)
             .filter(submodule => (!!submodule.exports && submodule.exports.length > 0))
-            .map(submodule => arr(submodule.exports))
-            .map(providers => providers.concat(providers
-                .map(provider => DependencyInjection.getAllDeps(provider))
-                .reduce((a, c) => a.concat(c), [])
-            ))
+            .map(submodule => arr(submodule.exports)
+                .concat(submodule.exports
+                    .filter(Boolean)
+                    .map(provider => DependencyInjection.getAllDeps(provider))
+                    .reduce((a, c) => a.concat(c), [])
+                    .map(provider => typeof provider !== 'function' ?
+                        { provide: provider, useValue: submodule.di.get(provider) } :
+                        provider
+                    )
+                )
+            )
             .reduce((a, c) => a.concat(c), [])
             .filter((provider, i, array) => !!provider && array.indexOf(provider) === i)
             .map(provider => this.toCoreProvider(provider));

@@ -1,7 +1,7 @@
-import { Type, TypeDecorator, makeDecorator, Inject, Injectable, InjectionToken, Optional } from 'injection-js';
+import { Type, TypeDecorator, makeDecorator, Inject, InjectionToken, Optional } from 'injection-js';
 import * as Ajv from 'ajv';
 import { serializer, isTSchema } from '@juneil/tschema';
-export { Injectable, Inject, Optional, InjectionToken, makeDecorator };
+export { Inject, Optional, InjectionToken, makeDecorator };
 
 export interface Type<T> extends Function {
     new (...args: any[]): T;
@@ -151,4 +151,11 @@ export const Call = createPropDecorator<Call>('Call', {
     method: 'get',
     path: undefined,
     response: undefined
+});
+
+export interface Service {
+    moduleOnly: boolean;
+}
+export const Service = createDecorator<Service>('Service', {
+    moduleOnly: false
 });

@@ -3,7 +3,7 @@ import { EventManager } from './manager';
 import { of } from 'rxjs';
 import { ExtensionShutdownPriority } from '../core';
 
-export class EventExt extends Extension<EventManager> {
+export class EventExtension extends Extension<EventManager> {
 
     onLoad() {
         return of(this.loadedResult(new EventManager()));
