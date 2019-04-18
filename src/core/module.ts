@@ -1,6 +1,6 @@
 import { from, Observable, of, throwError } from 'rxjs';
 import { filter, flatMap, map, tap, toArray } from 'rxjs/operators';
-import { Module, InjectionToken, Type } from './decorators';
+import { Module, Type } from './decorators';
 import { DependencyInjection } from './di';
 import { ModuleLevel } from './enums';
 import { CoreModule, CoreModuleWithProviders, CoreProvide } from './interfaces';

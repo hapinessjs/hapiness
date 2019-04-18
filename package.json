@@ -1,18 +1,19 @@
 {
     "name": "@hapiness/core",
-    "version": "2.0.0",
+    "version": "2.0.0-alpha.1",
     "description": "Core of Hapiness framwork",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
     "private": false,
     "scripts": {
-        "test": "make test",
-        "pretest": "make pretest",
+        "test": "echo \"Tests need to be rewrited\"",
+        "pretest": "tslint -p ./tsconfig.json --type-check \"./src/**/*.ts\" \"./test/**/*.ts\"",
         "coveralls": "make coveralls",
         "packaging": "make packaging",
-        "prebuild": "make pretest && make test && make clean",
-        "build": "make tsc",
-        "postbuild": "make packaging"
+        "prebuild": "npm run test && npm run clear",
+        "build": "tsc -p ./tsconfig.build.json",
+        "postbuild": "cp ./README.md ./dist && cp ./package.json ./dist",
+        "clear": "rm -rf ./dist"
     },
     "repository": {
         "type": "git",

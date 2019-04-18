@@ -35,10 +35,10 @@ export class ExtensionLogger {
         }
     }
 
-    trace(...any): void { this.handler('trace', ...any) }
-    debug(...any): void { this.handler('debug', ...any) }
-    info(...any): void { this.handler('info', ...any) }
-    warn(...any): void { this.handler('warn', ...any) }
-    error(...any): void { this.handler('error', ...any) }
-    fatal(...any): void { this.handler('fatal', ...any) }
+    trace(...any): void { this.handler('trace', ...any); }
+    debug(...any): void { this.handler('debug', ...any); }
+    info(...any): void { this.handler('info', ...any); }
+    warn(...any): void { this.handler('warn', ...any); }
+    error(...any): void { this.handler('error', ...any); }
+    fatal(...any): void { this.handler('fatal', ...any); }
 }

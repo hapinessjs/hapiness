@@ -12,10 +12,10 @@ export class InternalLogger {
         this.logger(`[${this.tag.toUpperCase()}] > ${message}`);
     }
 
-    trace(msg): void { this.handler(msg) }
-    debug(msg): void { this.handler(msg) }
-    info(msg): void { this.handler(msg) }
-    warn(msg): void { this.handler(msg) }
-    error(msg): void { this.handler(msg) }
-    fatal(msg): void { this.handler(msg) }
+    trace(msg): void { this.handler(msg); }
+    debug(msg): void { this.handler(msg); }
+    info(msg): void { this.handler(msg); }
+    warn(msg): void { this.handler(msg); }
+    error(msg): void { this.handler(msg); }
+    fatal(msg): void { this.handler(msg); }
 }

@@ -1,8 +1,8 @@
 import { Type, CoreModule, MetadataAndName, DependencyInjection, HookManager, errorHandler, ModuleLevel } from '../core';
-import { Route, Get, Methods } from './decorators';
+import { Route, Methods } from './decorators';
 import { Observable, from, of } from 'rxjs';
 import { map, toArray, tap, flatMap, mapTo, filter } from 'rxjs/operators';
-import { FastifyServer, HttpServerRequest, HttpServer } from './extension';
+import { FastifyServer, HttpServerRequest } from './extension';
 import { Extension } from '../core/extensions';
 import { IncomingMessage } from 'http';
 import { isTSchema, serializer, properties } from '@juneil/tschema';

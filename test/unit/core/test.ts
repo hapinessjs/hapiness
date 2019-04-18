@@ -281,7 +281,7 @@ class LC {
 })
 class StaticStuff {
     static setConfig(data) {
-        return { module: StaticStuff, providers: [{ provide: tok, useValue: data }] }
+        return { module: StaticStuff, providers: [{ provide: tok, useValue: data }] };
     }
 }
 

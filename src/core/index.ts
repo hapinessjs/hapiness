@@ -2,7 +2,7 @@ import 'reflect-metadata';
 export { Hapiness, errorHandler } from './bootstrap';
 export { Call, Inject, Optional, InjectionToken, Service, HTTPService, Lib, Module, Type } from './decorators';
 export { DependencyInjection } from './di';
-export { ExtensionShutdownPriority, ExtensionType, ModuleEnum } from './enums';
+export { ExtensionShutdownPriority, ExtensionType, ModuleEnum, ModuleLevel } from './enums';
 export { HookManager } from './hook';
 export { ModuleManager } from './module';
 export { CoreModule, CoreProvide, CoreModuleWithProviders } from './interfaces';
