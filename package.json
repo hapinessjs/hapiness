@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/core",
-    "version": "2.0.0-alpha.1",
+    "version": "2.0.0-alpha.2",
     "description": "Core of Hapiness framwork",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -63,7 +63,7 @@
     },
     "homepage": "https://github.com/hapinessjs/hapiness#readme",
     "dependencies": {
-        "@juneil/tschema": "^1.0.0-alpha.3",
+        "@juneil/tschema": "^1.0.0-alpha.4",
         "debug": "4.1.1",
         "fastify": "2.1.0",
         "injection-js": "2.2.1",

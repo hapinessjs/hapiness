@@ -2,7 +2,7 @@ import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserv
 import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src/core';
 import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
 import { of } from 'rxjs';
-import { Property, Required } from '@juneil/tschema';
+import { Optional, Required } from '@juneil/tschema';
 import { ServerResponse } from 'http';
 import { HttpResponse } from '../../../src/httpserver/route';
 import { isHTTPService, CallResponse, HTTPParams } from '../../../src/core/httpservice';
@@ -196,7 +196,6 @@ class ADep {
 // }
 
 class PK {
-    @Property()
     @Required()
     public: string;
 }
@@ -212,7 +211,6 @@ class GetStuff {
 }
 
 
-
 @HTTPService({
     baseUrl: 'http://tdw01.dev01.in.tdw:4030'
 })
@@ -225,13 +223,11 @@ class MyService {
 }
 
 class Query {
-    @Property()
     @Required()
     toto: string;
 }
 
 class Param {
-    @Property()
     @Required()
     id: string;
 }
