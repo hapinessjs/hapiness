@@ -1,7 +1,7 @@
 import { Extension, ExtensionResult, ExtensionConfig } from '../core/extensions';
 import * as Fastify from 'fastify';
 import { ServerOptions } from 'https';
-import { CoreModule, ExtensionShutdownPriority, MetadataAndName } from '../core';
+import { CoreModule, ExtensionShutdownPriority, MetadataAndName } from '..';
 import { Observable, of, from } from 'rxjs';
 import { mapTo, tap, flatMap, toArray, filter } from 'rxjs/operators';
 import { buildRoutes } from './route';
@@ -28,18 +28,26 @@ export class HttpServerRequest {
     req: IncomingMessage;
 }
 
-export class HttpServer extends Extension<FastifyServer> {
+export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {
 
     decorators = [ 'Route', 'Lifecycle' ];
 
     private defaultHost = '0.0.0.0';
     private defaultPort = 8080;
 
+    /**
+     * Load the Extension with a instance of Fastify
+     */
     onLoad(): Observable<ExtensionResult<FastifyServer>> {
-        return of(this.loadedResult(Fastify()));
+        return this.setValue(Fastify());
     }
 
-    onBuild(module: CoreModule, decorators: MetadataAndName<any>[]) {
+    /**
+     * Build Route & Lifecycle decorators
+     * @param _ 
+     * @param decorators 
+     */
+    onBuild(_: CoreModule, decorators: MetadataAndName<any>[]) {
         return from(decorators).pipe(
             filter(decorator => decorator.name === 'Route'),
             toArray(),
@@ -55,6 +63,9 @@ export class HttpServer extends Extension<FastifyServer> {
         );
     }
 
+    /**
+     * Graceful shutdown
+     */
     onShutdown() {
         return {
             resolver: this.close(),

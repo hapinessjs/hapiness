@@ -1,5 +1,6 @@
 import * as Client from 'phin';
 import * as Path from 'path';
+import * as Url from 'url';
 import { Observable, of, throwError } from 'rxjs';
 import { Type, HTTPService, Call } from './decorators';
 import { CoreProvide } from './interfaces';
@@ -42,14 +43,19 @@ export function isHTTPService(provider: Type<any>): boolean {
     return httpsvc && httpsvc.name === 'HTTPService';
 }
 
-function buildURL(service: string, base: string, path?: string): string {
+function buildURL(service: string, base: string, path?: string, params?: HTTPParams): string {
     if (!base) {
         throw new Error(`HTTPService[${service}] base url is missing`);
     }
     if (!base.startsWith('http')) {
         throw new Error(`HTTPService[${service}] an url should start with http`);
     }
-    return Path.join(base, path || '');
+    const res = Url.parse(Path.join(base, path || ''), true);
+    res.query = { ...res.query, ...params.query };
+    Object.entries(params.params || {})
+        .forEach(([key, value]) => res.pathname = res.pathname.replace(`:${key}`, value));
+        console.log('URL TO GOOOOOO', Url.format(res))
+    return Url.format(res);
 }
 
 function proxyGetHandler(target: Type<any>, prop: string) {
@@ -57,11 +63,13 @@ function proxyGetHandler(target: Type<any>, prop: string) {
     const call = extractMetadataAndName<Call>(<any>target.constructor, prop);
     if (call.name === 'Call') {
         const svc = extractMetadataAndName<HTTPService>(<any>target.constructor);
-        return () => of(buildURL(target.constructor.name, svc.metadata.baseUrl, call.metadata.path)).pipe(
+        return (params?: HTTPParams) => of(buildURL(target.constructor.name, svc.metadata.baseUrl, call.metadata.path, params)).pipe(
             flatMap(url => Client({
                 url,
                 method: call.metadata.method.toUpperCase(),
-                parse: 'json'
+                parse: 'json',
+                data: params.body,
+                headers: params.headers
             })),
             flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToError(res)) : of(res.body)),
             map(res => validateResponse(res, call.metadata.response))

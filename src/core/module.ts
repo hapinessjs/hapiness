@@ -124,7 +124,7 @@ export class ModuleManager {
             version: metadata.version,
             prefix: metadata.prefix,
             exports: metadata.exports || [],
-            declarations: metadata.declarations || [],
+            components: metadata.components || [],
             providers: (metadata.providers || [])
                 .concat(moduleWithProviders.providers)
                 .map(_ => this.toCoreProvider(_)),
@@ -225,7 +225,7 @@ export class ModuleManager {
      * @returns Type
      */
     private static instantiateLibs(module: CoreModule): Observable<CoreModule> {
-        return from(module.declarations)
+        return from(module.components)
             .pipe(
                 filter(_ => !!_ && !!extractMetadataByDecorator(_, 'Lib')),
                 flatMap(_ => DependencyInjection.instantiateComponent(_, module.di)),

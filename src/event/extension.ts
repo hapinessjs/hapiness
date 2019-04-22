@@ -1,20 +1,27 @@
 import { Extension } from '../core/extensions';
 import { EventManager } from './manager';
 import { of } from 'rxjs';
-import { ExtensionShutdownPriority } from '../core';
+import { ExtensionShutdownPriority } from '..';
 
 export class EventExtension extends Extension<EventManager> {
 
+    /**
+     * Load a new instance of EventManager
+     * as value of the Extension
+     */
     onLoad() {
-        return of(this.loadedResult(new EventManager()));
+        return this.setValue(new EventManager());
     }
 
-    onBuild() { return of(null); }
-
+    /**
+     * Gracefully shutdown the Extension
+     */
     onShutdown() {
         return {
             priority: ExtensionShutdownPriority.NORMAL,
             resolver: of(this.value.close())
         };
     }
+
+    onBuild() {}
 }

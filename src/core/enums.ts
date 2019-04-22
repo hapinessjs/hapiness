@@ -27,6 +27,6 @@ export enum ExtensionShutdownPriority {
 
 export enum ExtensionType {
     DEFAULT,
-    CONFIG,
+    CONFIGURATOR,
     LOGGING
 }

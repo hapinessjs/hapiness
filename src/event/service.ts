@@ -1,4 +1,4 @@
-import { Inject, Service } from '../core';
+import { Inject, Service } from '..';
 import { EventExtension, EventManager, EventData } from './';
 import { Observable } from 'rxjs';
 

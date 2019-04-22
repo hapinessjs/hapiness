@@ -124,7 +124,7 @@ function convertToExtensionWithConfig<T>(extension: TokenExt<T> | ExtensionWithC
     }
     return {
         token: <TokenExt<T>>extension,
-        config: {}
+        config: null
     };
 }
 
@@ -134,10 +134,18 @@ function buildDIForExtension<T>(extension: ExtensionWithConfig<T>, state: CoreSt
         .map(ext => (<CoreProvide>{ provide: TokenDI(ext.token['type'].toString()), useValue: ext.value }));
     return DependencyInjection.createAndResolve(arr(providers)
         .concat([
-            { provide: ExtensionConfig, useValue: { ...extension.config, extension_name: extension.token.name } },
+            { provide: ExtensionConfig, useValue: { ...getExtConfig(extension, state), extension_name: extension.token.name } },
             { provide: ExtensionLogger, useClass: ExtensionLogger }
         ])
     );
+}
+
+function getExtConfig<T>(extension: ExtensionWithConfig<T>, state: CoreState): ExtensionConfig {
+    if (extension.config) {
+        return extension.config;
+    }
+    const configurator = arr(state.extensions).find(ext => ext.token['type'] === ExtensionType.CONFIGURATOR);
+    return configurator && configurator.value[extension.token.name];
 }
 
 function findLoggingExtension(state: CoreState): ExtensionResult<any> | null {
@@ -243,7 +251,7 @@ function instantiateModule(extensions: ExtensionResult<any>[], state: CoreState)
 function buildExtension<T>(extension: ExtensionResult<T>, state: CoreState, options: BootstrapOptions): Observable<void> {
     const decorators = extension.instance.decorators || [];
     const metadata = ModuleManager.getModules(state.module)
-        .map(module => arr(module.declarations)
+        .map(module => arr(module.components)
             .map(component => extractMetadataAndName(component, null, module))
         )
         .reduce((a, c) => a.concat(c), [])

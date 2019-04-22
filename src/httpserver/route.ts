@@ -1,4 +1,4 @@
-import { Type, CoreModule, MetadataAndName, DependencyInjection, HookManager, errorHandler, ModuleLevel } from '../core';
+import { Type, CoreModule, MetadataAndName, DependencyInjection, HookManager, errorHandler, ModuleLevel } from '..';
 import { Route, Methods } from './decorators';
 import { Observable, from, of } from 'rxjs';
 import { map, toArray, tap, flatMap, mapTo, filter } from 'rxjs/operators';

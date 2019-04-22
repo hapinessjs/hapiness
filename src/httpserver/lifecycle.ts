@@ -1,6 +1,6 @@
 import { Observable, from } from 'rxjs';
 import { FastifyServer, HttpServerRequest } from './extension';
-import { MetadataAndName, DependencyInjection, Extension, HookManager } from '../core';
+import { MetadataAndName, DependencyInjection, Extension, HookManager } from '..';
 import { Lifecycle, Hook, Hooks } from './decorators';
 import { map, filter, toArray, flatMap, tap, ignoreElements, defaultIfEmpty, take } from 'rxjs/operators';
 import { ReflectiveInjector } from 'injection-js';

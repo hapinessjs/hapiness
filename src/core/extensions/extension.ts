@@ -1,4 +1,4 @@
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Inject, createDecorator, createPropDecorator } from '../decorators';
 import { ExtensionLogger } from './logger';
@@ -67,9 +67,9 @@ export abstract class Extension<T, C = ExtensionConfig> {
 
     abstract onLoad(module: CoreModule): Observable<ExtensionResult<T>>;
 
-    abstract onBuild(module: CoreModule, decorators: MetadataAndName<any>[]): Observable<void>;
+    abstract onBuild(module: CoreModule, decorators: MetadataAndName<any>[]): Observable<void> | void;
 
-    abstract onShutdown(module: CoreModule): ExtensionShutdown;
+    abstract onShutdown(module: CoreModule): ExtensionShutdown | void;
 
     /**
      * Helper to build an ExtensionValue used
@@ -80,19 +80,19 @@ export abstract class Extension<T, C = ExtensionConfig> {
      *    ...
      *    onLoad(module: CoreModule): Observable<ExtensionValue<string>> {
      *        return of('my value').pipe(
-     *            map(_ => this.loadedResult(_))
+     *            flatMap(_ => this.setValue(_))
      *        );
      *    }
      *    ...
      * }
      *
      */
-    loadedResult(value: T): ExtensionResult<T> {
-        return {
+    setValue(value: T): Observable<ExtensionResult<T>> {
+        return of({
             value,
             instance: this,
             token: this.constructor
-        };
+        });
     }
 
 }

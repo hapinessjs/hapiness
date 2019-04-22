@@ -1,6 +1,6 @@
 import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
-import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src/core';
-import { HttpServer, HttpServerRequest } from '../../../src/httpserver/extension';
+import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src';
+import { HttpServer, HttpServerRequest, HttpServerConfig } from '../../../src/httpserver/extension';
 import { of } from 'rxjs';
 import { Optional, Required } from '@juneil/tschema';
 import { ServerResponse } from 'http';
@@ -14,6 +14,21 @@ import { tap } from 'rxjs/operators';
 // import { Route, Get, Post, Lifecycle, Hook } from '../../../src/httpserver/decorators';
 // import { Property, Required } from '@juneil/tschema';
 
+export class Configurator extends Extension<any> {
+
+    static type = ExtensionType.CONFIGURATOR;
+
+    onLoad() {
+        return this.setValue({
+            HttpServer: {
+                port: 8888
+            }
+        })
+    }
+
+    onBuild() {}
+    onShutdown() {}
+}
 
 export class Logger extends Extension<any> {
     // constructor() { super(); }
@@ -28,10 +43,10 @@ export class Logger extends Extension<any> {
             error: console.log,
             fatal: console.log
         };
-        return of(this.loadedResult(value));
+        return this.setValue(value);
     }
-    onBuild() { return of(null); }
-    onShutdown() { return <any>{}; }
+    onBuild() {}
+    onShutdown() {}
 }
 
 // class Weird extends Extension<number> {
@@ -212,11 +227,11 @@ class GetStuff {
 
 
 @HTTPService({
-    baseUrl: 'http://tdw01.dev01.in.tdw:4030'
+    baseUrl: 'http://wewe:6546'
 })
 class MyService {
     @Call({
-        path: '/jwt/keys',
+        path: '/jwt/keys/:yo',
         response: PK
     })
     publicKey: (params?: HTTPParams) => CallResponse<PK>;
@@ -234,10 +249,10 @@ class Param {
 
 @Route({ path: '/:id' })
 class Route1 {
-    constructor(private req: HttpServerRequest, private t: GetStuff) {}
+    constructor(private req: HttpServerRequest, private t: MyService) {}
     @Get({ query: Query })
     get(query: Query) {
-        console.log('HANDLER', this.t.stuff(), this.req.id, query);
+        console.log('HANDLER', this.t.publicKey({ query: { a: '0'}, params: { yo: 'xxx' } }), this.req.id, query);
         return 11;
     }
 
@@ -283,9 +298,9 @@ class StaticStuff {
 
 @Module({
     version: 'x',
-    declarations: [Route1, LC],
+    components: [Route1, LC],
     providers: [MyService, ADep, { provide: tok2, useValue: 1 }],
-    imports: [ StaticStuff.setConfig('YOLYOYOYOYOY') ]
+    imports: [ StaticStuff.setConfig('zz') ]
 })
 class MyMod {
     onStart() {
@@ -293,6 +308,6 @@ class MyMod {
     }
 }
 
-Hapiness.bootstrap(MyMod, [ HttpServer, Logger ],
+Hapiness.bootstrap(MyMod, [ HttpServer, Logger, Configurator ],
     { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));

@@ -17,7 +17,6 @@ export const Route = Extension.createDecorator<Route>('Route', {
 
 export interface Lifecycle {}
 export const Lifecycle = Extension.createDecorator('Lifecycle', null);
-// export const Lifecycle = makeDecorator('Lifecycle', null);
 
 interface RouteHandler {
     query?: Type<any>;

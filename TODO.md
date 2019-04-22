@@ -5,12 +5,12 @@
 - * Rewrite http server with fastify
 - Auto add Components/Providers ?
 - Refactor extensions (redis, mongo, rabbit, ...)
-- Extension typed config...
 - Logger in each DI
-- TSchema => additionalProperties
 
 # DONE
 
+- Extension typed config...
+- TSchema => additionalProperties
 - HTTP client embedded with Service and DI in Call handlers
 - Bootstrap options default values
 - JSON Schema as standard for every models
