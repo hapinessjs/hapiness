@@ -2,7 +2,7 @@ import { Extension, ExtensionResult, ExtensionConfig } from '../core/extensions'
 import * as Fastify from 'fastify';
 import { ServerOptions } from 'https';
 import { CoreModule, ExtensionShutdownPriority, MetadataAndName } from '..';
-import { Observable, of, from } from 'rxjs';
+import { Observable, from } from 'rxjs';
 import { mapTo, tap, flatMap, toArray, filter } from 'rxjs/operators';
 import { buildRoutes } from './route';
 import { IncomingMessage } from 'http';
@@ -44,8 +44,8 @@ export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {
 
     /**
      * Build Route & Lifecycle decorators
-     * @param _ 
-     * @param decorators 
+     * @param _
+     * @param decorators
      */
     onBuild(_: CoreModule, decorators: MetadataAndName<any>[]) {
         return from(decorators).pipe(

@@ -23,7 +23,7 @@ export class Configurator extends Extension<any> {
             HttpServer: {
                 port: 8888
             }
-        })
+        });
     }
 
     onBuild() {}

@@ -54,7 +54,6 @@ function buildURL(service: string, base: string, path?: string, params?: HTTPPar
     res.query = { ...res.query, ...params.query };
     Object.entries(params.params || {})
         .forEach(([key, value]) => res.pathname = res.pathname.replace(`:${key}`, value));
-        console.log('URL TO GOOOOOO', Url.format(res))
     return Url.format(res);
 }
 
