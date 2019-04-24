@@ -70,8 +70,12 @@ function proxyGetHandler(target: Type<any>, prop: string) {
                 data: params.body,
                 headers: params.headers
             })),
-            flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToError(res)) : of(res.body)),
-            map(res => validateResponse(res, call.metadata.response))
+            flatMap(res => res.statusCode >= 400 ? throwError(convertBodyToError(res)) : of(res)),
+            map(res => ({
+                value: validateResponse(res.body, call.metadata.response),
+                headers: res.headers,
+                status: res.statusCode
+            }))
         );
     }
     return source;
