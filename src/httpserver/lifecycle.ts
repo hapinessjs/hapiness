@@ -23,7 +23,22 @@ export function buildLifecycleComponents(decorators: MetadataAndName<Lifecycle>[
             DependencyInjection.createAndResolve([{ provide: HttpServerRequest, useValue: request }], di).subscribe(
                 newDI => {
                     request['_hapiness'] = { di: newDI };
-                    next();
+                    if (reply.context.config && reply.context.config.auth) {
+                        findAuthenticationHandler(decorators).pipe(
+                            flatMap(hook => instantiate(hook, newDI, reply.res)),
+                            defaultIfEmpty()
+                        ).subscribe(
+                            res => {
+                                if (typeof res === 'object') {
+                                    request['auth'] = res;
+                                }
+                                next();
+                            },
+                            err => next(err)
+                        );
+                    } else {
+                        next();
+                    }
                 }
             );
         } else {
@@ -88,5 +103,15 @@ function init(server: FastifyServer, hook: Hooks, decorators: MetadataAndName<Li
             tap(_hook => addHook(server, _hook))
         )),
         toArray()
+    );
+}
+
+function findAuthenticationHandler(decorators: MetadataAndName<Lifecycle>[]) {
+    return from(arr(decorators)).pipe(
+        flatMap(decorator => extractPropertiesMetadata(decorator)),
+        flatMap(hooks => from(hooks).pipe(
+            filter(hook => hook.metadata.name === 'authentication'),
+            take(1)
+        ))
     );
 }

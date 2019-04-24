@@ -7,12 +7,14 @@ export interface Route {
     version?: string;
     bodyLimit?: number;
     providers?: Array<Type<any> | any>;
+    auth?: boolean;
 }
 export const Route = Extension.createDecorator<Route>('Route', {
     path: undefined,
     version: undefined,
     bodyLimit: undefined,
-    providers: undefined
+    providers: undefined,
+    auth: false
 });
 
 export interface Lifecycle {}
@@ -94,7 +96,7 @@ export const Patch = Extension.createPropDecorator<Patch>('Patch', {
 });
 
 export type Methods = Get & Post & Put & Patch & Delete & Head & Options;
-export type Hooks = 'request' | 'pre_validation' | 'pre_handler' | 'response';
+export type Hooks = 'request' | 'pre_validation' | 'pre_handler' | 'response' | 'authentication';
 export interface Hook {
     name: Hooks;
 }

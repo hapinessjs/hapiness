@@ -16,7 +16,8 @@ export interface HttpServerConfig extends ExtensionConfig {
 }
 
 export type FastifyServer = Fastify.FastifyInstance;
-export class HttpServerRequest {
+export class HttpServerRequest<A = any> {
+    auth?: A;
     query: { [k: string]: any };
     params: { [k: string]: any };
     headers: { [k: string]: any };
