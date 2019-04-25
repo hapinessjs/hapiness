@@ -48,6 +48,39 @@ class ExampleModule {
 }
 ```
 
+## Provide a config
+
+```typescript
+interface MyConfig {
+    foo: boolean;
+}
+
+const CONFIG = new InjectionToken('config');
+
+@Module({
+    version: '1.0.0'
+})
+class ExampleModule {
+
+    static setConfig(config: MyConfig) {
+        return {
+            module: ExampleModule,
+            providers: [{ provide: CONFIG, useValue: config }]
+        }
+    }
+
+    constructor(@Inject(CONFIG) config: MyConfig) {
+        console.log(config);
+    }
+
+    onRegister() {
+        console.log('Module registered');
+    }
+
+}
+```
+
+
 ## Options
 
 key | description
