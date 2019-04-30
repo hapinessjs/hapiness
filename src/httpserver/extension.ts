@@ -1,5 +1,6 @@
 import { Extension, ExtensionResult, ExtensionConfig } from '../core/extensions';
 import * as Fastify from 'fastify';
+import * as FastifyCors from 'fastify-cors';
 import { ServerOptions } from 'https';
 import { CoreModule, ExtensionShutdownPriority, MetadataAndName } from '..';
 import { Observable, from } from 'rxjs';
@@ -13,6 +14,17 @@ export interface HttpServerConfig extends ExtensionConfig {
     ignoreTrailingSlash?: Fastify.ServerOptions['ignoreTrailingSlash'];
     maxParamLength?: Fastify.ServerOptions['maxParamLength'];
     bodyLimit?: Fastify.ServerOptions['bodyLimit'];
+    cors?: {
+        origin?: string | boolean | RegExp | string[] | RegExp[];
+        credentials?: boolean;
+        exposedHeaders?: string | string[];
+        allowedHeaders?: string | string[];
+        methods?: string | string[];
+        maxAge?: number;
+        preflightContinue?: boolean;
+        optionsSuccessStatus?: number;
+        preflight?: boolean;
+    };
 }
 
 export type FastifyServer = Fastify.FastifyInstance;
@@ -40,7 +52,13 @@ export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {
      * Load the Extension with a instance of Fastify
      */
     onLoad(): Observable<ExtensionResult<FastifyServer>> {
-        return this.setValue(Fastify());
+        return this.setValue(Fastify()).pipe(
+            tap(ext => {
+                if (this.config.cors) {
+                    ext.value.register(FastifyCors, this.config.cors);
+                }
+            })
+        );
     }
 
     /**
