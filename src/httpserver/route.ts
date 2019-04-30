@@ -16,7 +16,7 @@ export interface CoreRoute extends Route {
 
 export interface HttpResponse<T> {
     value: T;
-    status?: number;
+    statusCode?: number;
     headers?: { [key: string]: string };
     redirect?: boolean;
 }
@@ -110,17 +110,20 @@ function getMethod(name: string): Fastify.HTTPMethod {
     }
 }
 
+function isHttpReponse<T>(response: HttpResponse<T>): boolean {
+    return typeof response === 'object' && (!!response.headers && !!response.statusCode || (!!response.redirect && !!response.value));
+}
 export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
-    if (!!response && typeof response === 'object') {
+    if (isHttpReponse(response as HttpResponse<T>)) {
         return {
-            status: (response as HttpResponse<T>).status || 200,
+            statusCode: (response as HttpResponse<T>).statusCode || 200,
             headers: (response as HttpResponse<T>).headers || {},
             redirect: (response as HttpResponse<T>).redirect || false,
-            value: (response as HttpResponse<T>).value || response as T
+            value: (response as HttpResponse<T>).value
         };
     } else {
         return {
-            status: !!response ? 200 : 204,
+            statusCode: !!response ? 200 : 204,
             headers: {},
             redirect: false,
             value: response as T
@@ -130,7 +133,7 @@ export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T
 
 export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.FastifyReply<T>) {
     reply
-        .code(response.status)
+        .code(response.statusCode)
         .headers(response.headers);
     if (response.redirect) {
         return reply.redirect(response.value.toString());
