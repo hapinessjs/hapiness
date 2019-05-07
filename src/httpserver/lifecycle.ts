@@ -34,7 +34,7 @@ export function buildLifecycleComponents(decorators: MetadataAndName<Lifecycle>[
                                 }
                                 next();
                             },
-                            err => next(err)
+                            err => replyHttpResponse(handleResponse(err), reply)
                         );
                     } else {
                         next();

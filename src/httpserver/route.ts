@@ -8,6 +8,7 @@ import { IncomingMessage } from 'http';
 import { isTSchema, serializer, properties } from '@juneil/tschema';
 import * as Fastify from 'fastify';
 import { arr } from '../core/utils';
+import { BiimError, Biim } from '@hapiness/biim';
 
 export interface CoreRoute extends Route {
     token: Type<any>;
@@ -111,15 +112,29 @@ function getMethod(name: string): Fastify.HTTPMethod {
 }
 
 function isHttpReponse<T>(response: HttpResponse<T>): boolean {
-    return typeof response === 'object' && (!!response.headers && !!response.statusCode || (!!response.redirect && !!response.value));
+    return typeof response === 'object' && (!!response.headers || !!response.statusCode || (!!response.redirect && !!response.value));
 }
 export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
-    if (isHttpReponse(response as HttpResponse<T>)) {
+    if ((response as BiimError).isBoom) {
+        return {
+            statusCode: (response as BiimError).output.statusCode,
+            headers: {},
+            redirect: false,
+            value: (response as BiimError).output.payload
+        };
+    } else if (response instanceof Error) {
+        return {
+            statusCode: 500,
+            headers: {},
+            redirect: false,
+            value: Biim.create(500, response.message).output.payload
+        };
+    } else if (isHttpReponse(response as HttpResponse<T>)) {
         return {
             statusCode: (response as HttpResponse<T>).statusCode || 200,
             headers: (response as HttpResponse<T>).headers || {},
             redirect: (response as HttpResponse<T>).redirect || false,
-            value: (response as HttpResponse<T>).value
+            value: (response as HttpResponse<T>).value || response as T
         };
     } else {
         return {
@@ -181,7 +196,7 @@ function handler(route: CoreRoute, metadataAndName: MetadataAndName<Methods>) {
             () => null,
             error => {
                 errorHandler(error);
-                reply.send(error);
+                replyHttpResponse(handleResponse(error), reply);
             }
         );
     };

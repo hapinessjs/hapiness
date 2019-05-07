@@ -1,6 +1,8 @@
 import { Hapiness, Module } from '../../../src';
-import { HttpServer, Route, Get, Post } from '../../../src/httpserver';
+import { HttpServer, Route, Get, Post, Lifecycle, Hook } from '../../../src/httpserver';
 import { Required, Optional, Item, Enum } from '@juneil/tschema';
+import { Biim } from '@hapiness/biim';
+import { of, throwError } from 'rxjs';
 
 // import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
 // import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src';
@@ -311,6 +313,14 @@ import { Required, Optional, Item, Enum } from '@juneil/tschema';
 //         console.log('STARTED');
 //     }
 // }
+@Lifecycle()
+class LC {
+    @Hook({name: 'authentication'})
+    handle() {
+        return throwError(Biim.gatewayTimeout());
+    }
+}
+
 class Iteme {
     @Required()
     foo: number;
@@ -328,17 +338,17 @@ class Payload {
     item: Iteme;
 }
 
-@Route({ path: '/'})
+@Route({ path: '/', auth: true })
 class Route1 {
-    @Post({ payload: Payload })
+    @Post()
     post(p: Payload) {
-        return p;
+        return throwError(Biim.unauthorized());
     }
 }
 
 @Module({
     version: '1',
-    components: [Route1]
+    components: [Route1, LC]
 })
 class MyMod {}
 
