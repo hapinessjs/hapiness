@@ -1,8 +1,7 @@
-import { Hapiness, Module } from '../../../src';
-import { HttpServer, Route, Get, Post, Lifecycle, Hook } from '../../../src/httpserver';
-import { Required, Optional, Item, Enum } from '@juneil/tschema';
+import { Hapiness, Module, InjectionToken, Service, Inject, Optional } from '../../../src';
+import { HttpServer, Route, Post } from '../../../src/httpserver';
 import { Biim } from '@hapiness/biim';
-import { of, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 // import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
 // import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src';
@@ -313,44 +312,36 @@ import { of, throwError } from 'rxjs';
 //         console.log('STARTED');
 //     }
 // }
-@Lifecycle()
-class LC {
-    @Hook({name: 'authentication'})
-    handle() {
-        return throwError(Biim.gatewayTimeout());
-    }
-}
-
-class Iteme {
-    @Required()
-    foo: number;
-}
-class Payload {
-    @Required()
-    id: string;
-    @Optional()
-    @Enum('yo', 'lo')
-    name: string;
-    @Required()
-    @Item(Iteme)
-    numbers: Iteme[];
-    @Required()
-    item: Iteme;
-}
 
 @Route({ path: '/', auth: true })
 class Route1 {
     @Post()
-    post(p: Payload) {
+    post() {
         return throwError(Biim.unauthorized());
     }
 }
 
+const IT = new InjectionToken('it');
+@Service()
+class MS {
+    constructor(@Optional() @Inject(IT) public c: any) {}
+}
+@Module({
+    version: '',
+    exports: [MS]
+})
+class Mod2 {}
+
 @Module({
     version: '1',
-    components: [Route1, LC]
+    components: [Route1],
+    imports: [Mod2]
 })
-class MyMod {}
+class MyMod {
+    constructor(ns: MS) {
+        console.log('>>>>', ns.c);
+    }
+}
 
 Hapiness.bootstrap(MyMod, [ HttpServer ],
     { retry: { interval: 100, count: 2 } })

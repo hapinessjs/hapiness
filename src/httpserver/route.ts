@@ -8,7 +8,7 @@ import { IncomingMessage } from 'http';
 import { isTSchema, serializer, properties } from '@juneil/tschema';
 import * as Fastify from 'fastify';
 import { arr } from '../core/utils';
-import { BiimError, Biim } from '@hapiness/biim';
+import { Biim } from '@hapiness/biim';
 
 export interface CoreRoute extends Route {
     token: Type<any>;
@@ -115,12 +115,12 @@ function isHttpReponse<T>(response: HttpResponse<T>): boolean {
     return typeof response === 'object' && (!!response.headers || !!response.statusCode || (!!response.redirect && !!response.value));
 }
 export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
-    if ((response as BiimError).isBoom) {
+    if ((response as any).isBoom) {
         return {
-            statusCode: (response as BiimError).output.statusCode,
+            statusCode: (response as any).output.statusCode,
             headers: {},
             redirect: false,
-            value: (response as BiimError).output.payload
+            value: (response as any).output.payload
         };
     } else if (response instanceof Error) {
         return {

@@ -264,9 +264,11 @@ export class ModuleManager {
                     .filter(Boolean)
                     .map(provider => DependencyInjection.getAllDeps(provider))
                     .reduce((a, c) => a.concat(c), [])
-                    .map(provider => typeof provider !== 'function' ?
-                        { provide: provider, useValue: submodule.di.get(provider) } :
-                        provider
+                    .map(provider => ({ provider, value: submodule.di.get(provider, null) }))
+                    .filter(providerAndValue => !!providerAndValue.value)
+                    .map(providerAndValue => typeof providerAndValue.provider !== 'function' ?
+                        { provide: providerAndValue.provider, useValue: submodule.di.get(providerAndValue.provider, null) } :
+                        providerAndValue.provider
                     )
                 )
             )
