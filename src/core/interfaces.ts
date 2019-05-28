@@ -28,6 +28,7 @@ export class CoreModule extends Module {
     di?: ReflectiveInjector;
     parent?: CoreModule;
     modules?: CoreModule[];
+    all_providers?: CoreProvide[];
 }
 
 /**
@@ -65,4 +66,3 @@ export interface OnStart { onStart(): void | Observable<any>; }
  * @returns void | Observable
  */
 export interface OnError { onError(error: Error, data?: any): void | Observable<any>; }
-

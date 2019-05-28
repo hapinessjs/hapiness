@@ -7,6 +7,7 @@ import { ReflectiveInjector } from 'injection-js';
 import { arr } from '../core/utils';
 import { handleResponse, replyHttpResponse } from './route';
 import { ServerResponse } from 'http';
+import { errorHandler } from '../core/bootstrap';
 
 const hooksMap = new Map<Hooks, string>();
 hooksMap.set('request', 'onRequest');
@@ -20,7 +21,10 @@ export function buildLifecycleComponents(decorators: MetadataAndName<Lifecycle>[
     server.addHook('onRequest', (request, reply, next) => {
         const di = ((reply.context.config || {}).module || {}).di;
         if (di) {
-            DependencyInjection.createAndResolve([{ provide: HttpServerRequest, useValue: request }], di).subscribe(
+            request['extras'] = reply.context.config.extras || {};
+            const providers = [].concat(reply.context.config.module.all_providers,
+                [{ provide: HttpServerRequest, useValue: request }]);
+            DependencyInjection.createAndResolve(providers, di).subscribe(
                 newDI => {
                     request['_hapiness'] = { di: newDI };
                     if (reply.context.config && reply.context.config.auth) {
@@ -34,7 +38,10 @@ export function buildLifecycleComponents(decorators: MetadataAndName<Lifecycle>[
                                 }
                                 next();
                             },
-                            err => replyHttpResponse(handleResponse(err), reply)
+                            err => {
+                                replyHttpResponse(handleResponse(err), reply);
+                                errorHandler(err);
+                            }
                         );
                     } else {
                         next();
@@ -69,7 +76,10 @@ function addHook(server: FastifyServer, hook: MetadataAndName<Hook>) {
                     }
                     return next();
                 },
-                err => next(err)
+                err => {
+                    next(err);
+                    errorHandler(err);
+                }
             );
         } else {
             next();

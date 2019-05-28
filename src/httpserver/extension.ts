@@ -26,19 +26,20 @@ export interface HttpServerConfig extends ExtensionConfig {
         preflight?: boolean;
     };
 }
-
+type AnyObject = {[key: string]: any};
 export type FastifyServer = Fastify.FastifyInstance;
-export class HttpServerRequest<A = any> {
+export class HttpServerRequest<A = AnyObject, E = AnyObject> {
     auth?: A;
-    query: { [k: string]: any };
-    params: { [k: string]: any };
-    headers: { [k: string]: any };
-    body: { [k: string]: any };
+    query: AnyObject;
+    params: AnyObject;
+    headers: AnyObject;
+    body: AnyObject;
     id: any;
     ip: string;
     hostname: string;
     raw: IncomingMessage;
     req: IncomingMessage;
+    extras?: E;
 }
 
 export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {

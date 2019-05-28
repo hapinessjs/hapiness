@@ -192,29 +192,29 @@ export class ModuleManager {
     private static instantiation(module: CoreModule, providers?: CoreProvide[], parent?: CoreModule): Observable<CoreModule> {
         return of(module)
             .pipe(
-                flatMap(_ =>
-                    from(_.modules)
+                flatMap(coreModule =>
+                    from(coreModule.modules)
                         .pipe(
                             flatMap(child => this.instantiation(child, providers, parent)),
                             toArray(),
-                            map(children => <CoreModule>Object.assign({}, _, { modules: children }))
+                            map(children => <CoreModule>Object.assign({}, coreModule, { modules: children }))
                         )
                 ),
-                flatMap(_ =>
+                flatMap(coreModule =>
+                    of(this.collectProviders(coreModule, providers)).pipe(
+                        flatMap(collected => DependencyInjection.createAndResolve(collected).pipe(
+                            map(di => <CoreModule>Object.assign({ di, all_providers: collected }, coreModule))
+                        )),
+                    )
+                ),
+                flatMap(coreModule =>
                     DependencyInjection
-                        .createAndResolve(this.collectProviders(_, providers))
+                        .instantiateComponent(coreModule.token, coreModule.di)
                         .pipe(
-                            map(di => <CoreModule>Object.assign({ di }, _))
+                            map(instance => <CoreModule>Object.assign({ instance }, coreModule))
                         )
                 ),
-                flatMap(_ =>
-                    DependencyInjection
-                        .instantiateComponent(_.token, _.di)
-                        .pipe(
-                            map(instance => <CoreModule>Object.assign({ instance }, _))
-                        )
-                ),
-                flatMap(_ => this.instantiateLibs(_))
+                flatMap(coreModule => this.instantiateLibs(coreModule))
             );
     }
 

@@ -8,13 +8,15 @@ export interface Route {
     bodyLimit?: number;
     providers?: Array<Type<any> | any>;
     auth?: boolean;
+    extras?: {[key: string]: any};
 }
 export const Route = Extension.createDecorator<Route>('Route', {
     path: undefined,
     version: undefined,
     bodyLimit: undefined,
     providers: undefined,
-    auth: false
+    auth: false,
+    extras: undefined
 });
 
 export interface Lifecycle {}
@@ -28,6 +30,7 @@ interface RouteHandler {
         [code: string]: Type<any>,
         [code: number]: Type<any>
     };
+    extras?: {[key: string]: any};
 }
 
 export interface Get extends RouteHandler {}
@@ -35,7 +38,8 @@ export const Get = Extension.createPropDecorator<Get>('Get', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Delete extends RouteHandler {}
@@ -43,7 +47,8 @@ export const Delete = Extension.createPropDecorator<Delete>('Delete', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Head extends RouteHandler {}
@@ -51,7 +56,8 @@ export const Head = Extension.createPropDecorator<Head>('Head', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Options extends RouteHandler {}
@@ -59,7 +65,8 @@ export const Options = Extension.createPropDecorator<Options>('Options', {
     query: undefined,
     params: undefined,
     headers: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Post extends RouteHandler {
@@ -70,7 +77,8 @@ export const Post = Extension.createPropDecorator<Post>('Post', {
     params: undefined,
     headers: undefined,
     payload: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Put extends RouteHandler {
@@ -81,7 +89,8 @@ export const Put = Extension.createPropDecorator<Put>('Put', {
     params: undefined,
     headers: undefined,
     payload: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export interface Patch extends RouteHandler {
@@ -92,7 +101,8 @@ export const Patch = Extension.createPropDecorator<Patch>('Patch', {
     params: undefined,
     headers: undefined,
     payload: undefined,
-    response: undefined
+    response: undefined,
+    extras: undefined
 });
 
 export type Methods = Get & Post & Put & Patch & Delete & Head & Options;

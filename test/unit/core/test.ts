@@ -1,5 +1,5 @@
 import { Hapiness, Module, InjectionToken, Service, Inject, Optional } from '../../../src';
-import { HttpServer, Route, Post } from '../../../src/httpserver';
+import { HttpServer, Route, Post, Get, HttpServerRequest } from '../../../src/httpserver';
 import { Biim } from '@hapiness/biim';
 import { throwError } from 'rxjs';
 
@@ -313,34 +313,51 @@ import { throwError } from 'rxjs';
 //     }
 // }
 
-@Route({ path: '/', auth: true })
-class Route1 {
-    @Post()
-    post() {
-        return throwError(Biim.unauthorized());
-    }
-}
-
 const IT = new InjectionToken('it');
 @Service()
 class MS {
-    constructor(@Optional() @Inject(IT) public c: any) {}
+    constructor(@Optional() private req: HttpServerRequest) {}
+    c() {
+        console.log((this.req || {})['id'], this.req.extras);
+        return 'alalsalslals';
+    }
 }
+@Service()
+class MS2 {
+    constructor(@Optional() private req: HttpServerRequest) {}
+    c() {
+        console.log((this.req || {})['id'], this.req.extras);
+        return 'yoyoyoyoyoyoyoyoy';
+    }
+}
+
+
+@Route({ path: '/', auth: true, extras: { cc: true, acl: 'toto' } })
+class Route1 {
+    constructor(private ns: MS, private nn: MS2) {}
+    @Get()
+    post() {
+        console.log('/////', this.ns.c());
+        console.log('/////', this.nn.c());
+        return 'pp';
+    }
+}
+
+
 @Module({
-    version: '',
-    exports: [MS]
+    version: '1',
+    exports: [MS2]
 })
-class Mod2 {}
+class MyMod2 {}
+
 
 @Module({
     version: '1',
     components: [Route1],
-    imports: [Mod2]
+    providers: [MS],
+    imports: [MyMod2]
 })
 class MyMod {
-    constructor(ns: MS) {
-        console.log('>>>>', ns.c);
-    }
 }
 
 Hapiness.bootstrap(MyMod, [ HttpServer ],

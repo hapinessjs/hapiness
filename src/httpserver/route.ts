@@ -91,7 +91,7 @@ function addRoute(route: CoreRoute, server: FastifyServer) {
             url: route.path,
             handler: handler(route, meta),
             schema: schema(meta),
-            config: route
+            config: { ...route, extras: { ...route.extras, ...meta.metadata.extras }}
         })),
         toArray(),
         mapTo(route)
