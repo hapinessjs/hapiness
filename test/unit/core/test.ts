@@ -318,15 +318,17 @@ const IT = new InjectionToken('it');
 class MS {
     constructor(@Optional() private req: HttpServerRequest) {}
     c() {
-        console.log((this.req || {})['id'], this.req.extras);
+        console.log((this.req || {})['id']);
         return 'alalsalslals';
     }
 }
-@Service()
+@Service({
+    moduleOnly: true
+})
 class MS2 {
     constructor(@Optional() private req: HttpServerRequest) {}
     c() {
-        console.log((this.req || {})['id'], this.req.extras);
+        console.log((this.req || {})['id']);
         return 'yoyoyoyoyoyoyoyoy';
     }
 }

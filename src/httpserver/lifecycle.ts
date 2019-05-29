@@ -8,6 +8,8 @@ import { arr } from '../core/utils';
 import { handleResponse, replyHttpResponse } from './route';
 import { ServerResponse } from 'http';
 import { errorHandler } from '../core/bootstrap';
+import { extractMetadataAndName } from '../core/metadata';
+import { Service } from '../core/decorators';
 
 const hooksMap = new Map<Hooks, string>();
 hooksMap.set('request', 'onRequest');
@@ -23,7 +25,8 @@ export function buildLifecycleComponents(decorators: MetadataAndName<Lifecycle>[
         if (di) {
             request['extras'] = reply.context.config.extras || {};
             const providers = [].concat(reply.context.config.module.all_providers,
-                [{ provide: HttpServerRequest, useValue: request }]);
+                [{ provide: HttpServerRequest, useValue: request }])
+                .filter(provider => !(extractMetadataAndName<Service>(provider.provide) || { metadata: <any>{} }).metadata.moduleOnly);
             DependencyInjection.createAndResolve(providers, di).subscribe(
                 newDI => {
                     request['_hapiness'] = { di: newDI };

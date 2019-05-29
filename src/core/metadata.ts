@@ -50,7 +50,7 @@ export function extractMetadataList(decorator: any, key?: string): any[] {
 export type MetadataAndName<T> = { token: Type<any>, property?: string, name: string, metadata: T, source: CoreModule };
 // TODO WARN.. SHOULD MAP ALL PROPERTY WITH METADATA!
 export function extractMetadataAndName<T>(token: Type<any>, property?: string, source?: CoreModule): MetadataAndName<T> {
-    let v = extractMetadataList(token, property)
+    return extractMetadataList(token, property)
         .filter(Boolean)
         .map(data => ({
             token,
@@ -60,5 +60,4 @@ export function extractMetadataAndName<T>(token: Type<any>, property?: string, s
             source
         }))
         .pop();
-    return v;
 }
