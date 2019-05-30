@@ -147,12 +147,11 @@ export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T
 }
 
 export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.FastifyReply<T>) {
-    reply
-        .code(response.statusCode)
-        .headers(response.headers);
+    reply.headers(response.headers);
     if (response.redirect) {
         return reply.redirect(response.value.toString());
     }
+    reply.code(response.statusCode)
     if (response.value) {
         reply.send(response.value);
     } else {

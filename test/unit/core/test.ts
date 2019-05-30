@@ -341,7 +341,10 @@ class Route1 {
     post() {
         console.log('/////', this.ns.c());
         console.log('/////', this.nn.c());
-        return 'pp';
+        return {
+            redirect: true,
+            value: 'http://www.google.com'
+        };
     }
 }
 
