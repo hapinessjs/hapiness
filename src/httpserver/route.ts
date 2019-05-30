@@ -151,7 +151,7 @@ export function replyHttpResponse<T>(response: HttpResponse<T>, reply: Fastify.F
     if (response.redirect) {
         return reply.redirect(response.value.toString());
     }
-    reply.code(response.statusCode)
+    reply.code(response.statusCode);
     if (response.value) {
         reply.send(response.value);
     } else {
