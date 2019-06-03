@@ -243,10 +243,13 @@ export class ModuleManager {
      */
     static collectProviders(module: CoreModule, providers?: CoreProvide[]): CoreProvide[] {
         this.logger.debug(`collect providers for '${module.name}'`);
-        return arr(module.providers)
+        const _providers = arr(module.providers)
             .concat(providers)
-            .filter(_ => !!_)
-            .concat(this.extractExportedProviders(module));
+            .filter(Boolean)
+            .concat(this.extractExportedProviders(module))
+            .filter((p, i, array) => array.map(_ => _.provide).indexOf(p.provide) === i);
+        _providers.forEach(e => console.log(e.provide));
+        return _providers;
     }
 
     /**

@@ -1,4 +1,4 @@
-import { Hapiness, Module, InjectionToken, Service, Inject, Optional } from '../../../src';
+import { Hapiness, Module, InjectionToken, Service, Inject, Optional, Extension, ExtensionType } from '../../../src';
 import { HttpServer, Route, Post, Get, HttpServerRequest } from '../../../src/httpserver';
 import { Biim } from '@hapiness/biim';
 import { throwError } from 'rxjs';
@@ -35,24 +35,24 @@ import { throwError } from 'rxjs';
 //     onShutdown() {}
 // }
 
-// export class Logger extends Extension<any> {
-//     // constructor() { super(); }
+export class LoggerExt extends Extension<any> {
+    // constructor() { super(); }
 
-//     static type = ExtensionType.LOGGING;
+    static type = ExtensionType.LOGGING;
 
-//     onLoad() {
-//         const value = {
-//             debug: console.log,
-//             info: console.log,
-//             warn: console.log,
-//             error: console.log,
-//             fatal: console.log
-//         };
-//         return this.setValue(value);
-//     }
-//     onBuild() {}
-//     onShutdown() {}
-// }
+    onLoad() {
+        const value = {
+            debug: console.log,
+            info: console.log,
+            warn: console.log,
+            error: console.log,
+            fatal: console.log
+        };
+        return this.setValue(value);
+    }
+    onBuild() {}
+    onShutdown() {}
+}
 
 // // class Weird extends Extension<number> {
 // //     onLoad() {
@@ -313,58 +313,41 @@ import { throwError } from 'rxjs';
 //     }
 // }
 
-const IT = new InjectionToken('it');
 @Service()
-class MS {
-    constructor(@Optional() private req: HttpServerRequest) {}
-    c() {
-        console.log((this.req || {})['id']);
-        return 'alalsalslals';
-    }
-}
-@Service({
-    moduleOnly: true
-})
-class MS2 {
-    constructor(@Optional() private req: HttpServerRequest) {}
-    c() {
-        console.log((this.req || {})['id']);
-        return 'yoyoyoyoyoyoyoyoy';
-    }
+class Logger {
+    constructor(@Inject(LoggerExt) public value) {}
 }
 
-
-@Route({ path: '/', auth: true, extras: { cc: true, acl: 'toto' } })
-class Route1 {
-    constructor(private ns: MS, private nn: MS2) {}
-    @Get()
-    post() {
-        console.log('/////', this.ns.c());
-        console.log('/////', this.nn.c());
-        return {
-            redirect: true,
-            value: 'http://www.google.com'
-        };
+@Service()
+class SS {
+    constructor(private logger: Logger) {}
+    c() {
+        this.logger.value.info('=====');
     }
 }
 
 
 @Module({
     version: '1',
-    exports: [MS2]
+    providers: [Logger],
+    exports: [SS]
 })
 class MyMod2 {}
 
 
 @Module({
     version: '1',
-    components: [Route1],
-    providers: [MS],
+    components: [],
+    providers: [Logger],
     imports: [MyMod2]
 })
 class MyMod {
+    constructor(private logger: Logger) {}
+    onStart() {
+        this.logger.value.info('{{{{{{{{');
+    }
 }
 
-Hapiness.bootstrap(MyMod, [ HttpServer ],
+Hapiness.bootstrap(MyMod, [ HttpServer, LoggerExt ],
     { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));
