@@ -248,7 +248,6 @@ export class ModuleManager {
             .filter(Boolean)
             .concat(this.extractExportedProviders(module))
             .filter((p, i, array) => array.map(_ => _.provide).indexOf(p.provide) === i);
-        _providers.forEach(e => console.log(e.provide));
         return _providers;
     }
 
