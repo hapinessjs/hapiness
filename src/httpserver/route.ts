@@ -112,10 +112,11 @@ function getMethod(name: string): Fastify.HTTPMethod {
 }
 
 function isHttpReponse<T>(response: HttpResponse<T>): boolean {
-    return typeof response === 'object' && (!!response.headers || !!response.statusCode || (!!response.redirect && !!response.value));
+    return typeof response === 'object' &&
+        (!!response && !!response.headers || !!response.statusCode || (!!response.redirect && !!response.value));
 }
 export function handleResponse<T>(response: T | HttpResponse<T>): HttpResponse<T> {
-    if ((response as any).isBoom) {
+    if (!!response && (response as any).isBoom) {
         return {
             statusCode: (response as any).output.statusCode,
             headers: {},
