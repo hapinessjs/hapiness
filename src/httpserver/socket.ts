@@ -1,6 +1,6 @@
 // import { WebSocketRooms } from './rooms';
 import { Subject, Observable } from 'rxjs';
-import { filter, map, tap } from 'rxjs/operators';
+import { filter, map } from 'rxjs/operators';
 import { Connection, WSRequest } from './wsmanager';
 import { WebSocketRooms } from './rooms';
 

@@ -1,7 +1,7 @@
 import { Service, Inject } from '../core/decorators';
 import { HttpServer, FastifyServer } from './extension';
 import { Socket } from './socket';
-import { Subject, Observable, EMPTY } from 'rxjs';
+import { Subject } from 'rxjs';
 
 @Service({ moduleOnly: true })
 export class HttpServerService {
