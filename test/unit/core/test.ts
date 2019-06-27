@@ -1,7 +1,9 @@
-import { Hapiness, Module, InjectionToken, Service, Inject, Optional, Extension, ExtensionType } from '../../../src';
-import { HttpServer, Route, Post, Get, HttpServerRequest } from '../../../src/httpserver';
+import { Hapiness, Module, InjectionToken, Service, Inject, Optional, Extension, ExtensionType, Lib } from '../../../src';
+import { HttpServer, Route, Post, Get, HttpServerRequest, HttpServerConfig } from '../../../src/httpserver';
 import { Biim } from '@hapiness/biim';
 import { throwError } from 'rxjs';
+import { HttpServerService } from '../../../src/httpserver/service';
+import { tap } from 'rxjs/operators';
 
 // import { Route, Get, Lifecycle, Hook, Delete, Post } from '../../../src/httpserver/decorators';
 // import { Hapiness, Module, ExtensionType, Extension, HTTPService, Call, Service, InjectionToken, Inject } from '../../../src';
@@ -335,10 +337,26 @@ class SS {
 class MyMod2 {}
 
 
+
+@Lib()
+class Yo {
+    constructor(http: HttpServerService) {
+        http.websockets().pipe(
+            tap(socket => {
+                console.log(socket.request.url);
+                socket.on$('yolo').subscribe(() => {
+                    http.wsBroadcast('hello', 'world');
+                });
+            })
+        ).subscribe();
+    }
+}
+
+
 @Module({
     version: '1',
-    components: [],
-    providers: [Logger],
+    components: [Yo],
+    providers: [Logger, HttpServerService],
     imports: [MyMod2]
 })
 class MyMod {
@@ -348,6 +366,6 @@ class MyMod {
     }
 }
 
-Hapiness.bootstrap(MyMod, [ HttpServer, LoggerExt ],
+Hapiness.bootstrap(MyMod, [ HttpServer.setConfig<HttpServerConfig>({ websocket: true }), LoggerExt ],
     { retry: { interval: 100, count: 2 } })
 .catch(err => console.log(err));

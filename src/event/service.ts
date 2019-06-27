@@ -2,7 +2,7 @@ import { Inject, Service } from '..';
 import { EventExtension, EventManager, EventData } from './';
 import { Observable } from 'rxjs';
 
-@Service()
+@Service({ moduleOnly: true })
 export class EventService {
 
     constructor(

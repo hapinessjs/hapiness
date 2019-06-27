@@ -1,6 +1,7 @@
 import { Extension, ExtensionResult, ExtensionConfig } from '../core/extensions';
 import * as Fastify from 'fastify';
 import * as FastifyCors from 'fastify-cors';
+import * as FastifyWebsocket from 'fastify-websocket';
 import { ServerOptions } from 'https';
 import { CoreModule, ExtensionShutdownPriority, MetadataAndName } from '..';
 import { Observable, from } from 'rxjs';
@@ -8,8 +9,10 @@ import { mapTo, tap, flatMap, toArray, filter } from 'rxjs/operators';
 import { buildRoutes } from './route';
 import { IncomingMessage } from 'http';
 import { buildLifecycleComponents } from './lifecycle';
+import { WebsocketManager } from './wsmanager';
 
 export interface HttpServerConfig extends ExtensionConfig {
+    websocket?: boolean;
     https?: ServerOptions;
     ignoreTrailingSlash?: Fastify.ServerOptions['ignoreTrailingSlash'];
     maxParamLength?: Fastify.ServerOptions['maxParamLength'];
@@ -27,7 +30,8 @@ export interface HttpServerConfig extends ExtensionConfig {
     };
 }
 type AnyObject = {[key: string]: any};
-export type FastifyServer = Fastify.FastifyInstance;
+type WebsocketHandler = { wsHandler?: WebsocketManager };
+export type FastifyServer = Fastify.FastifyInstance & WebsocketHandler;
 export class HttpServerRequest<A = AnyObject, E = AnyObject> {
     auth?: A;
     query: AnyObject;
@@ -57,6 +61,15 @@ export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {
             tap(ext => {
                 if (this.config.cors) {
                     ext.value.register(FastifyCors, this.config.cors);
+                }
+                if (this.config.websocket) {
+                    ext.value.wsHandler = new WebsocketManager();
+                    ext.value.register(FastifyWebsocket, {
+                        handle: ext.value.wsHandler.handler.bind(ext.value.wsHandler),
+                        options: {
+                            maxPayload: 1048576
+                        }
+                    });
                 }
             })
         );
@@ -95,6 +108,9 @@ export class HttpServer extends Extension<FastifyServer, HttpServerConfig> {
 
     private close(): Observable<void> {
         return Observable.create(observer => {
+            if (this.value.wsHandler) {
+                this.value.wsHandler.close();
+            }
             this.value.close(() => observer.complete());
         });
     }

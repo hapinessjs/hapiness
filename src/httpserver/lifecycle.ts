@@ -97,7 +97,7 @@ function extractDI(request: HttpServerRequest): ReflectiveInjector {
 function extractPropertiesMetadata(metadata: MetadataAndName<Lifecycle>): Observable<MetadataAndName<Hook>[]> {
     return from(Object.getOwnPropertyNames(metadata.token.prototype)).pipe(
         map(property => Extension.extractMetadata<Hook>(metadata.token, property, metadata.source)),
-        filter(Boolean),
+        filter(_ => !!_),
         toArray()
     );
 }

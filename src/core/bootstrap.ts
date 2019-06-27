@@ -299,7 +299,7 @@ function getShutdownHooks(state: CoreState): Observable<ExtensionShutdownMap[]> 
                 [ state.module ]
             ).pipe(
                 map(res => ({ extension: ext, ...res })),
-                timeout(100),
+                timeout(1000),
                 catchError(() => empty())
             )
         ),
