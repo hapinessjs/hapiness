@@ -1,6 +1,6 @@
 {
     "name": "@hapiness/core",
-    "version": "1.6.0",
+    "version": "1.6.1",
     "description": "Project to have a HapiJS (https://hapijs.com/) based framework to create easier NodeJS back-end with some awesome features",
     "main": "commonjs/index.js",
     "types": "index.d.ts",
@@ -80,8 +80,9 @@
         "@types/websocket": "^0.0.38",
         "debug": "^3.1.0",
         "hapi": "^16.6.3",
-        "injection-js": "^2.2.1",
+        "injection-js": "^2.2.2",
         "reflect-metadata": "^0.1.12",
+        "tslib": "^1.10.0",
         "websocket": "^1.0.25"
     },
     "devDependencies": {
