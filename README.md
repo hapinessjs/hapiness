@@ -115,6 +115,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.6.1 (2019-03-04)
+    * Let provide reason code while closing a web socket
 * v1.6.0 (2018-11-27)
     * Request in DI: Add request reference inside route DI
 * v1.5.5 (2018-10-15)
