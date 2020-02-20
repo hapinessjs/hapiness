@@ -45,14 +45,16 @@ Better development experience with **typings**, **maintainability**, **improveme
 
 ## Table of contents
 
-* [Technologies](#technologies)
-* [Using Hapiness to create a web server and services](#using-hapiness-to-create-a-web-server-and-services)
-    * [Yarn or NPM it in your package.json](#yarn-or-npm-it-in-your-packagejson)
-    * [Use Hapiness API](#use-hapiness-api)
-* [Contributing](#contributing)
-* [Change History](#change-history)
-* [Maintainers](#maintainers)
-* [License](#license)
+- [Web and services application framework](#web-and-services-application-framework)
+  - [Table of contents](#table-of-contents)
+  - [Technologies](#technologies)
+  - [Using Hapiness to create a web server and services](#using-hapiness-to-create-a-web-server-and-services)
+    - [`yarn` or `npm` it in your `package.json`](#yarn-or-npm-it-in-your-packagejson)
+    - [Use Hapiness API](#use-hapiness-api)
+  - [Contributing](#contributing)
+  - [Change History](#change-history)
+  - [Maintainers](#maintainers)
+  - [License](#license)
 
 ## Technologies
 
@@ -115,6 +117,8 @@ To set up your development environment:
 [Back to top](#table-of-contents)
 
 ## Change History
+* v1.6.2 (2020-02-20)
+    * remove tslib from dependencies and put it as a dev dependency
 * v1.6.0 (2018-11-27)
     * Request in DI: Add request reference inside route DI
 * v1.5.5 (2018-10-15)
