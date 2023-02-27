@@ -90,7 +90,7 @@
         "coveralls": "^3.0.0",
         "fs-extra": "^4.0.2",
         "istanbul": "^1.1.0-alpha.1",
-        "mocha": "^4.0.1",
+        "mocha": "^10.2.0",
         "mocha-typescript": "^1.1.12",
         "rimraf": "^2.6.2",
         "rxjs": "^5.5.7",
